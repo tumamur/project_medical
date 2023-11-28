@@ -16,6 +16,7 @@ class DataHandler:
         self.opt = opt
         self.data_imputation = self.opt["data_imputation"]
         self.master_df = pd.read_csv(env_settings.MASTER_LIST[self.data_imputation])
+        self.records = self.create_records()
     
     def create_records(self):
 
