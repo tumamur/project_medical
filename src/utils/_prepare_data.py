@@ -28,8 +28,12 @@ class DataHandler:
 
         
         for i in range(len(images)):
+
+            image_path = images[i].split("files")[-1]
+            image_path = env_settings.DATA + image_path 
+            
             record = {
-                "img" : images[i],
+                "img" : image_path,
                 "label" : labels[i]
             }
             records.append(record)
