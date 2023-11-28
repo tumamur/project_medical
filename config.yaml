@@ -1,0 +1,20 @@
+dataset:
+  chexpert_labels : [
+    'Atelectasis',
+    'Cardiomegaly', 
+    'Consolidation', 
+    'Edema', 
+    'Enlarged Cardiomediastinum',
+    'Fracture',
+    'Lung Lesion',
+    'Lung Opacity',
+    'No Finding',
+    'Pleural Effusion',
+    'Pleural Other',
+    'Pneumonia',
+    'Pneumothorax',
+    'Support Devices'
+  ]
+  batch_size : 8
+  pad_size : 128
+  data_imputation : "zeros"
