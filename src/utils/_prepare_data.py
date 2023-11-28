@@ -6,7 +6,7 @@ import os
 import random
 from typing import Sequence
 import sys
-
+from PIL import Image
 from .environment_settings import env_settings
 
 
@@ -53,8 +53,10 @@ class DataHandler:
         return images_df["jpg"].values.tolist()
 
     
-    def load_image(self, max_shape: Sequence[int], img_path: str):
-        return None
+    def load_image(self, img_path: str):
+        image = Image.open(img_path).convert('RGB')
+        return image
+        
 
 
     def get_labels(self, label_df: pd.DataFrame):

@@ -4,6 +4,7 @@ from typing import Optional, Tuple, Sequence
 import numpy as np
 import pandas as pd
 import torch
+from torchvision import transforms
 from torch.utils.data import Dataset
 
 class Chexpert(Dataset):
@@ -13,6 +14,7 @@ class Chexpert(Dataset):
         self.processor = processor
         self.records = records
         self.training = training
+        self.resize = (self.opt["input_size"], self.opt["input_size"])
         if self.training:
             self.transformations = self.get_train_transformations()
         else:
@@ -40,20 +42,25 @@ class Chexpert(Dataset):
         # convert it to numpy array
         chexpert_label = np.array(chexpert_label)
 
+        # get the image path
+        img_path = record["img"]
+        image = self.processor.load_image(img_path)
+        image = self.transformations(image)
+        return {"target": image, "report": chexpert_label}
 
-
-
-        return {"target": None, "report": chexpert_label}
-
-    
 
     def get_train_transformations(self):
-
-        # TODO : 
-        # Start with torch transformations later use BioVil-T transformations
-
-        return None
+        # Basic transformations for training
+        return transforms.Compose([
+            transforms.Resize(self.resize),  # Resize images
+            transforms.ToTensor(),  # Convert images to tensor
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
+        ])
     
     def get_test_transformations(self):
-
-        return None
+        # Basic transformations for testing (can be the same as training)
+        return transforms.Compose([
+            transforms.Resize(self.resize),  # Resize images
+            transforms.ToTensor(),  # Convert images to tensor
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
+        ])

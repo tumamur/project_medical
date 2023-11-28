@@ -16,5 +16,5 @@ dataset:
     'Support Devices'
   ]
   batch_size : 8
-  pad_size : 128
+  input_size : 224
   data_imputation : "zeros"
