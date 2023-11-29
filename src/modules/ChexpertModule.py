@@ -24,9 +24,8 @@ class ChexpertDataModule(pl.LightningDataModule):
         # randomly split the records into train, val, test
 
         self.train_size = int(self.opt["train_size"] * len(self.records))
-        self.val_size = int(self.opt["val_size"] * len(self.records))
         self.test_size = int(self.opt["test_size"] * len(self.records))
-
+        self.val_size = int(len(self.records) - self.train_size - self.test_size)
 
         train_records, val_records, test_records = random_split(
             self.records, [self.train_size, self.val_size, self.test_size]
