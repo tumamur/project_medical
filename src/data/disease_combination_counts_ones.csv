@@ -1,0 +1,1458 @@
+Combination,Number
+Atelectasis,6135
+Cardiomegaly,8325
+Consolidation,685
+Edema,4215
+Enlarged Cardiomediastinum,1309
+Fracture,1533
+Lung Lesion,1230
+Lung Opacity,5033
+No Finding,66953
+Pleural Effusion,4948
+Pleural Other,278
+Pneumonia,2938
+Pneumothorax,3026
+"Atelectasis, Cardiomegaly",2265
+"Atelectasis, Consolidation",256
+"Atelectasis, Edema",764
+"Atelectasis, Enlarged Cardiomediastinum",425
+"Atelectasis, Fracture",180
+"Atelectasis, Lung Lesion",143
+"Atelectasis, Lung Opacity",2604
+"Atelectasis, Pleural Effusion",4463
+"Atelectasis, Pleural Other",47
+"Atelectasis, Pneumonia",519
+"Atelectasis, Pneumothorax",562
+"Cardiomegaly, Consolidation",112
+"Cardiomegaly, Edema",3145
+"Cardiomegaly, Enlarged Cardiomediastinum",896
+"Cardiomegaly, Fracture",193
+"Cardiomegaly, Lung Lesion",140
+"Cardiomegaly, Lung Opacity",1623
+"Cardiomegaly, Pleural Effusion",1728
+"Cardiomegaly, Pleural Other",80
+"Cardiomegaly, Pneumonia",313
+"Cardiomegaly, Pneumothorax",496
+"Consolidation, Edema",134
+"Consolidation, Enlarged Cardiomediastinum",70
+"Consolidation, Fracture",17
+"Consolidation, Lung Lesion",58
+"Consolidation, Lung Opacity",405
+"Consolidation, Pleural Effusion",546
+"Consolidation, Pleural Other",10
+"Consolidation, Pneumonia",742
+"Consolidation, Pneumothorax",76
+"Edema, Enlarged Cardiomediastinum",209
+"Edema, Fracture",48
+"Edema, Lung Lesion",52
+"Edema, Lung Opacity",916
+"Edema, Pleural Effusion",2578
+"Edema, Pleural Other",24
+"Edema, Pneumonia",542
+"Edema, Pneumothorax",97
+"Enlarged Cardiomediastinum, Fracture",50
+"Enlarged Cardiomediastinum, Lung Lesion",70
+"Enlarged Cardiomediastinum, Lung Opacity",353
+"Enlarged Cardiomediastinum, Pleural Effusion",357
+"Enlarged Cardiomediastinum, Pleural Other",22
+"Enlarged Cardiomediastinum, Pneumonia",108
+"Enlarged Cardiomediastinum, Pneumothorax",139
+"Fracture, Lung Lesion",30
+"Fracture, Lung Opacity",112
+"Fracture, Pleural Effusion",133
+"Fracture, Pleural Other",26
+"Fracture, Pneumonia",24
+"Fracture, Pneumothorax",120
+"Lung Lesion, Lung Opacity",693
+"Lung Lesion, Pleural Effusion",224
+"Lung Lesion, Pleural Other",19
+"Lung Lesion, Pneumonia",102
+"Lung Lesion, Pneumothorax",43
+"Lung Opacity, Pleural Effusion",1685
+"Lung Opacity, Pleural Other",151
+"Lung Opacity, Pneumonia",4033
+"Lung Opacity, Pneumothorax",355
+"Pleural Effusion, Pleural Other",192
+"Pleural Effusion, Pneumonia",414
+"Pleural Effusion, Pneumothorax",646
+"Pleural Other, Pneumonia",26
+"Pleural Other, Pneumothorax",18
+"Pneumonia, Pneumothorax",23
+"Atelectasis, Cardiomegaly, Consolidation",50
+"Atelectasis, Cardiomegaly, Edema",726
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum",299
+"Atelectasis, Cardiomegaly, Fracture",75
+"Atelectasis, Cardiomegaly, Lung Lesion",35
+"Atelectasis, Cardiomegaly, Lung Opacity",829
+"Atelectasis, Cardiomegaly, Pleural Effusion",2627
+"Atelectasis, Cardiomegaly, Pleural Other",18
+"Atelectasis, Cardiomegaly, Pneumonia",130
+"Atelectasis, Cardiomegaly, Pneumothorax",196
+"Atelectasis, Consolidation, Edema",60
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum",23
+"Atelectasis, Consolidation, Fracture",6
+"Atelectasis, Consolidation, Lung Lesion",15
+"Atelectasis, Consolidation, Lung Opacity",322
+"Atelectasis, Consolidation, Pleural Effusion",484
+"Atelectasis, Consolidation, Pleural Other",2
+"Atelectasis, Consolidation, Pneumonia",175
+"Atelectasis, Consolidation, Pneumothorax",22
+"Atelectasis, Edema, Enlarged Cardiomediastinum",67
+"Atelectasis, Edema, Fracture",7
+"Atelectasis, Edema, Lung Lesion",9
+"Atelectasis, Edema, Lung Opacity",333
+"Atelectasis, Edema, Pleural Effusion",1394
+"Atelectasis, Edema, Pleural Other",2
+"Atelectasis, Edema, Pneumonia",93
+"Atelectasis, Edema, Pneumothorax",42
+"Atelectasis, Enlarged Cardiomediastinum, Fracture",11
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion",15
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity",317
+"Atelectasis, Enlarged Cardiomediastinum, Pleural Effusion",577
+"Atelectasis, Enlarged Cardiomediastinum, Pleural Other",3
+"Atelectasis, Enlarged Cardiomediastinum, Pneumonia",13
+"Atelectasis, Enlarged Cardiomediastinum, Pneumothorax",93
+"Atelectasis, Fracture, Lung Lesion",4
+"Atelectasis, Fracture, Lung Opacity",77
+"Atelectasis, Fracture, Pleural Effusion",108
+"Atelectasis, Fracture, Pleural Other",8
+"Atelectasis, Fracture, Pneumonia",7
+"Atelectasis, Fracture, Pneumothorax",38
+"Atelectasis, Lung Lesion, Lung Opacity",142
+"Atelectasis, Lung Lesion, Pleural Effusion",118
+"Atelectasis, Lung Lesion, Pleural Other",3
+"Atelectasis, Lung Lesion, Pneumonia",15
+"Atelectasis, Lung Lesion, Pneumothorax",15
+"Atelectasis, Lung Opacity, Pleural Effusion",1890
+"Atelectasis, Lung Opacity, Pleural Other",20
+"Atelectasis, Lung Opacity, Pneumonia",2900
+"Atelectasis, Lung Opacity, Pneumothorax",163
+"Atelectasis, Pleural Effusion, Pleural Other",57
+"Atelectasis, Pleural Effusion, Pneumonia",376
+"Atelectasis, Pleural Effusion, Pneumothorax",528
+"Atelectasis, Pleural Other, Pneumonia",1
+"Atelectasis, Pleural Other, Pneumothorax",2
+"Atelectasis, Pneumonia, Pneumothorax",17
+"Cardiomegaly, Consolidation, Edema",82
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum",129
+"Cardiomegaly, Consolidation, Fracture",3
+"Cardiomegaly, Consolidation, Lung Lesion",9
+"Cardiomegaly, Consolidation, Lung Opacity",129
+"Cardiomegaly, Consolidation, Pleural Effusion",228
+"Cardiomegaly, Consolidation, Pleural Other",1
+"Cardiomegaly, Consolidation, Pneumonia",67
+"Cardiomegaly, Consolidation, Pneumothorax",13
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum",245
+"Cardiomegaly, Edema, Fracture",50
+"Cardiomegaly, Edema, Lung Lesion",34
+"Cardiomegaly, Edema, Lung Opacity",600
+"Cardiomegaly, Edema, Pleural Effusion",2582
+"Cardiomegaly, Edema, Pleural Other",25
+"Cardiomegaly, Edema, Pneumonia",338
+"Cardiomegaly, Edema, Pneumothorax",48
+"Cardiomegaly, Enlarged Cardiomediastinum, Fracture",41
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion",35
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity",244
+"Cardiomegaly, Enlarged Cardiomediastinum, Pleural Effusion",301
+"Cardiomegaly, Enlarged Cardiomediastinum, Pleural Other",6
+"Cardiomegaly, Enlarged Cardiomediastinum, Pneumonia",32
+"Cardiomegaly, Enlarged Cardiomediastinum, Pneumothorax",64
+"Cardiomegaly, Fracture, Lung Lesion",7
+"Cardiomegaly, Fracture, Lung Opacity",35
+"Cardiomegaly, Fracture, Pleural Effusion",42
+"Cardiomegaly, Fracture, Pleural Other",11
+"Cardiomegaly, Fracture, Pneumonia",5
+"Cardiomegaly, Fracture, Pneumothorax",19
+"Cardiomegaly, Lung Lesion, Lung Opacity",69
+"Cardiomegaly, Lung Lesion, Pleural Effusion",66
+"Cardiomegaly, Lung Lesion, Pleural Other",3
+"Cardiomegaly, Lung Lesion, Pneumonia",7
+"Cardiomegaly, Lung Lesion, Pneumothorax",5
+"Cardiomegaly, Lung Opacity, Pleural Effusion",1001
+"Cardiomegaly, Lung Opacity, Pleural Other",52
+"Cardiomegaly, Lung Opacity, Pneumonia",433
+"Cardiomegaly, Lung Opacity, Pneumothorax",125
+"Cardiomegaly, Pleural Effusion, Pleural Other",60
+"Cardiomegaly, Pleural Effusion, Pneumonia",112
+"Cardiomegaly, Pleural Effusion, Pneumothorax",182
+"Cardiomegaly, Pleural Other, Pneumonia",4
+"Cardiomegaly, Pleural Other, Pneumothorax",7
+"Cardiomegaly, Pneumonia, Pneumothorax",7
+"Consolidation, Edema, Enlarged Cardiomediastinum",22
+"Consolidation, Edema, Lung Lesion",4
+"Consolidation, Edema, Lung Opacity",85
+"Consolidation, Edema, Pleural Effusion",235
+"Consolidation, Edema, Pleural Other",3
+"Consolidation, Edema, Pneumonia",175
+"Consolidation, Edema, Pneumothorax",5
+"Consolidation, Enlarged Cardiomediastinum, Fracture",3
+"Consolidation, Enlarged Cardiomediastinum, Lung Lesion",9
+"Consolidation, Enlarged Cardiomediastinum, Lung Opacity",36
+"Consolidation, Enlarged Cardiomediastinum, Pleural Effusion",93
+"Consolidation, Enlarged Cardiomediastinum, Pleural Other",3
+"Consolidation, Enlarged Cardiomediastinum, Pneumonia",66
+"Consolidation, Enlarged Cardiomediastinum, Pneumothorax",10
+"Consolidation, Fracture, Lung Opacity",5
+"Consolidation, Fracture, Pleural Effusion",10
+"Consolidation, Fracture, Pneumonia",4
+"Consolidation, Fracture, Pneumothorax",7
+"Consolidation, Lung Lesion, Lung Opacity",43
+"Consolidation, Lung Lesion, Pleural Effusion",53
+"Consolidation, Lung Lesion, Pneumonia",39
+"Consolidation, Lung Lesion, Pneumothorax",5
+"Consolidation, Lung Opacity, Pleural Effusion",203
+"Consolidation, Lung Opacity, Pleural Other",12
+"Consolidation, Lung Opacity, Pneumonia",237
+"Consolidation, Lung Opacity, Pneumothorax",24
+"Consolidation, Pleural Effusion, Pleural Other",5
+"Consolidation, Pleural Effusion, Pneumonia",310
+"Consolidation, Pleural Effusion, Pneumothorax",70
+"Consolidation, Pleural Other, Pneumonia",9
+"Consolidation, Pleural Other, Pneumothorax",1
+"Consolidation, Pneumonia, Pneumothorax",13
+"Edema, Enlarged Cardiomediastinum, Fracture",3
+"Edema, Enlarged Cardiomediastinum, Lung Lesion",4
+"Edema, Enlarged Cardiomediastinum, Lung Opacity",91
+"Edema, Enlarged Cardiomediastinum, Pleural Effusion",301
+"Edema, Enlarged Cardiomediastinum, Pleural Other",1
+"Edema, Enlarged Cardiomediastinum, Pneumonia",32
+"Edema, Enlarged Cardiomediastinum, Pneumothorax",14
+"Edema, Fracture, Lung Lesion",1
+"Edema, Fracture, Lung Opacity",11
+"Edema, Fracture, Pleural Effusion",23
+"Edema, Fracture, Pleural Other",1
+"Edema, Fracture, Pneumonia",6
+"Edema, Fracture, Pneumothorax",2
+"Edema, Lung Lesion, Lung Opacity",47
+"Edema, Lung Lesion, Pleural Effusion",35
+"Edema, Lung Lesion, Pleural Other",1
+"Edema, Lung Lesion, Pneumonia",15
+"Edema, Lung Lesion, Pneumothorax",2
+"Edema, Lung Opacity, Pleural Effusion",639
+"Edema, Lung Opacity, Pleural Other",17
+"Edema, Lung Opacity, Pneumonia",1348
+"Edema, Lung Opacity, Pneumothorax",35
+"Edema, Pleural Effusion, Pleural Other",28
+"Edema, Pleural Effusion, Pneumonia",272
+"Edema, Pleural Effusion, Pneumothorax",73
+"Edema, Pleural Other, Pneumonia",11
+"Edema, Pleural Other, Pneumothorax",3
+"Edema, Pneumonia, Pneumothorax",10
+"Enlarged Cardiomediastinum, Fracture, Lung Lesion",2
+"Enlarged Cardiomediastinum, Fracture, Lung Opacity",11
+"Enlarged Cardiomediastinum, Fracture, Pleural Effusion",12
+"Enlarged Cardiomediastinum, Fracture, Pneumonia",3
+"Enlarged Cardiomediastinum, Fracture, Pneumothorax",7
+"Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity",44
+"Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion",28
+"Enlarged Cardiomediastinum, Lung Lesion, Pleural Other",4
+"Enlarged Cardiomediastinum, Lung Lesion, Pneumonia",4
+"Enlarged Cardiomediastinum, Lung Lesion, Pneumothorax",4
+"Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",237
+"Enlarged Cardiomediastinum, Lung Opacity, Pleural Other",14
+"Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",131
+"Enlarged Cardiomediastinum, Lung Opacity, Pneumothorax",60
+"Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other",26
+"Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",12
+"Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",60
+"Enlarged Cardiomediastinum, Pleural Other, Pneumonia",1
+"Enlarged Cardiomediastinum, Pneumonia, Pneumothorax",5
+"Fracture, Lung Lesion, Lung Opacity",15
+"Fracture, Lung Lesion, Pleural Effusion",4
+"Fracture, Lung Lesion, Pleural Other",1
+"Fracture, Lung Lesion, Pneumothorax",1
+"Fracture, Lung Opacity, Pleural Effusion",40
+"Fracture, Lung Opacity, Pleural Other",11
+"Fracture, Lung Opacity, Pneumonia",42
+"Fracture, Lung Opacity, Pneumothorax",24
+"Fracture, Pleural Effusion, Pleural Other",12
+"Fracture, Pleural Effusion, Pneumonia",2
+"Fracture, Pleural Effusion, Pneumothorax",42
+"Fracture, Pleural Other, Pneumothorax",3
+"Fracture, Pneumonia, Pneumothorax",1
+"Lung Lesion, Lung Opacity, Pleural Effusion",148
+"Lung Lesion, Lung Opacity, Pleural Other",16
+"Lung Lesion, Lung Opacity, Pneumonia",352
+"Lung Lesion, Lung Opacity, Pneumothorax",20
+"Lung Lesion, Pleural Effusion, Pleural Other",17
+"Lung Lesion, Pleural Effusion, Pneumonia",14
+"Lung Lesion, Pleural Effusion, Pneumothorax",22
+"Lung Lesion, Pleural Other, Pneumonia",2
+"Lung Opacity, Pleural Effusion, Pleural Other",54
+"Lung Opacity, Pleural Effusion, Pneumonia",819
+"Lung Opacity, Pleural Effusion, Pneumothorax",207
+"Lung Opacity, Pleural Other, Pneumonia",58
+"Lung Opacity, Pleural Other, Pneumothorax",5
+"Lung Opacity, Pneumonia, Pneumothorax",60
+"Pleural Effusion, Pleural Other, Pneumonia",15
+"Pleural Effusion, Pleural Other, Pneumothorax",13
+"Pleural Effusion, Pneumonia, Pneumothorax",12
+"Pleural Other, Pneumonia, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema",64
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum",22
+"Atelectasis, Cardiomegaly, Consolidation, Fracture",2
+"Atelectasis, Cardiomegaly, Consolidation, Lung Lesion",1
+"Atelectasis, Cardiomegaly, Consolidation, Lung Opacity",49
+"Atelectasis, Cardiomegaly, Consolidation, Pleural Effusion",165
+"Atelectasis, Cardiomegaly, Consolidation, Pneumonia",51
+"Atelectasis, Cardiomegaly, Consolidation, Pneumothorax",5
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum",75
+"Atelectasis, Cardiomegaly, Edema, Fracture",13
+"Atelectasis, Cardiomegaly, Edema, Lung Lesion",3
+"Atelectasis, Cardiomegaly, Edema, Lung Opacity",272
+"Atelectasis, Cardiomegaly, Edema, Pleural Effusion",1848
+"Atelectasis, Cardiomegaly, Edema, Pleural Other",5
+"Atelectasis, Cardiomegaly, Edema, Pneumonia",54
+"Atelectasis, Cardiomegaly, Edema, Pneumothorax",32
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Fracture",4
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion",4
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity",120
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Pleural Effusion",298
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Pleural Other",4
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Pneumonia",28
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Pneumothorax",30
+"Atelectasis, Cardiomegaly, Fracture, Lung Opacity",14
+"Atelectasis, Cardiomegaly, Fracture, Pleural Effusion",62
+"Atelectasis, Cardiomegaly, Fracture, Pleural Other",2
+"Atelectasis, Cardiomegaly, Fracture, Pneumonia",1
+"Atelectasis, Cardiomegaly, Fracture, Pneumothorax",14
+"Atelectasis, Cardiomegaly, Lung Lesion, Lung Opacity",30
+"Atelectasis, Cardiomegaly, Lung Lesion, Pleural Effusion",50
+"Atelectasis, Cardiomegaly, Lung Lesion, Pneumonia",2
+"Atelectasis, Cardiomegaly, Lung Lesion, Pneumothorax",2
+"Atelectasis, Cardiomegaly, Lung Opacity, Pleural Effusion",984
+"Atelectasis, Cardiomegaly, Lung Opacity, Pleural Other",14
+"Atelectasis, Cardiomegaly, Lung Opacity, Pneumonia",369
+"Atelectasis, Cardiomegaly, Lung Opacity, Pneumothorax",35
+"Atelectasis, Cardiomegaly, Pleural Effusion, Pleural Other",17
+"Atelectasis, Cardiomegaly, Pleural Effusion, Pneumonia",122
+"Atelectasis, Cardiomegaly, Pleural Effusion, Pneumothorax",178
+"Atelectasis, Cardiomegaly, Pleural Other, Pneumothorax",2
+"Atelectasis, Cardiomegaly, Pneumonia, Pneumothorax",1
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum",6
+"Atelectasis, Consolidation, Edema, Fracture",1
+"Atelectasis, Consolidation, Edema, Lung Opacity",52
+"Atelectasis, Consolidation, Edema, Pleural Effusion",187
+"Atelectasis, Consolidation, Edema, Pleural Other",1
+"Atelectasis, Consolidation, Edema, Pneumonia",48
+"Atelectasis, Consolidation, Edema, Pneumothorax",7
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Lesion",2
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Opacity",46
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Pleural Effusion",81
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Pleural Other",2
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Pneumonia",18
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Pneumothorax",9
+"Atelectasis, Consolidation, Fracture, Lung Opacity",6
+"Atelectasis, Consolidation, Fracture, Pleural Effusion",9
+"Atelectasis, Consolidation, Fracture, Pneumonia",5
+"Atelectasis, Consolidation, Fracture, Pneumothorax",3
+"Atelectasis, Consolidation, Lung Lesion, Lung Opacity",16
+"Atelectasis, Consolidation, Lung Lesion, Pleural Effusion",31
+"Atelectasis, Consolidation, Lung Lesion, Pneumonia",3
+"Atelectasis, Consolidation, Lung Opacity, Pleural Effusion",353
+"Atelectasis, Consolidation, Lung Opacity, Pleural Other",3
+"Atelectasis, Consolidation, Lung Opacity, Pneumonia",143
+"Atelectasis, Consolidation, Lung Opacity, Pneumothorax",14
+"Atelectasis, Consolidation, Pleural Effusion, Pleural Other",3
+"Atelectasis, Consolidation, Pleural Effusion, Pneumonia",265
+"Atelectasis, Consolidation, Pleural Effusion, Pneumothorax",53
+"Atelectasis, Consolidation, Pleural Other, Pneumonia",1
+"Atelectasis, Consolidation, Pneumonia, Pneumothorax",7
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Fracture",2
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Lesion",1
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Opacity",59
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Pleural Effusion",233
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Pneumonia",1
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Pneumothorax",8
+"Atelectasis, Edema, Fracture, Lung Lesion",1
+"Atelectasis, Edema, Fracture, Lung Opacity",2
+"Atelectasis, Edema, Fracture, Pleural Effusion",17
+"Atelectasis, Edema, Fracture, Pneumonia",1
+"Atelectasis, Edema, Fracture, Pneumothorax",2
+"Atelectasis, Edema, Lung Lesion, Lung Opacity",10
+"Atelectasis, Edema, Lung Lesion, Pleural Effusion",20
+"Atelectasis, Edema, Lung Lesion, Pneumonia",1
+"Atelectasis, Edema, Lung Lesion, Pneumothorax",1
+"Atelectasis, Edema, Lung Opacity, Pleural Effusion",623
+"Atelectasis, Edema, Lung Opacity, Pleural Other",6
+"Atelectasis, Edema, Lung Opacity, Pneumonia",409
+"Atelectasis, Edema, Lung Opacity, Pneumothorax",27
+"Atelectasis, Edema, Pleural Effusion, Pleural Other",13
+"Atelectasis, Edema, Pleural Effusion, Pneumonia",139
+"Atelectasis, Edema, Pleural Effusion, Pneumothorax",63
+"Atelectasis, Edema, Pleural Other, Pneumonia",2
+"Atelectasis, Edema, Pleural Other, Pneumothorax",1
+"Atelectasis, Edema, Pneumonia, Pneumothorax",2
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Lesion",1
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Opacity",16
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Pleural Effusion",19
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Pneumonia",3
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Pneumothorax",4
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity",18
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion",19
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Pneumothorax",4
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",375
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other",8
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",259
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pneumothorax",54
+"Atelectasis, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other",9
+"Atelectasis, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",17
+"Atelectasis, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",135
+"Atelectasis, Enlarged Cardiomediastinum, Pneumonia, Pneumothorax",2
+"Atelectasis, Fracture, Lung Lesion, Lung Opacity",4
+"Atelectasis, Fracture, Lung Lesion, Pleural Effusion",3
+"Atelectasis, Fracture, Lung Opacity, Pleural Effusion",39
+"Atelectasis, Fracture, Lung Opacity, Pneumonia",30
+"Atelectasis, Fracture, Lung Opacity, Pneumothorax",19
+"Atelectasis, Fracture, Pleural Effusion, Pleural Other",4
+"Atelectasis, Fracture, Pleural Effusion, Pneumonia",5
+"Atelectasis, Fracture, Pleural Effusion, Pneumothorax",29
+"Atelectasis, Fracture, Pleural Other, Pneumothorax",2
+"Atelectasis, Fracture, Pneumonia, Pneumothorax",2
+"Atelectasis, Lung Lesion, Lung Opacity, Pleural Effusion",95
+"Atelectasis, Lung Lesion, Lung Opacity, Pneumonia",103
+"Atelectasis, Lung Lesion, Lung Opacity, Pneumothorax",13
+"Atelectasis, Lung Lesion, Pleural Effusion, Pleural Other",3
+"Atelectasis, Lung Lesion, Pleural Effusion, Pneumonia",12
+"Atelectasis, Lung Lesion, Pleural Effusion, Pneumothorax",10
+"Atelectasis, Lung Lesion, Pleural Other, Pneumonia",1
+"Atelectasis, Lung Opacity, Pleural Effusion, Pleural Other",27
+"Atelectasis, Lung Opacity, Pleural Effusion, Pneumonia",1407
+"Atelectasis, Lung Opacity, Pleural Effusion, Pneumothorax",168
+"Atelectasis, Lung Opacity, Pleural Other, Pneumonia",16
+"Atelectasis, Lung Opacity, Pleural Other, Pneumothorax",3
+"Atelectasis, Lung Opacity, Pneumonia, Pneumothorax",42
+"Atelectasis, Pleural Effusion, Pleural Other, Pneumonia",4
+"Atelectasis, Pleural Effusion, Pleural Other, Pneumothorax",4
+"Atelectasis, Pleural Effusion, Pneumonia, Pneumothorax",8
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum",31
+"Cardiomegaly, Consolidation, Edema, Fracture",2
+"Cardiomegaly, Consolidation, Edema, Lung Lesion",2
+"Cardiomegaly, Consolidation, Edema, Lung Opacity",49
+"Cardiomegaly, Consolidation, Edema, Pleural Effusion",220
+"Cardiomegaly, Consolidation, Edema, Pleural Other",2
+"Cardiomegaly, Consolidation, Edema, Pneumonia",89
+"Cardiomegaly, Consolidation, Edema, Pneumothorax",5
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Fracture",6
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion",8
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity",50
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pleural Effusion",146
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pleural Other",1
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pneumonia",51
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pneumothorax",9
+"Cardiomegaly, Consolidation, Fracture, Lung Opacity",3
+"Cardiomegaly, Consolidation, Fracture, Pleural Effusion",2
+"Cardiomegaly, Consolidation, Fracture, Pneumothorax",1
+"Cardiomegaly, Consolidation, Lung Lesion, Lung Opacity",6
+"Cardiomegaly, Consolidation, Lung Lesion, Pleural Effusion",10
+"Cardiomegaly, Consolidation, Lung Lesion, Pneumonia",6
+"Cardiomegaly, Consolidation, Lung Opacity, Pleural Effusion",63
+"Cardiomegaly, Consolidation, Lung Opacity, Pneumonia",34
+"Cardiomegaly, Consolidation, Lung Opacity, Pneumothorax",8
+"Cardiomegaly, Consolidation, Pleural Effusion, Pleural Other",4
+"Cardiomegaly, Consolidation, Pleural Effusion, Pneumonia",120
+"Cardiomegaly, Consolidation, Pleural Effusion, Pneumothorax",12
+"Cardiomegaly, Consolidation, Pleural Other, Pneumonia",1
+"Cardiomegaly, Consolidation, Pneumonia, Pneumothorax",2
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture",7
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion",3
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity",92
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pleural Effusion",334
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pleural Other",1
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pneumonia",20
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pneumothorax",6
+"Cardiomegaly, Edema, Fracture, Lung Lesion",1
+"Cardiomegaly, Edema, Fracture, Lung Opacity",6
+"Cardiomegaly, Edema, Fracture, Pleural Effusion",30
+"Cardiomegaly, Edema, Fracture, Pleural Other",4
+"Cardiomegaly, Edema, Fracture, Pneumonia",10
+"Cardiomegaly, Edema, Fracture, Pneumothorax",8
+"Cardiomegaly, Edema, Lung Lesion, Lung Opacity",33
+"Cardiomegaly, Edema, Lung Lesion, Pleural Effusion",34
+"Cardiomegaly, Edema, Lung Lesion, Pneumonia",7
+"Cardiomegaly, Edema, Lung Lesion, Pneumothorax",1
+"Cardiomegaly, Edema, Lung Opacity, Pleural Effusion",730
+"Cardiomegaly, Edema, Lung Opacity, Pleural Other",12
+"Cardiomegaly, Edema, Lung Opacity, Pneumonia",542
+"Cardiomegaly, Edema, Lung Opacity, Pneumothorax",20
+"Cardiomegaly, Edema, Pleural Effusion, Pleural Other",25
+"Cardiomegaly, Edema, Pleural Effusion, Pneumonia",205
+"Cardiomegaly, Edema, Pleural Effusion, Pneumothorax",81
+"Cardiomegaly, Edema, Pleural Other, Pneumonia",2
+"Cardiomegaly, Edema, Pneumonia, Pneumothorax",4
+"Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Lung Opacity",3
+"Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Pleural Effusion",12
+"Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Pleural Other",1
+"Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Pneumonia",2
+"Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Pneumothorax",4
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity",31
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion",11
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Pleural Other",1
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Pneumothorax",1
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",145
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other",4
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",118
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pneumothorax",22
+"Cardiomegaly, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other",10
+"Cardiomegaly, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",7
+"Cardiomegaly, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",46
+"Cardiomegaly, Enlarged Cardiomediastinum, Pleural Other, Pneumonia",2
+"Cardiomegaly, Enlarged Cardiomediastinum, Pleural Other, Pneumothorax",1
+"Cardiomegaly, Enlarged Cardiomediastinum, Pneumonia, Pneumothorax",1
+"Cardiomegaly, Fracture, Lung Lesion, Lung Opacity",2
+"Cardiomegaly, Fracture, Lung Lesion, Pleural Effusion",1
+"Cardiomegaly, Fracture, Lung Opacity, Pleural Effusion",21
+"Cardiomegaly, Fracture, Lung Opacity, Pleural Other",4
+"Cardiomegaly, Fracture, Lung Opacity, Pneumonia",8
+"Cardiomegaly, Fracture, Lung Opacity, Pneumothorax",8
+"Cardiomegaly, Fracture, Pleural Effusion, Pleural Other",2
+"Cardiomegaly, Fracture, Pleural Effusion, Pneumonia",2
+"Cardiomegaly, Fracture, Pleural Effusion, Pneumothorax",10
+"Cardiomegaly, Fracture, Pleural Other, Pneumothorax",1
+"Cardiomegaly, Fracture, Pneumonia, Pneumothorax",2
+"Cardiomegaly, Lung Lesion, Lung Opacity, Pleural Effusion",32
+"Cardiomegaly, Lung Lesion, Lung Opacity, Pleural Other",1
+"Cardiomegaly, Lung Lesion, Lung Opacity, Pneumonia",23
+"Cardiomegaly, Lung Lesion, Lung Opacity, Pneumothorax",4
+"Cardiomegaly, Lung Lesion, Pleural Effusion, Pleural Other",4
+"Cardiomegaly, Lung Lesion, Pleural Effusion, Pneumonia",3
+"Cardiomegaly, Lung Lesion, Pleural Other, Pneumonia",1
+"Cardiomegaly, Lung Lesion, Pleural Other, Pneumothorax",1
+"Cardiomegaly, Lung Opacity, Pleural Effusion, Pleural Other",19
+"Cardiomegaly, Lung Opacity, Pleural Effusion, Pneumonia",237
+"Cardiomegaly, Lung Opacity, Pleural Effusion, Pneumothorax",69
+"Cardiomegaly, Lung Opacity, Pleural Other, Pneumonia",8
+"Cardiomegaly, Lung Opacity, Pleural Other, Pneumothorax",2
+"Cardiomegaly, Lung Opacity, Pneumonia, Pneumothorax",10
+"Cardiomegaly, Pleural Effusion, Pleural Other, Pneumonia",5
+"Cardiomegaly, Pleural Effusion, Pleural Other, Pneumothorax",4
+"Cardiomegaly, Pleural Effusion, Pneumonia, Pneumothorax",2
+"Consolidation, Edema, Enlarged Cardiomediastinum, Fracture",1
+"Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion",2
+"Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity",14
+"Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion",39
+"Consolidation, Edema, Enlarged Cardiomediastinum, Pneumonia",24
+"Consolidation, Edema, Enlarged Cardiomediastinum, Pneumothorax",2
+"Consolidation, Edema, Fracture, Pleural Effusion",1
+"Consolidation, Edema, Fracture, Pleural Other",1
+"Consolidation, Edema, Lung Lesion, Lung Opacity",5
+"Consolidation, Edema, Lung Lesion, Pleural Effusion",9
+"Consolidation, Edema, Lung Lesion, Pneumonia",7
+"Consolidation, Edema, Lung Opacity, Pleural Effusion",74
+"Consolidation, Edema, Lung Opacity, Pleural Other",1
+"Consolidation, Edema, Lung Opacity, Pneumonia",82
+"Consolidation, Edema, Lung Opacity, Pneumothorax",1
+"Consolidation, Edema, Pleural Effusion, Pleural Other",2
+"Consolidation, Edema, Pleural Effusion, Pneumonia",209
+"Consolidation, Edema, Pleural Effusion, Pneumothorax",22
+"Consolidation, Edema, Pleural Other, Pneumonia",2
+"Consolidation, Edema, Pneumonia, Pneumothorax",3
+"Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Opacity",3
+"Consolidation, Enlarged Cardiomediastinum, Fracture, Pneumonia",1
+"Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity",13
+"Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion",4
+"Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pneumonia",3
+"Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pneumothorax",1
+"Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",32
+"Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other",1
+"Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",27
+"Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pneumothorax",3
+"Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other",3
+"Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",26
+"Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",13
+"Consolidation, Enlarged Cardiomediastinum, Pleural Other, Pneumonia",1
+"Consolidation, Enlarged Cardiomediastinum, Pneumonia, Pneumothorax",3
+"Consolidation, Fracture, Lung Opacity, Pleural Effusion",5
+"Consolidation, Fracture, Lung Opacity, Pneumothorax",3
+"Consolidation, Fracture, Pleural Effusion, Pneumonia",4
+"Consolidation, Fracture, Pleural Effusion, Pneumothorax",4
+"Consolidation, Fracture, Pleural Other, Pneumonia",1
+"Consolidation, Fracture, Pneumonia, Pneumothorax",3
+"Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion",19
+"Consolidation, Lung Lesion, Lung Opacity, Pleural Other",1
+"Consolidation, Lung Lesion, Lung Opacity, Pneumonia",50
+"Consolidation, Lung Lesion, Lung Opacity, Pneumothorax",3
+"Consolidation, Lung Lesion, Pleural Effusion, Pleural Other",1
+"Consolidation, Lung Lesion, Pleural Effusion, Pneumonia",32
+"Consolidation, Lung Lesion, Pleural Effusion, Pneumothorax",6
+"Consolidation, Lung Opacity, Pleural Effusion, Pleural Other",7
+"Consolidation, Lung Opacity, Pleural Effusion, Pneumonia",137
+"Consolidation, Lung Opacity, Pleural Effusion, Pneumothorax",23
+"Consolidation, Lung Opacity, Pleural Other, Pneumonia",5
+"Consolidation, Lung Opacity, Pneumonia, Pneumothorax",2
+"Consolidation, Pleural Effusion, Pleural Other, Pneumonia",2
+"Consolidation, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Consolidation, Pleural Effusion, Pneumonia, Pneumothorax",15
+"Edema, Enlarged Cardiomediastinum, Fracture, Pleural Effusion",5
+"Edema, Enlarged Cardiomediastinum, Fracture, Pneumonia",1
+"Edema, Enlarged Cardiomediastinum, Fracture, Pneumothorax",1
+"Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity",5
+"Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion",6
+"Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",100
+"Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other",4
+"Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",97
+"Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumothorax",8
+"Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other",5
+"Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",34
+"Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",27
+"Edema, Enlarged Cardiomediastinum, Pleural Other, Pneumonia",1
+"Edema, Enlarged Cardiomediastinum, Pneumonia, Pneumothorax",7
+"Edema, Fracture, Lung Lesion, Lung Opacity",1
+"Edema, Fracture, Lung Opacity, Pleural Effusion",9
+"Edema, Fracture, Lung Opacity, Pneumonia",13
+"Edema, Fracture, Lung Opacity, Pneumothorax",1
+"Edema, Fracture, Pleural Effusion, Pleural Other",1
+"Edema, Fracture, Pleural Effusion, Pneumonia",2
+"Edema, Fracture, Pleural Effusion, Pneumothorax",2
+"Edema, Lung Lesion, Lung Opacity, Pleural Effusion",30
+"Edema, Lung Lesion, Lung Opacity, Pleural Other",1
+"Edema, Lung Lesion, Lung Opacity, Pneumonia",56
+"Edema, Lung Lesion, Lung Opacity, Pneumothorax",1
+"Edema, Lung Lesion, Pleural Effusion, Pleural Other",2
+"Edema, Lung Lesion, Pleural Effusion, Pneumonia",14
+"Edema, Lung Lesion, Pleural Effusion, Pneumothorax",3
+"Edema, Lung Opacity, Pleural Effusion, Pleural Other",13
+"Edema, Lung Opacity, Pleural Effusion, Pneumonia",605
+"Edema, Lung Opacity, Pleural Effusion, Pneumothorax",34
+"Edema, Lung Opacity, Pleural Other, Pneumonia",25
+"Edema, Lung Opacity, Pneumonia, Pneumothorax",28
+"Edema, Pleural Effusion, Pleural Other, Pneumonia",6
+"Edema, Pleural Effusion, Pleural Other, Pneumothorax",2
+"Edema, Pleural Effusion, Pneumonia, Pneumothorax",6
+"Enlarged Cardiomediastinum, Fracture, Lung Lesion, Lung Opacity",2
+"Enlarged Cardiomediastinum, Fracture, Lung Lesion, Pleural Effusion",1
+"Enlarged Cardiomediastinum, Fracture, Lung Lesion, Pleural Other",1
+"Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion",12
+"Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Other",1
+"Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumonia",4
+"Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumothorax",2
+"Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pleural Other",1
+"Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumothorax",8
+"Enlarged Cardiomediastinum, Fracture, Pleural Other, Pneumonia",2
+"Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",19
+"Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia",23
+"Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumothorax",10
+"Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pleural Other",4
+"Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumonia",4
+"Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumothorax",6
+"Enlarged Cardiomediastinum, Lung Lesion, Pleural Other, Pneumonia",2
+"Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other",8
+"Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",65
+"Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",32
+"Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumonia",6
+"Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumothorax",4
+"Enlarged Cardiomediastinum, Lung Opacity, Pneumonia, Pneumothorax",3
+"Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other, Pneumonia",2
+"Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other, Pneumothorax",4
+"Fracture, Lung Lesion, Lung Opacity, Pleural Effusion",1
+"Fracture, Lung Lesion, Lung Opacity, Pneumonia",2
+"Fracture, Lung Lesion, Pleural Effusion, Pleural Other",1
+"Fracture, Lung Opacity, Pleural Effusion, Pleural Other",4
+"Fracture, Lung Opacity, Pleural Effusion, Pneumonia",6
+"Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",10
+"Fracture, Lung Opacity, Pleural Other, Pneumonia",1
+"Fracture, Lung Opacity, Pneumonia, Pneumothorax",2
+"Fracture, Pleural Effusion, Pleural Other, Pneumonia",1
+"Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other",13
+"Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",59
+"Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",13
+"Lung Lesion, Lung Opacity, Pleural Other, Pneumonia",9
+"Lung Lesion, Lung Opacity, Pneumonia, Pneumothorax",4
+"Lung Lesion, Pleural Effusion, Pleural Other, Pneumonia",1
+"Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",22
+"Lung Opacity, Pleural Effusion, Pleural Other, Pneumothorax",6
+"Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",18
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum",16
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Opacity",58
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Pleural Effusion",253
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Pneumonia",35
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Pneumothorax",3
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Fracture",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity",10
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pleural Effusion",23
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pneumonia",9
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pneumothorax",2
+"Atelectasis, Cardiomegaly, Consolidation, Fracture, Lung Opacity",2
+"Atelectasis, Cardiomegaly, Consolidation, Fracture, Pleural Effusion",5
+"Atelectasis, Cardiomegaly, Consolidation, Lung Lesion, Lung Opacity",3
+"Atelectasis, Cardiomegaly, Consolidation, Lung Lesion, Pleural Effusion",5
+"Atelectasis, Cardiomegaly, Consolidation, Lung Lesion, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Lung Lesion, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Consolidation, Lung Opacity, Pleural Effusion",84
+"Atelectasis, Cardiomegaly, Consolidation, Lung Opacity, Pneumonia",24
+"Atelectasis, Cardiomegaly, Consolidation, Pleural Effusion, Pleural Other",4
+"Atelectasis, Cardiomegaly, Consolidation, Pleural Effusion, Pneumonia",103
+"Atelectasis, Cardiomegaly, Consolidation, Pleural Effusion, Pneumothorax",13
+"Atelectasis, Cardiomegaly, Consolidation, Pneumonia, Pneumothorax",2
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture",1
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion",2
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity",35
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pleural Effusion",190
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pneumonia",8
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pneumothorax",7
+"Atelectasis, Cardiomegaly, Edema, Fracture, Lung Lesion",1
+"Atelectasis, Cardiomegaly, Edema, Fracture, Lung Opacity",3
+"Atelectasis, Cardiomegaly, Edema, Fracture, Pleural Effusion",14
+"Atelectasis, Cardiomegaly, Edema, Fracture, Pneumonia",2
+"Atelectasis, Cardiomegaly, Edema, Fracture, Pneumothorax",2
+"Atelectasis, Cardiomegaly, Edema, Lung Lesion, Lung Opacity",6
+"Atelectasis, Cardiomegaly, Edema, Lung Lesion, Pleural Effusion",11
+"Atelectasis, Cardiomegaly, Edema, Lung Opacity, Pleural Effusion",721
+"Atelectasis, Cardiomegaly, Edema, Lung Opacity, Pleural Other",4
+"Atelectasis, Cardiomegaly, Edema, Lung Opacity, Pneumonia",261
+"Atelectasis, Cardiomegaly, Edema, Lung Opacity, Pneumothorax",11
+"Atelectasis, Cardiomegaly, Edema, Pleural Effusion, Pleural Other",11
+"Atelectasis, Cardiomegaly, Edema, Pleural Effusion, Pneumonia",122
+"Atelectasis, Cardiomegaly, Edema, Pleural Effusion, Pneumothorax",53
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Lung Opacity",5
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Pleural Effusion",9
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Pneumonia",1
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity",4
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion",6
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",135
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other",1
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",100
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pneumothorax",10
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other",1
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",13
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",51
+"Atelectasis, Cardiomegaly, Fracture, Lung Lesion, Pleural Effusion",2
+"Atelectasis, Cardiomegaly, Fracture, Lung Opacity, Pleural Effusion",21
+"Atelectasis, Cardiomegaly, Fracture, Lung Opacity, Pleural Other",2
+"Atelectasis, Cardiomegaly, Fracture, Lung Opacity, Pneumonia",6
+"Atelectasis, Cardiomegaly, Fracture, Pleural Effusion, Pleural Other",1
+"Atelectasis, Cardiomegaly, Fracture, Pleural Effusion, Pneumonia",2
+"Atelectasis, Cardiomegaly, Fracture, Pleural Effusion, Pneumothorax",7
+"Atelectasis, Cardiomegaly, Fracture, Pleural Other, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Fracture, Pneumonia, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Lung Lesion, Lung Opacity, Pleural Effusion",33
+"Atelectasis, Cardiomegaly, Lung Lesion, Lung Opacity, Pneumonia",15
+"Atelectasis, Cardiomegaly, Lung Lesion, Pleural Effusion, Pneumonia",4
+"Atelectasis, Cardiomegaly, Lung Lesion, Pleural Effusion, Pneumothorax",4
+"Atelectasis, Cardiomegaly, Lung Opacity, Pleural Effusion, Pleural Other",12
+"Atelectasis, Cardiomegaly, Lung Opacity, Pleural Effusion, Pneumonia",399
+"Atelectasis, Cardiomegaly, Lung Opacity, Pleural Effusion, Pneumothorax",36
+"Atelectasis, Cardiomegaly, Lung Opacity, Pleural Other, Pneumonia",4
+"Atelectasis, Cardiomegaly, Lung Opacity, Pleural Other, Pneumothorax",3
+"Atelectasis, Cardiomegaly, Lung Opacity, Pneumonia, Pneumothorax",4
+"Atelectasis, Cardiomegaly, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Cardiomegaly, Pleural Effusion, Pleural Other, Pneumothorax",6
+"Atelectasis, Cardiomegaly, Pleural Effusion, Pneumonia, Pneumothorax",2
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion",1
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity",9
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion",38
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Pneumonia",5
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Pneumothorax",1
+"Atelectasis, Consolidation, Edema, Fracture, Lung Opacity",1
+"Atelectasis, Consolidation, Edema, Fracture, Pleural Effusion",2
+"Atelectasis, Consolidation, Edema, Fracture, Pleural Other",1
+"Atelectasis, Consolidation, Edema, Lung Lesion, Pleural Effusion",4
+"Atelectasis, Consolidation, Edema, Lung Lesion, Pleural Other",1
+"Atelectasis, Consolidation, Edema, Lung Lesion, Pneumonia",1
+"Atelectasis, Consolidation, Edema, Lung Opacity, Pleural Effusion",110
+"Atelectasis, Consolidation, Edema, Lung Opacity, Pleural Other",1
+"Atelectasis, Consolidation, Edema, Lung Opacity, Pneumonia",25
+"Atelectasis, Consolidation, Edema, Lung Opacity, Pneumothorax",4
+"Atelectasis, Consolidation, Edema, Pleural Effusion, Pleural Other",1
+"Atelectasis, Consolidation, Edema, Pleural Effusion, Pneumonia",172
+"Atelectasis, Consolidation, Edema, Pleural Effusion, Pneumothorax",5
+"Atelectasis, Consolidation, Edema, Pneumonia, Pneumothorax",2
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Opacity",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Fracture, Pleural Effusion",3
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity",2
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion",8
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",65
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",23
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",34
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",6
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Pleural Other, Pneumonia",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Pneumonia, Pneumothorax",2
+"Atelectasis, Consolidation, Fracture, Lung Lesion, Lung Opacity",1
+"Atelectasis, Consolidation, Fracture, Lung Opacity, Pleural Effusion",4
+"Atelectasis, Consolidation, Fracture, Lung Opacity, Pleural Other",1
+"Atelectasis, Consolidation, Fracture, Lung Opacity, Pneumonia",4
+"Atelectasis, Consolidation, Fracture, Lung Opacity, Pneumothorax",1
+"Atelectasis, Consolidation, Fracture, Pleural Effusion, Pneumonia",5
+"Atelectasis, Consolidation, Fracture, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Consolidation, Fracture, Pleural Other, Pneumonia",1
+"Atelectasis, Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion",32
+"Atelectasis, Consolidation, Lung Lesion, Lung Opacity, Pleural Other",2
+"Atelectasis, Consolidation, Lung Lesion, Lung Opacity, Pneumonia",10
+"Atelectasis, Consolidation, Lung Lesion, Pleural Effusion, Pneumonia",7
+"Atelectasis, Consolidation, Lung Lesion, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Consolidation, Lung Opacity, Pleural Effusion, Pleural Other",3
+"Atelectasis, Consolidation, Lung Opacity, Pleural Effusion, Pneumonia",167
+"Atelectasis, Consolidation, Lung Opacity, Pleural Effusion, Pneumothorax",30
+"Atelectasis, Consolidation, Lung Opacity, Pleural Other, Pneumonia",2
+"Atelectasis, Consolidation, Lung Opacity, Pneumonia, Pneumothorax",3
+"Atelectasis, Consolidation, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Consolidation, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Atelectasis, Consolidation, Pleural Effusion, Pneumonia, Pneumothorax",16
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity",2
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Fracture, Pleural Effusion",4
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Fracture, Pneumothorax",2
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion",2
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",164
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other",2
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",51
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumothorax",3
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other",3
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",12
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",24
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Pneumonia, Pneumothorax",1
+"Atelectasis, Edema, Fracture, Lung Opacity, Pleural Effusion",11
+"Atelectasis, Edema, Fracture, Lung Opacity, Pneumonia",9
+"Atelectasis, Edema, Lung Lesion, Lung Opacity, Pleural Effusion",23
+"Atelectasis, Edema, Lung Lesion, Lung Opacity, Pneumonia",21
+"Atelectasis, Edema, Lung Lesion, Lung Opacity, Pneumothorax",2
+"Atelectasis, Edema, Lung Lesion, Pleural Effusion, Pneumonia",4
+"Atelectasis, Edema, Lung Lesion, Pleural Effusion, Pneumothorax",2
+"Atelectasis, Edema, Lung Opacity, Pleural Effusion, Pleural Other",3
+"Atelectasis, Edema, Lung Opacity, Pleural Effusion, Pneumonia",672
+"Atelectasis, Edema, Lung Opacity, Pleural Effusion, Pneumothorax",17
+"Atelectasis, Edema, Lung Opacity, Pleural Other, Pneumonia",3
+"Atelectasis, Edema, Lung Opacity, Pleural Other, Pneumothorax",1
+"Atelectasis, Edema, Lung Opacity, Pneumonia, Pneumothorax",8
+"Atelectasis, Edema, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Atelectasis, Edema, Pleural Effusion, Pneumonia, Pneumothorax",3
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Lesion, Lung Opacity",1
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion",16
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Other",1
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumonia",7
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumothorax",5
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumonia",1
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",18
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Other",1
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia",17
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumothorax",4
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pleural Other",1
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumonia",2
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumothorax",4
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Pleural Other, Pneumonia",1
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other",9
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",279
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",57
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumonia",3
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumothorax",1
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia, Pneumothorax",32
+"Atelectasis, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Atelectasis, Fracture, Lung Lesion, Lung Opacity, Pneumonia",1
+"Atelectasis, Fracture, Lung Opacity, Pleural Effusion, Pleural Other",3
+"Atelectasis, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",20
+"Atelectasis, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",8
+"Atelectasis, Fracture, Lung Opacity, Pleural Other, Pneumonia",2
+"Atelectasis, Fracture, Lung Opacity, Pleural Other, Pneumothorax",2
+"Atelectasis, Fracture, Lung Opacity, Pneumonia, Pneumothorax",4
+"Atelectasis, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other",4
+"Atelectasis, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",76
+"Atelectasis, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",13
+"Atelectasis, Lung Lesion, Lung Opacity, Pleural Other, Pneumonia",2
+"Atelectasis, Lung Lesion, Lung Opacity, Pneumonia, Pneumothorax",3
+"Atelectasis, Lung Lesion, Pleural Effusion, Pleural Other, Pneumonia",2
+"Atelectasis, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",13
+"Atelectasis, Lung Opacity, Pleural Effusion, Pleural Other, Pneumothorax",2
+"Atelectasis, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",48
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity",14
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion",53
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Pneumonia",27
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Pneumothorax",1
+"Cardiomegaly, Consolidation, Edema, Fracture, Lung Opacity",1
+"Cardiomegaly, Consolidation, Edema, Fracture, Pneumonia",2
+"Cardiomegaly, Consolidation, Edema, Lung Lesion, Lung Opacity",3
+"Cardiomegaly, Consolidation, Edema, Lung Lesion, Pleural Effusion",9
+"Cardiomegaly, Consolidation, Edema, Lung Lesion, Pneumonia",1
+"Cardiomegaly, Consolidation, Edema, Lung Opacity, Pleural Effusion",54
+"Cardiomegaly, Consolidation, Edema, Lung Opacity, Pleural Other",1
+"Cardiomegaly, Consolidation, Edema, Lung Opacity, Pneumonia",28
+"Cardiomegaly, Consolidation, Edema, Lung Opacity, Pneumothorax",2
+"Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pleural Other",2
+"Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pneumonia",228
+"Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pneumothorax",4
+"Cardiomegaly, Consolidation, Edema, Pleural Other, Pneumonia",1
+"Cardiomegaly, Consolidation, Edema, Pleural Other, Pneumothorax",1
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Opacity",1
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Fracture, Pleural Effusion",2
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Fracture, Pneumonia",1
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity",4
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion",5
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pneumonia",4
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",34
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",27
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pneumothorax",2
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",47
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",18
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pneumonia, Pneumothorax",1
+"Cardiomegaly, Consolidation, Fracture, Lung Opacity, Pleural Other",1
+"Cardiomegaly, Consolidation, Fracture, Pleural Effusion, Pneumonia",2
+"Cardiomegaly, Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion",5
+"Cardiomegaly, Consolidation, Lung Lesion, Lung Opacity, Pneumonia",3
+"Cardiomegaly, Consolidation, Lung Lesion, Pleural Effusion, Pleural Other",1
+"Cardiomegaly, Consolidation, Lung Lesion, Pleural Effusion, Pneumonia",10
+"Cardiomegaly, Consolidation, Lung Opacity, Pleural Effusion, Pleural Other",2
+"Cardiomegaly, Consolidation, Lung Opacity, Pleural Effusion, Pneumonia",19
+"Cardiomegaly, Consolidation, Lung Opacity, Pleural Effusion, Pneumothorax",4
+"Cardiomegaly, Consolidation, Lung Opacity, Pleural Other, Pneumonia",2
+"Cardiomegaly, Consolidation, Pleural Effusion, Pleural Other, Pneumonia",3
+"Cardiomegaly, Consolidation, Pleural Effusion, Pneumonia, Pneumothorax",3
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity",1
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture, Pleural Effusion",9
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture, Pneumothorax",1
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity",1
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion",3
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion, Pneumonia",1
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",83
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other",6
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",87
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other",1
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",22
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",16
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pneumonia, Pneumothorax",1
+"Cardiomegaly, Edema, Fracture, Lung Lesion, Pleural Effusion",1
+"Cardiomegaly, Edema, Fracture, Lung Opacity, Pleural Effusion",11
+"Cardiomegaly, Edema, Fracture, Lung Opacity, Pleural Other",3
+"Cardiomegaly, Edema, Fracture, Lung Opacity, Pneumonia",4
+"Cardiomegaly, Edema, Fracture, Pleural Effusion, Pleural Other",1
+"Cardiomegaly, Edema, Fracture, Pleural Effusion, Pneumonia",2
+"Cardiomegaly, Edema, Fracture, Pleural Effusion, Pneumothorax",2
+"Cardiomegaly, Edema, Lung Lesion, Lung Opacity, Pleural Effusion",18
+"Cardiomegaly, Edema, Lung Lesion, Lung Opacity, Pneumonia",15
+"Cardiomegaly, Edema, Lung Lesion, Lung Opacity, Pneumothorax",1
+"Cardiomegaly, Edema, Lung Lesion, Pleural Effusion, Pleural Other",1
+"Cardiomegaly, Edema, Lung Lesion, Pleural Effusion, Pneumonia",8
+"Cardiomegaly, Edema, Lung Opacity, Pleural Effusion, Pleural Other",6
+"Cardiomegaly, Edema, Lung Opacity, Pleural Effusion, Pneumonia",454
+"Cardiomegaly, Edema, Lung Opacity, Pleural Effusion, Pneumothorax",27
+"Cardiomegaly, Edema, Lung Opacity, Pleural Other, Pneumonia",8
+"Cardiomegaly, Edema, Lung Opacity, Pneumonia, Pneumothorax",7
+"Cardiomegaly, Edema, Pleural Effusion, Pleural Other, Pneumonia",4
+"Cardiomegaly, Edema, Pleural Effusion, Pleural Other, Pneumothorax",3
+"Cardiomegaly, Edema, Pleural Effusion, Pneumonia, Pneumothorax",5
+"Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Lung Lesion, Lung Opacity",3
+"Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Lung Lesion, Pleural Effusion",1
+"Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion",3
+"Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumonia",3
+"Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pleural Other",2
+"Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumothorax",1
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",9
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia",8
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumothorax",2
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other",5
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",47
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",20
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumonia",1
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumothorax",1
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia, Pneumothorax",2
+"Cardiomegaly, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Cardiomegaly, Fracture, Lung Lesion, Lung Opacity, Pleural Other",1
+"Cardiomegaly, Fracture, Lung Lesion, Pleural Effusion, Pleural Other",1
+"Cardiomegaly, Fracture, Lung Opacity, Pleural Effusion, Pleural Other",5
+"Cardiomegaly, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",4
+"Cardiomegaly, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",2
+"Cardiomegaly, Fracture, Lung Opacity, Pleural Other, Pneumonia",1
+"Cardiomegaly, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other",3
+"Cardiomegaly, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",15
+"Cardiomegaly, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",3
+"Cardiomegaly, Lung Lesion, Lung Opacity, Pleural Other, Pneumonia",2
+"Cardiomegaly, Lung Lesion, Lung Opacity, Pneumonia, Pneumothorax",1
+"Cardiomegaly, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",9
+"Cardiomegaly, Lung Opacity, Pleural Effusion, Pleural Other, Pneumothorax",2
+"Cardiomegaly, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",6
+"Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity",1
+"Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",12
+"Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",13
+"Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumothorax",1
+"Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",17
+"Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",2
+"Consolidation, Edema, Enlarged Cardiomediastinum, Pneumonia, Pneumothorax",1
+"Consolidation, Edema, Fracture, Lung Opacity, Pleural Effusion",1
+"Consolidation, Edema, Fracture, Lung Opacity, Pneumonia",1
+"Consolidation, Edema, Fracture, Pleural Effusion, Pneumonia",3
+"Consolidation, Edema, Lung Lesion, Lung Opacity, Pleural Effusion",5
+"Consolidation, Edema, Lung Lesion, Lung Opacity, Pneumonia",12
+"Consolidation, Edema, Lung Lesion, Pleural Effusion, Pneumonia",17
+"Consolidation, Edema, Lung Opacity, Pleural Effusion, Pneumonia",81
+"Consolidation, Edema, Lung Opacity, Pleural Effusion, Pneumothorax",5
+"Consolidation, Edema, Lung Opacity, Pleural Other, Pneumonia",4
+"Consolidation, Edema, Lung Opacity, Pneumonia, Pneumothorax",2
+"Consolidation, Edema, Pleural Effusion, Pleural Other, Pneumonia",1
+"Consolidation, Edema, Pleural Effusion, Pneumonia, Pneumothorax",6
+"Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Lesion, Lung Opacity",1
+"Consolidation, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumonia",1
+"Consolidation, Enlarged Cardiomediastinum, Fracture, Pleural Other, Pneumonia",1
+"Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",2
+"Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Other",1
+"Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia",5
+"Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumothorax",1
+"Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumothorax",1
+"Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other",2
+"Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",14
+"Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",4
+"Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumonia",2
+"Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia, Pneumothorax",4
+"Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other, Pneumonia",1
+"Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Consolidation, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Consolidation, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other",3
+"Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",13
+"Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",5
+"Consolidation, Lung Lesion, Lung Opacity, Pleural Other, Pneumonia",2
+"Consolidation, Lung Lesion, Pleural Effusion, Pneumonia, Pneumothorax",3
+"Consolidation, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion",6
+"Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumonia",1
+"Edema, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumonia",1
+"Edema, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumothorax",6
+"Edema, Enlarged Cardiomediastinum, Fracture, Pneumonia, Pneumothorax",1
+"Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",4
+"Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia",7
+"Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumothorax",1
+"Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Other, Pneumothorax",1
+"Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other",2
+"Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",82
+"Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",10
+"Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumonia",3
+"Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia, Pneumothorax",4
+"Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other, Pneumonia",1
+"Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia, Pneumothorax",3
+"Edema, Enlarged Cardiomediastinum, Pleural Other, Pneumonia, Pneumothorax",1
+"Edema, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",5
+"Edema, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",35
+"Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Edema, Lung Lesion, Lung Opacity, Pleural Other, Pneumonia",5
+"Edema, Lung Lesion, Lung Opacity, Pneumonia, Pneumothorax",1
+"Edema, Lung Lesion, Pleural Effusion, Pneumonia, Pneumothorax",2
+"Edema, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",12
+"Edema, Lung Opacity, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Edema, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",18
+"Enlarged Cardiomediastinum, Fracture, Lung Lesion, Lung Opacity, Pneumonia",3
+"Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",2
+"Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other",3
+"Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",10
+"Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",8
+"Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia, Pneumothorax",1
+"Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",7
+"Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other, Pneumothorax",3
+"Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",4
+"Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumonia, Pneumothorax",3
+"Fracture, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",3
+"Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumothorax",2
+"Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",4
+"Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia, Pneumothorax",2
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity",4
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion",31
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Pneumonia",9
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Fracture, Lung Opacity",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Fracture, Pleural Effusion",5
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Fracture, Pleural Other",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Fracture, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Lesion, Lung Opacity",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Lesion, Pleural Effusion",3
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Lesion, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Opacity, Pleural Effusion",156
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Opacity, Pneumonia",28
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Opacity, Pneumothorax",2
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pleural Other",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pneumonia",156
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pneumothorax",6
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Pleural Other, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Opacity",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Fracture, Pleural Effusion",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",12
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",12
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",18
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",6
+"Atelectasis, Cardiomegaly, Consolidation, Fracture, Lung Opacity, Pleural Effusion",4
+"Atelectasis, Cardiomegaly, Consolidation, Fracture, Lung Opacity, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Fracture, Pleural Effusion, Pneumonia",3
+"Atelectasis, Cardiomegaly, Consolidation, Fracture, Pleural Effusion, Pneumothorax",2
+"Atelectasis, Cardiomegaly, Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion",6
+"Atelectasis, Cardiomegaly, Consolidation, Lung Lesion, Pleural Effusion, Pneumonia",4
+"Atelectasis, Cardiomegaly, Consolidation, Lung Opacity, Pleural Effusion, Pneumonia",66
+"Atelectasis, Cardiomegaly, Consolidation, Lung Opacity, Pleural Effusion, Pneumothorax",4
+"Atelectasis, Cardiomegaly, Consolidation, Lung Opacity, Pneumonia, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Consolidation, Pleural Effusion, Pneumonia, Pneumothorax",4
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity",1
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture, Pleural Effusion",1
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity",1
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion",5
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Other",1
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",112
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",22
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",10
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",16
+"Atelectasis, Cardiomegaly, Edema, Fracture, Lung Opacity, Pleural Effusion",10
+"Atelectasis, Cardiomegaly, Edema, Fracture, Lung Opacity, Pneumonia",2
+"Atelectasis, Cardiomegaly, Edema, Fracture, Pleural Effusion, Pleural Other",1
+"Atelectasis, Cardiomegaly, Edema, Fracture, Pleural Effusion, Pneumonia",2
+"Atelectasis, Cardiomegaly, Edema, Fracture, Pleural Effusion, Pneumothorax",2
+"Atelectasis, Cardiomegaly, Edema, Lung Lesion, Lung Opacity, Pleural Effusion",18
+"Atelectasis, Cardiomegaly, Edema, Lung Lesion, Lung Opacity, Pneumonia",7
+"Atelectasis, Cardiomegaly, Edema, Lung Lesion, Pleural Effusion, Pneumonia",1
+"Atelectasis, Cardiomegaly, Edema, Lung Opacity, Pleural Effusion, Pleural Other",4
+"Atelectasis, Cardiomegaly, Edema, Lung Opacity, Pleural Effusion, Pneumonia",417
+"Atelectasis, Cardiomegaly, Edema, Lung Opacity, Pleural Effusion, Pneumothorax",19
+"Atelectasis, Cardiomegaly, Edema, Lung Opacity, Pneumonia, Pneumothorax",4
+"Atelectasis, Cardiomegaly, Edema, Pleural Effusion, Pleural Other, Pneumonia",2
+"Atelectasis, Cardiomegaly, Edema, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Edema, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion",3
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumonia",4
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumothorax",3
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",8
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia",7
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other",3
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",55
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",15
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumonia",1
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia, Pneumothorax",2
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other, Pneumonia",2
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",10
+"Atelectasis, Cardiomegaly, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Fracture, Lung Opacity, Pneumonia, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Fracture, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other",3
+"Atelectasis, Cardiomegaly, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",8
+"Atelectasis, Cardiomegaly, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",3
+"Atelectasis, Cardiomegaly, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",4
+"Atelectasis, Cardiomegaly, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",10
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",23
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other",1
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",3
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",37
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",3
+"Atelectasis, Consolidation, Edema, Fracture, Lung Opacity, Pleural Effusion",1
+"Atelectasis, Consolidation, Edema, Fracture, Pleural Effusion, Pneumonia",1
+"Atelectasis, Consolidation, Edema, Fracture, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Consolidation, Edema, Lung Lesion, Lung Opacity, Pleural Effusion",4
+"Atelectasis, Consolidation, Edema, Lung Lesion, Lung Opacity, Pleural Other",1
+"Atelectasis, Consolidation, Edema, Lung Lesion, Lung Opacity, Pneumonia",2
+"Atelectasis, Consolidation, Edema, Lung Lesion, Pleural Effusion, Pneumonia",2
+"Atelectasis, Consolidation, Edema, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Atelectasis, Consolidation, Edema, Lung Opacity, Pleural Effusion, Pneumonia",86
+"Atelectasis, Consolidation, Edema, Lung Opacity, Pleural Effusion, Pneumothorax",5
+"Atelectasis, Consolidation, Edema, Lung Opacity, Pleural Other, Pneumonia",1
+"Atelectasis, Consolidation, Edema, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Atelectasis, Consolidation, Edema, Pleural Effusion, Pneumonia, Pneumothorax",2
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion",3
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumonia",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumonia",3
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",11
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumonia",2
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumothorax",4
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",42
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",8
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia, Pneumothorax",3
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia, Pneumothorax",9
+"Atelectasis, Consolidation, Fracture, Lung Lesion, Lung Opacity, Pleural Effusion",1
+"Atelectasis, Consolidation, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Atelectasis, Consolidation, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Consolidation, Fracture, Lung Opacity, Pneumonia, Pneumothorax",1
+"Atelectasis, Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",14
+"Atelectasis, Consolidation, Lung Lesion, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Consolidation, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",3
+"Atelectasis, Consolidation, Lung Opacity, Pleural Effusion, Pleural Other, Pneumothorax",3
+"Atelectasis, Consolidation, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",8
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Fracture, Lung Lesion, Lung Opacity",1
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion",3
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumonia",3
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumothorax",1
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",2
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia",2
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other",2
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",124
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",21
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumonia",2
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia, Pneumothorax",8
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Edema, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Atelectasis, Edema, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Edema, Fracture, Lung Opacity, Pleural Other, Pneumonia",1
+"Atelectasis, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Atelectasis, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",21
+"Atelectasis, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Edema, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",6
+"Atelectasis, Edema, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",20
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Lesion, Lung Opacity, Pneumonia",2
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Lesion, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",4
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",9
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Other, Pneumothorax",1
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumonia, Pneumothorax",1
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other",3
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",13
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",3
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia, Pneumothorax",1
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",9
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other, Pneumothorax",3
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",36
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumonia, Pneumothorax",1
+"Atelectasis, Fracture, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",2
+"Atelectasis, Fracture, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Fracture, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",2
+"Atelectasis, Fracture, Lung Opacity, Pleural Other, Pneumonia, Pneumothorax",1
+"Atelectasis, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",2
+"Atelectasis, Lung Lesion, Lung Opacity, Pleural Other, Pneumonia, Pneumothorax",1
+"Atelectasis, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia, Pneumothorax",2
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Fracture, Pleural Effusion",2
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity",1
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion",2
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",11
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",19
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other",1
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",17
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",3
+"Cardiomegaly, Consolidation, Edema, Fracture, Lung Opacity, Pleural Effusion",1
+"Cardiomegaly, Consolidation, Edema, Fracture, Pleural Effusion, Pneumonia",3
+"Cardiomegaly, Consolidation, Edema, Fracture, Pneumonia, Pneumothorax",1
+"Cardiomegaly, Consolidation, Edema, Lung Lesion, Lung Opacity, Pneumonia",2
+"Cardiomegaly, Consolidation, Edema, Lung Lesion, Pleural Effusion, Pneumonia",6
+"Cardiomegaly, Consolidation, Edema, Lung Opacity, Pleural Effusion, Pneumonia",53
+"Cardiomegaly, Consolidation, Edema, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Cardiomegaly, Consolidation, Edema, Lung Opacity, Pleural Other, Pneumonia",2
+"Cardiomegaly, Consolidation, Edema, Lung Opacity, Pneumonia, Pneumothorax",1
+"Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pleural Other, Pneumonia",2
+"Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pleural Other, Pneumothorax",2
+"Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pneumonia, Pneumothorax",5
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion",1
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",2
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia",3
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumonia",2
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumothorax",1
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",11
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",6
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumonia",2
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia, Pneumothorax",6
+"Cardiomegaly, Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",5
+"Cardiomegaly, Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Cardiomegaly, Consolidation, Lung Lesion, Pleural Effusion, Pleural Other, Pneumonia",1
+"Cardiomegaly, Consolidation, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Cardiomegaly, Consolidation, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",2
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion",1
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pleural Other",2
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumothorax",2
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",4
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pleural Other",1
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",49
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",6
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumonia",1
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia, Pneumothorax",1
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Cardiomegaly, Edema, Fracture, Lung Lesion, Lung Opacity, Pneumonia",1
+"Cardiomegaly, Edema, Fracture, Lung Lesion, Pleural Effusion, Pleural Other",1
+"Cardiomegaly, Edema, Fracture, Lung Lesion, Pleural Effusion, Pneumonia",1
+"Cardiomegaly, Edema, Fracture, Lung Opacity, Pleural Effusion, Pleural Other",2
+"Cardiomegaly, Edema, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",4
+"Cardiomegaly, Edema, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Cardiomegaly, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Cardiomegaly, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",20
+"Cardiomegaly, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",2
+"Cardiomegaly, Edema, Lung Lesion, Lung Opacity, Pleural Other, Pneumonia",2
+"Cardiomegaly, Edema, Lung Lesion, Pleural Effusion, Pleural Other, Pneumonia",1
+"Cardiomegaly, Edema, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",8
+"Cardiomegaly, Edema, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",3
+"Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",3
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",2
+"Cardiomegaly, Fracture, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Cardiomegaly, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia",1
+"Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",19
+"Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia, Pneumothorax",1
+"Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia, Pneumothorax",2
+"Consolidation, Edema, Fracture, Pleural Other, Pneumonia, Pneumothorax",1
+"Consolidation, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",10
+"Consolidation, Edema, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Consolidation, Edema, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",2
+"Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",2
+"Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",2
+"Consolidation, Fracture, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Consolidation, Fracture, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",2
+"Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",8
+"Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pleural Other, Pneumonia",1
+"Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",3
+"Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",6
+"Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",2
+"Enlarged Cardiomediastinum, Fracture, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",2
+"Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Other, Pneumonia, Pneumothorax",1
+"Fracture, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Fracture, Pleural Effusion",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion",33
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia",3
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia",13
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumothorax",3
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Fracture, Lung Lesion, Lung Opacity",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Fracture, Lung Opacity, Pleural Effusion",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Fracture, Pleural Effusion, Pleural Other",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Fracture, Pleural Effusion, Pneumonia",2
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Lesion, Lung Opacity, Pleural Effusion",7
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Lesion, Lung Opacity, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Lesion, Pleural Effusion, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Opacity, Pleural Effusion, Pleural Other",3
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Opacity, Pleural Effusion, Pneumonia",76
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Opacity, Pleural Effusion, Pneumothorax",8
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pneumonia, Pneumothorax",4
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",2
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Other",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pleural Other",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",14
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",4
+"Atelectasis, Cardiomegaly, Consolidation, Fracture, Lung Lesion, Pleural Effusion, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Fracture, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Atelectasis, Cardiomegaly, Consolidation, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",3
+"Atelectasis, Cardiomegaly, Consolidation, Lung Lesion, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Consolidation, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",3
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion",1
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumonia",1
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",6
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia",1
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",37
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",6
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Edema, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",3
+"Atelectasis, Cardiomegaly, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",11
+"Atelectasis, Cardiomegaly, Edema, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",4
+"Atelectasis, Cardiomegaly, Edema, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",8
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Lung Lesion, Lung Opacity, Pneumonia",1
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",2
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Other, Pneumonia",1
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",4
+"Atelectasis, Cardiomegaly, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",5
+"Atelectasis, Cardiomegaly, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumonia",1
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",1
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",30
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pneumonia, Pneumothorax",1
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia, Pneumothorax",5
+"Atelectasis, Consolidation, Edema, Fracture, Lung Lesion, Lung Opacity, Pneumonia",1
+"Atelectasis, Consolidation, Edema, Fracture, Lung Lesion, Pleural Effusion, Pneumonia",1
+"Atelectasis, Consolidation, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",8
+"Atelectasis, Consolidation, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Consolidation, Edema, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",3
+"Atelectasis, Consolidation, Edema, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",4
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Fracture, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",3
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",4
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumonia, Pneumothorax",1
+"Atelectasis, Consolidation, Fracture, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",2
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",6
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumothorax",2
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",4
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",11
+"Atelectasis, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Edema, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia, Pneumothorax",1
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",3
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia, Pneumothorax",4
+"Atelectasis, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia, Pneumothorax",1
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion",1
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",3
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia",2
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumonia",1
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other",1
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",19
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumothorax",2
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Other, Pneumonia",1
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other, Pneumonia",1
+"Cardiomegaly, Consolidation, Edema, Fracture, Pleural Effusion, Pleural Other, Pneumonia",1
+"Cardiomegaly, Consolidation, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",4
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Lesion, Lung Opacity, Pleural Effusion",1
+"Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",3
+"Cardiomegaly, Consolidation, Fracture, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",1
+"Cardiomegaly, Consolidation, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumothorax",1
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",2
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",2
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia, Pneumothorax",1
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",2
+"Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",3
+"Cardiomegaly, Edema, Fracture, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Cardiomegaly, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pleural Other, Pneumonia, Pneumothorax",1
+"Consolidation, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion",2
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia",11
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",3
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumothorax",2
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pneumonia, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",2
+"Atelectasis, Cardiomegaly, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",3
+"Atelectasis, Cardiomegaly, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Lesion, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Consolidation, Edema, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",2
+"Atelectasis, Consolidation, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Consolidation, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pneumonia, Pneumothorax",1
+"Atelectasis, Enlarged Cardiomediastinum, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia, Pneumothorax",2
+"Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Cardiomediastinum, Fracture, Lung Opacity, Pleural Effusion, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Edema, Lung Lesion, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia",1
+"Atelectasis, Cardiomegaly, Consolidation, Enlarged Cardiomediastinum, Lung Opacity, Pleural Effusion, Pleural Other, Pneumonia, Pneumothorax",1
