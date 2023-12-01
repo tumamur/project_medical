@@ -9,13 +9,11 @@ from health_multimodal.image.model.pretrained import get_biovil_t_image_encoder,
 
 
 class ArkModel(pl.LightningModule):
-    def __init__(self, num_classes, learning_rate, criterion):
+    def __init__(self, num_classes, learning_rate, criterion, ark_pretrained_path):
         super(ArkModel, self).__init__()
         self.model = timm.create_model('swin_base_patch4_window7_224', num_classes=num_classes, pretrained=False)
 
-        self.state_dict = torch.load('/home/max/Desktop/MLMI/Ark/'
-                                'ark6_teacher_ep200_swinb_projector1376_mlp.pth.tar-20231123T004841Z-001/'
-                                'ark6_teacher_ep200_swinb_projector1376_mlp.pth.tar', map_location="cpu")
+        self.state_dict = torch.load(ark_pretrained_path, map_location="cpu")
         for k in ['head.weight', 'head.bias', 'head_dist.weight', 'head_dist.bias']:
             if k in self.state_dict:
                 print(f"Removing key {k} from pretrained checkpoint")
@@ -68,12 +66,13 @@ class ArkModel(pl.LightningModule):
 class VisionTransformer(nn.Module):
     def __init__(self):
         super(VisionTransformer, self).__init__()
-        #self.image_inference = health_multimodal.image.get_image_inference(ImageModelType.BIOVIL_T)
+        # self.image_inference = health_multimodal.image.get_image_inference(ImageModelType.BIOVIL_T)
         self.model = get_biovil_t_image_encoder()
-        print(self.model)
+        # print(self.model)
 
     def forward(self, x):
         x = self.model.forward(x).projected_global_embedding
+        # Check if normalization is needed
         x = torch.nn.functional.normalize(x, dim=1)
         return x
 

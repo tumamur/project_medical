@@ -1,7 +1,7 @@
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader, random_split
-from utils._prepare_data import DataHandler
-from data.Chexpert import Chexpert
+from src.utils._prepare_data import DataHandler
+from src.data.Chexpert import Chexpert
 import random
 
 

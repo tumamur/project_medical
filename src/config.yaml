@@ -26,5 +26,7 @@ dataset:
 learning_rate: 0.0001
 check_val_every_n_epochs: 1
 max_epochs: 5
-image_encoder_model: "BioVil"
+# image_encoder_model: "BioVil"
+image_encoder_model: "Ark"
 num_classes_img_encoder: 14
+Ark_pretrained_path: "/home/max/Desktop/MLMI/Ark/ark6_teacher_ep200_swinb_projector1376_mlp.pth.tar-20231123T004841Z-001/ark6_teacher_ep200_swinb_projector1376_mlp.pth.tar"
