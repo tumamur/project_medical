@@ -6,10 +6,11 @@ import health_multimodal.image
 from health_multimodal.image.model.model import BaseImageModel
 from health_multimodal.image.utils import ImageModelType
 from health_multimodal.image.model.pretrained import get_biovil_t_image_encoder, get_biovil_image_encoder
-from src.models.BioViL import BioViL
-from src.losses.CombinationLoss import CombinationLoss
+from models.BioViL import BioViL
+from losses.CombinationLoss import CombinationLoss
 from torch.optim import lr_scheduler
 import torchmetrics.functional as mF
+
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -28,8 +29,6 @@ class BioViLModule(pl.LightningModule):
         self.n_epoch = opt["n_epoch"]
         self.accumulated_steps = opt["accumulated_batches"]
         self.threshold = opt["threshold"]
-        self.previous_outputs = []
-        self.previous_labels = []
         self.current_outputs = []
         self.current_labels = []
 
@@ -42,32 +41,24 @@ class BioViLModule(pl.LightningModule):
         return x
     
     def reset_accumulation(self):
-        self.previous_outputs = self.current_outputs
-        self.previous_labels = self.current_labels
         self.current_outputs = []
         self.current_labels = []
 
-    def accumulate_outputs_labels(self, outputs, labels, is_current=True):
-        if is_current:
-            self.current_outputs.append(outputs)
-            self.current_labels.append(labels)
-        else:
-            self.previous_outputs.append(outputs)
-            self.previous_labels.append(labels)
+    def accumulate_outputs_labels(self, outputs, labels):
+        self.current_outputs.append(outputs)
+        self.current_labels.append(labels)
 
     def compute_accumulated_loss(self):
-        if not self.previous_outputs or not self.current_outputs:
+        if not self.current_outputs:
             # No previous data to compare with
             print("No previous data to compare with")
             return None
 
-        prev_outputs = torch.cat(self.previous_outputs, dim=0)
-        prev_labels = torch.cat(self.previous_labels, dim=0)
-        current_outputs = torch.cat(self.current_outputs, dim=0)
+        current_outputs = torch.sigmoid(torch.cat(self.current_outputs, dim=0))
         current_labels = torch.cat(self.current_labels, dim=0)
-
+        
         # Compute loss between current and previous batches
-        loss = self.criterion(current_outputs, prev_labels)
+        loss = self.criterion(current_outputs)
         self.reset_accumulation()
         return loss
 
@@ -111,10 +102,6 @@ class BioViLModule(pl.LightningModule):
             if loss is not None:
                 self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True)
                 return loss
-
-
-
-
     
     def _get_model(self):
         return BioViL(embedding_size=self.embedding_size, num_classes=self.num_classes)
