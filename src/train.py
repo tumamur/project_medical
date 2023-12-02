@@ -24,7 +24,7 @@ def main(params):
 
     ImageEncoder = ImageComponentModule(opt=params)
 
-    experiment = env_settings.EXPERIMENTS + params['model']['image_encoder_model']
+    experiment = env_settings.EXPERIMENTS + '/' + params['model']['image_encoder_model']
     logger = TensorBoardLogger(experiment, default_hp_metric=False)
 
     monitor = params['model']['monitor']

@@ -12,28 +12,28 @@ dataset:
     'Pleural Effusion',
     'Pleural Other',
     'Pneumonia',
-    'Pneumothorax',
-    'Support Devices'
+    'Pneumothorax'
   ]
-  batch_size : 32
+  batch_size : 16
   input_size : 224
   data_imputation : "zeros"
   train_size : 0.8
   test_size : 0.1
   num_workers : 4
+  paired: True
 
 
 model:
   seed : 42
-  num_classes : 14
-  embedding_size : 512
+  num_classes : 13
+  embedding_size : 128
   lerning_rate : 0.0001
   loss : 'KLDivergence' # CosineSimilarity, KLDivergence, Wasserstein, JSDivergence, Occurences, MSE
   learning_rate: 0.0001
   optimizer : 'Adam' # AdamW
   scheduler : 'ReduceLROnPlateau' # cosine, exponential, polynomial
   weight_decay : 0.001
-  accumulated_batches : 10 # number of batches to accumulate before optimizing (decide number of batches to calculate loss)
+  accumulated_batches : 5 # number of batches to accumulate before optimizing (decide number of batches to calculate loss)
   n_epoch: 5
   threshold : 0.5
   image_encoder_model: "BioVil"

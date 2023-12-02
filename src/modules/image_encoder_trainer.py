@@ -21,12 +21,12 @@ test_dataloader = chexpert_data_module.test_dataloader()
 criterion = nn.BCEWithLogitsLoss()
 
 # load model based on specification in the config.yaml
-if params["image_encoder_model"] == "Ark":
-    model = ArkModel(params["num_classes_img_encoder"], params["learning_rate"], criterion,
-                     params["Ark_pretrained_path"])
+if params["model"]["image_encoder_model"] == "Ark":
+    model = ArkModel(params["model"]["num_classes"], params["model"]["learning_rate"], criterion,
+                     params["model"]["Ark_pretrained_path"])
     filename_base = "Ark_model_"
-elif params["image_encoder_model"] == "BioVil":
-    model = BioVILModel(params["num_classes_img_encoder"], 128, params["learning_rate"], criterion)
+elif params["model"]["image_encoder_model"] == "BioVil":
+    model = BioVILModel(params["model"]["num_classes"], 128, params["model"]["learning_rate"], criterion)
     filename_base = "biovil-t_"
 
 # Define tensorboard logger
@@ -41,6 +41,6 @@ checkpoint_callback = pl.callbacks.ModelCheckpoint(
     mode='min',
 )
 
-trainer = pl.Trainer(max_epochs=params["max_epochs"], check_val_every_n_epoch=params["check_val_every_n_epochs"], logger=tensorboard_logger)
+trainer = pl.Trainer(max_epochs=params["model"]["n_epoch"], check_val_every_n_epoch=params["model"]["check_val_every_n_epochs"], logger=tensorboard_logger)
 trainer.fit(model, train_dataloader, val_dataloader)
 

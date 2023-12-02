@@ -17,6 +17,7 @@ class DataHandler:
         self.data_imputation = self.opt["data_imputation"]
         self.master_df = pd.read_csv(env_settings.MASTER_LIST[self.data_imputation])
         self.records = self.create_records()
+        self.paired = self.opt["paired"]
     
     def create_records(self):
 
@@ -52,7 +53,15 @@ class DataHandler:
         images_df = images_df.sample(frac=1).reset_index(drop=True)
 
         return images_df, label_df
-    
+
+    def paired_dataset(self):
+
+        unpaired_samples = {}
+
+        label_df = self.master_df[self.opt["chexpert_labels"]]
+        images_df = self.master_df[["jpg"]]
+
+        return images_df, label_df
 
     def get_images(self, images_df: pd.DataFrame):
         return images_df["jpg"].values.tolist()

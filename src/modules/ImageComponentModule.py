@@ -57,8 +57,7 @@ class ImageComponentModule(pl.LightningModule):
             print("No previous data to compare with")
             return None
 
-        current_outputs = torch.sigmoid(torch.cat(self.current_outputs, dim=0))
-        current_labels = torch.cat(self.current_labels, dim=0)
+        current_outputs = self.current_outputs
         
         # Compute loss between current and previous batches
         loss = self.criterion(current_outputs)
@@ -87,7 +86,7 @@ class ImageComponentModule(pl.LightningModule):
     def training_step(self, train_batch, batch_idx):
         x, labels = train_batch['target'], train_batch['report']
         output = self.forward(x)
-        self.accumulate_outputs_labels(output, labels, is_current=True)
+        self.accumulate_outputs_labels(torch.sigmoid(output), labels)
 
         if (batch_idx + 1) % self.accumulated_steps == 0:
             loss = self.compute_accumulated_loss()
@@ -98,7 +97,7 @@ class ImageComponentModule(pl.LightningModule):
     def validation_step(self, val_batch, batch_idx):
         x, labels = val_batch['target'], val_batch['report']
         output = self.forward(x)
-        self.accumulate_outputs_labels(output, labels, is_current=True)
+        self.accumulate_outputs_labels(output, labels)
 
         if (batch_idx + 1) % self.accumulated_steps == 0:
             loss = self.compute_accumulated_loss()
@@ -118,7 +117,6 @@ class ImageComponentModule(pl.LightningModule):
             "cosine": lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.n_epoch, eta_min=1e-7),
             "exponential": lr_scheduler.StepLR(optimizer=optimizer, step_size=1, gamma=0.95),
             "ReduceLROnPlateau" : lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, verbose=True),
-            "polynomial": lr_scheduler.PolynomialLR(optimizer, total_iters=self.opt.total_iterations, power=0.9),
         }
         if name in scheduler_dict:
             return scheduler_dict[name]

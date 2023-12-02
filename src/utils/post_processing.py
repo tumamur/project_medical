@@ -1,8 +1,6 @@
 import torch
 import itertools
-from environment_settings import env_settings
 import json
-from utils import read_disease_combination_counts
 
 import torch
 import itertools
@@ -13,6 +11,7 @@ from utils.utils import read_disease_combination_counts
 diseases = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Enlarged Cardiomediastinum',
             'Fracture', 'Lung Lesion', 'Lung Opacity', 'No Finding', 'Pleural Effusion', 'Pleural Other',
             'Pneumonia', 'Pneumothorax']
+
 
 overall_probabilities = {
     "zeros" : read_disease_combination_counts(path=env_settings.OCCURENCE_PROBABILITIES['zeros']),
@@ -27,10 +26,10 @@ def post_process(labels_arr, data_imputation, threshold=0.5):
     n_reference_distribution_tensor = []
     n_reference_distribution = []
     overall_distirbution = overall_probabilities[data_imputation]
-    
+    print(len(labels_arr))
+
     for label in labels_arr:
         presence = (label > threshold).int()
-    
         # Generate disease combinations as strings based on model output
         combinations_in_batch = []
         for batch in presence:

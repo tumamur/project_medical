@@ -39,8 +39,9 @@ class CombinationLoss(nn.Module):
     def KL_divergence(self, avg_tensor, ref_tensor):
         # Adding a small epsilon to avoid log(0)
         epsilon = 1e-10
-        avg_tensor = avg_tensor + epsilon
-        ref_tensor = ref_tensor + epsilon
+        print(avg_tensor)
+        avg_tensor = avg_tensor # + epsilon
+        ref_tensor = ref_tensor # + epsilon
         return torch.sum(ref_tensor * torch.log(ref_tensor / avg_tensor))
 
     def cosine_similarity(self, avg_tensor, ref_tensor):
