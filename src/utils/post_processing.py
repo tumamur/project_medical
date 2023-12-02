@@ -15,8 +15,8 @@ diseases = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Enlarged C
             'Pneumonia', 'Pneumothorax']
 
 overall_probabilities = {
-    "zeros" : read_disease_combination_counts(path=env_settings.OCCURENCE_PROBABILITIES_ZEROS),
-    "ones" : read_disease_combination_counts(path=env_settings.OCCURENCE_PROBABILITIES_ONES)
+    "zeros" : read_disease_combination_counts(path=env_settings.OCCURENCE_PROBABILITIES['zeros']),
+    "ones" : read_disease_combination_counts(path=env_settings.OCCURENCE_PROBABILITIES['ones'])
 }
 
 def post_process(labels_arr, data_imputation, threshold=0.5):
