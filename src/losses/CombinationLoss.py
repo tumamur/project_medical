@@ -3,9 +3,11 @@ import torch.nn as nn
 from utils.post_processing import *
 
 class CombinationLoss(nn.Module):
-    def __init__(self, loss_function):
+    def __init__(self, loss_function, data_imputation='zeros', threshold=0.5):
         super().__init__()
         self.loss_function = loss_function
+        self.data_imputation = data_imputation
+        self.threshold = threshold
 
     def forward(self, n_batch_distribution_tensor):
         # Adding a small epsilon to avoid log(0)
@@ -18,7 +20,7 @@ class CombinationLoss(nn.Module):
         # The reference tensor is the tensor of probabilities for each disease combination in the entire dataset
         # The reference tensor is of shape (num_combinations)
 
-        target_tensor, ref_tensor = post_process(n_batch_distribution_tensor, data_imputation='zeros')
+        target_tensor, ref_tensor = post_process(n_batch_distribution_tensor, self.data_imputation, self.threshold)
         if self.loss_function == 'KLDivergence':
             return self.KL_divergence(target_tensor, ref_tensor)
         elif self.loss_function == 'CosineSimilarity':

@@ -26,7 +26,7 @@ def post_process(labels_arr, data_imputation, threshold=0.5):
     n_batch_distribution_tensor = []
     n_reference_distribution_tensor = []
     n_reference_distribution = []
-    entire_occupations = overall_probabilities[data_imputation]
+    overall_distirbution = overall_probabilities[data_imputation]
     
     for label in labels_arr:
         presence = (label > threshold).int()
@@ -56,7 +56,7 @@ def post_process(labels_arr, data_imputation, threshold=0.5):
         n_batch_distribution.append(batch_distribution)
 
         # Extract only the relevant combinations from the entire dataset distribution
-        reference_distribution = {combo: overall_probabilities.get(combo, 0) for combo in batch_distribution.keys()}
+        reference_distribution = {combo: overall_distirbution.get(combo, 0) for combo in batch_distribution.keys()}
         reference_distribution_tensor = torch.tensor(list(reference_distribution.values()), dtype=torch.float32)
         n_reference_distribution_tensor.append(reference_distribution_tensor)
         n_reference_distribution.append(reference_distribution)

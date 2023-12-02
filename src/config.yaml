@@ -23,10 +23,20 @@ dataset:
   num_workers : 4
 
 
-learning_rate: 0.0001
-check_val_every_n_epochs: 1
-max_epochs: 5
-# image_encoder_model: "BioVil"
-image_encoder_model: "Ark"
-num_classes_img_encoder: 14
-Ark_pretrained_path: "/home/max/Desktop/MLMI/Ark/ark6_teacher_ep200_swinb_projector1376_mlp.pth.tar-20231123T004841Z-001/ark6_teacher_ep200_swinb_projector1376_mlp.pth.tar"
+model:
+  seed : 42
+  num_classes : 14
+  embedding_size : 512
+  lerning_rate : 0.0001
+  loss : 'KLDivergence' # CosineSimilarity, KLDivergence, Wasserstein, JSDivergence, Occurences, MSE
+  learning_rate: 0.0001
+  optimizer : 'Adam' # AdamW
+  scheduler : 'ReduceLROnPlateau' # cosine, exponential, polynomial
+  weight_decay : 0.001
+  accumulated_batches : 10 # number of batches to accumulate before optimizing (decide number of batches to calculate loss)
+  n_epoch: 5
+  threshold : 0.5
+  image_encoder_model: "BioVil"
+  check_val_every_n_epochs: 1
+  monitor : 'val_loss'
+

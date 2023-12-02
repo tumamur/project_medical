@@ -7,32 +7,35 @@ from health_multimodal.image.model.model import BaseImageModel
 from health_multimodal.image.utils import ImageModelType
 from health_multimodal.image.model.pretrained import get_biovil_t_image_encoder, get_biovil_image_encoder
 from models.BioViL import BioViL
+from models.ARK import ARKModel
 from losses.CombinationLoss import CombinationLoss
 from torch.optim import lr_scheduler
+from utils.environment_settings import env_settings
 import torchmetrics.functional as mF
 
 
 torch.autograd.set_detect_anomaly(True)
 
-class BioViLModule(pl.LightningModule):
+class ImageComponentModule(pl.LightningModule):
     
     def __init__(self, opt):
         super().__init__()
         self.save_hyperparameters(opt)
-        self.num_classes = opt["num_classes"]
-        self.embedding_size = opt["embedding_size"]
-        self.learning_rate = opt["learning_rate"]
-        self.loss_func = opt["loss"]
-        self.optimizer_name = opt["optimizer"]
-        self.scheduler_name = opt["scheduler"]
-        self.weight_decay = opt["weight_decay"]
-        self.n_epoch = opt["n_epoch"]
-        self.accumulated_steps = opt["accumulated_batches"]
-        self.threshold = opt["threshold"]
+        self.num_classes = opt['model']["num_classes"]
+        self.embedding_size =  opt['model']["embedding_size"]
+        self.learning_rate =  opt['model']["learning_rate"]
+        self.loss_func =  opt['model']["loss"]
+        self.optimizer_name =  opt['model']["optimizer"]
+        self.scheduler_name =  opt['model']["scheduler"]
+        self.weight_decay =  opt['model']["weight_decay"]
+        self.n_epoch =  opt['model']["n_epoch"]
+        self.accumulated_steps =  opt['model']["accumulated_batches"]
+        self.threshold =  opt['model']["threshold"]
+        self.data_imputation =  opt['dataset']["data_imputation"]
         self.current_outputs = []
         self.current_labels = []
-
-        self.criterion = CombinationLoss(self.loss_func)
+        self.image_encoder_model = opt['model']["image_encoder_model"]
+        self.criterion = CombinationLoss(self.loss_func, self.data_imputation, self.threshold)
         self.model = self._get_model()
 
     def forward(self, x):
@@ -104,7 +107,10 @@ class BioViLModule(pl.LightningModule):
                 return loss
     
     def _get_model(self):
-        return BioViL(embedding_size=self.embedding_size, num_classes=self.num_classes)
+        if self.image_encoder_model == "Ark":
+            return ARKModel(num_classes=self.num_classes, ark_pretrained_path=env_settings.PRETRAINED_PATH['ARK'])
+        elif self.image_encoder_model == "BioVil":
+            return BioViL(embedding_size=self.embedding_size, num_classes=self.num_classes)
     
 
     def init_lr_scheduler(self, name, optimizer):

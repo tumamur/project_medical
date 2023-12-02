@@ -1,11 +1,6 @@
 import torch
 import timm
 import torch.nn as nn
-import pytorch_lightning as pl
-import health_multimodal.image
-from health_multimodal.image.model.model import BaseImageModel
-from health_multimodal.image.utils import ImageModelType
-from health_multimodal.image.model.pretrained import get_biovil_t_image_encoder, get_biovil_image_encoder
 
 class ARKModel(nn.Module):
     def __init__(self, num_classes, ark_pretrained_path):
