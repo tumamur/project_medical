@@ -32,10 +32,10 @@ class ImageComponentModule(pl.LightningModule):
         self.accumulated_steps =  opt['model']["accumulated_batches"]
         self.threshold =  opt['model']["threshold"]
         self.data_imputation =  opt['dataset']["data_imputation"]
-        self.current_outputs = []
-        self.current_labels = []
+        self.diseases = opt['dataset']['chexpert_labels']
+        self.accumulated_outputs = []
         self.image_encoder_model = opt['model']["image_encoder_model"]
-        self.criterion = CombinationLoss(self.loss_func, self.data_imputation, self.threshold)
+        self.criterion = CombinationLoss(self.loss_func, self.data_imputation, self.diseases, self.threshold)
         self.model = self._get_model()
 
     def forward(self, x):
@@ -44,23 +44,20 @@ class ImageComponentModule(pl.LightningModule):
         return x
     
     def reset_accumulation(self):
-        self.current_outputs = []
-        self.current_labels = []
+        self.accumulated_outputs = []
 
-    def accumulate_outputs_labels(self, outputs, labels):
-        self.current_outputs.append(outputs)
-        self.current_labels.append(labels)
-
+    def accumulate_outputs(self, outputs):
+        self.accumulated_outputs.append(outputs)
+ 
     def compute_accumulated_loss(self):
-        if not self.current_outputs:
+        if not self.accumulated_outputs:
             # No previous data to compare with
             print("No previous data to compare with")
             return None
 
-        current_outputs = self.current_outputs
-        
+        accumulated_outputs = torch.cat(self.accumulated_outputs, dim=0)
         # Compute loss between current and previous batches
-        loss = self.criterion(current_outputs)
+        loss = self.criterion(accumulated_outputs)
         self.reset_accumulation()
         return loss
 
@@ -84,9 +81,9 @@ class ImageComponentModule(pl.LightningModule):
     
 
     def training_step(self, train_batch, batch_idx):
-        x, labels = train_batch['target'], train_batch['report']
+        x = train_batch['target']
         output = self.forward(x)
-        self.accumulate_outputs_labels(torch.sigmoid(output), labels)
+        self.accumulate_outputs(output)
 
         if (batch_idx + 1) % self.accumulated_steps == 0:
             loss = self.compute_accumulated_loss()
@@ -95,9 +92,9 @@ class ImageComponentModule(pl.LightningModule):
                 return loss
 
     def validation_step(self, val_batch, batch_idx):
-        x, labels = val_batch['target'], val_batch['report']
+        x = val_batch['target']
         output = self.forward(x)
-        self.accumulate_outputs_labels(output, labels)
+        self.accumulate_outputs(output)
 
         if (batch_idx + 1) % self.accumulated_steps == 0:
             loss = self.compute_accumulated_loss()

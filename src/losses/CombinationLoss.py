@@ -3,11 +3,12 @@ import torch.nn as nn
 from utils.post_processing import *
 
 class CombinationLoss(nn.Module):
-    def __init__(self, loss_function, data_imputation='zeros', threshold=0.5):
+    def __init__(self, loss_function, data_imputation='zeros', diseases=None, threshold=0.5):
         super().__init__()
         self.loss_function = loss_function
         self.data_imputation = data_imputation
         self.threshold = threshold
+        self.diseases = diseases
 
     def forward(self, n_batch_distribution_tensor):
         # Adding a small epsilon to avoid log(0)
@@ -20,7 +21,12 @@ class CombinationLoss(nn.Module):
         # The reference tensor is the tensor of probabilities for each disease combination in the entire dataset
         # The reference tensor is of shape (num_combinations)
 
-        target_tensor, ref_tensor = post_process(n_batch_distribution_tensor, self.data_imputation, self.threshold)
+        accumulated_outputs = torch.sigmoid(n_batch_distribution_tensor)
+
+        target, ref = post_process(accumulated_outputs, self.data_imputation, self.diseases, self.threshold)
+        target_tensor = target['distributions']
+        ref_tensor = ref['distributions']
+        
         if self.loss_function == 'KLDivergence':
             return self.KL_divergence(target_tensor, ref_tensor)
         elif self.loss_function == 'CosineSimilarity':
@@ -39,9 +45,8 @@ class CombinationLoss(nn.Module):
     def KL_divergence(self, avg_tensor, ref_tensor):
         # Adding a small epsilon to avoid log(0)
         epsilon = 1e-10
-        print(avg_tensor)
-        avg_tensor = avg_tensor # + epsilon
-        ref_tensor = ref_tensor # + epsilon
+        avg_tensor = avg_tensor + epsilon
+        ref_tensor = ref_tensor + epsilon
         return torch.sum(ref_tensor * torch.log(ref_tensor / avg_tensor))
 
     def cosine_similarity(self, avg_tensor, ref_tensor):
