@@ -37,6 +37,7 @@ class ImageComponentModule(pl.LightningModule):
         self.image_encoder_model = opt['model']["image_encoder_model"]
         self.criterion = CombinationLoss(self.loss_func, self.data_imputation, self.diseases, self.threshold)
         self.model = self._get_model()
+        self.batch_size = opt['dataset']['batch_size']
 
     def forward(self, x):
         x = x.float()
@@ -44,7 +45,7 @@ class ImageComponentModule(pl.LightningModule):
         return x
     
     def reset_accumulation(self):
-        self.accumulated_outputs = []
+        self.accumulated_outputs.pop(0)
 
     def accumulate_outputs(self, outputs):
         self.accumulated_outputs.append(outputs)
@@ -54,9 +55,8 @@ class ImageComponentModule(pl.LightningModule):
             # No previous data to compare with
             print("No previous data to compare with")
             return None
-
         accumulated_outputs = torch.cat(self.accumulated_outputs, dim=0)
-        # Compute loss between current and previous batches
+        #Compute loss between current and previous batches
         loss = self.criterion(accumulated_outputs)
         self.reset_accumulation()
         return loss
@@ -85,7 +85,8 @@ class ImageComponentModule(pl.LightningModule):
         output = self.forward(x)
         self.accumulate_outputs(output)
 
-        if (batch_idx + 1) % self.accumulated_steps == 0:
+        if len(self.accumulated_outputs) == self.accumulated_steps:
+            self.compute_accumulated_loss()
             loss = self.compute_accumulated_loss()
             if loss is not None:
                 self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True)
