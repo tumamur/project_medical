@@ -10,12 +10,14 @@ from utils._prepare_data import DataHandler
 from utils.environment_settings import env_settings
 from utils.utils import read_config, get_monitor_metrics_mode
 
+
 def start_tensorboard(port, tracking_address: str):
     tb = program.TensorBoard()
     tb.configure(argv=[None, "--logdir", tracking_address, "--port", str(port)])
     url = tb.launch()
     print(f"Tensorflow listening on {url}")
     return tb
+
 
 def main(params):
     torch.manual_seed(params["model"]["seed"])
@@ -61,6 +63,7 @@ def main(params):
     # Start training
     torch.autograd.set_detect_anomaly(True)
     trainer.fit(ImageEncoder, chexpert_data_module)
+
 
 if __name__ == '__main__':
     params = read_config(env_settings.CONFIG)
