@@ -12,7 +12,7 @@ env_settings.MASTER_LIST = {
 }
 env_settings.OCCURENCE_PROBABILITIES = {
     "ones": "/home/guests/usr_mlmi/arda/Unsupervised-Structured-Reporting-via-Cycle-Consistency/src/data/disease_combination_distribution_ones.json",
-    "zeros" : "/home/guests/usr_mlmi/arda/Unsupervised-Structured-Reporting-via-Cycle-Consistency/src/data/disease_combination_distribution_ones.json"
+    "zeros" : "/home/guests/usr_mlmi/arda/Unsupervised-Structured-Reporting-via-Cycle-Consistency/src/data/disease_combination_distribution_zeros.json"
 }
 env_settings.CONFIG = "/home/guests/usr_mlmi/arda/Unsupervised-Structured-Reporting-via-Cycle-Consistency/src/config.yaml"
 env_settings.PRETRAINED_PATH = {
