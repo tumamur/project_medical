@@ -16,7 +16,7 @@ def default(val, d):
 
 # config
 
-MAX_LENGTH = 256
+MAX_LENGTH = 100
 
 DEFAULT_T5_NAME = 'google/t5-v1_1-base'
 
@@ -73,7 +73,7 @@ def t5_tokenize(
     encoded = tokenizer.batch_encode_plus(
         texts,
         return_tensors = "pt",
-        padding = 'longest',
+        padding = 'max_length',
         max_length = MAX_LENGTH,
         truncation = True
     )
