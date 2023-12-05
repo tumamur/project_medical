@@ -15,6 +15,11 @@ from datasets.utils.file_utils import get_datasets_user_agent
 import io
 import urllib
 
+from models.imagen_pytorch.t5 import t5_encode_text, get_encoded_dim, DEFAULT_T5_NAME
+import xml.etree.ElementTree as ET
+import os
+import json
+
 USER_AGENT = get_datasets_user_agent()
 
 # helpers functions
@@ -89,18 +94,51 @@ class Collator:
             image = None
         return image
 
-class Dataset(Dataset):
+def get_report(xml_file):
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+    indication = ''
+    findings = ''
+    impression = ''
+    for text in root.find('MedlineCitation').find('Article').find('Abstract').findall('AbstractText'):
+        if text.attrib['Label'] == 'FINDINGS':
+            findings = text.text if text.text is not None else ''
+        elif text.attrib['Label'] == 'IMPRESSION':
+            impression = text.text if text.text is not None else ''
+        elif text.attrib['Label'] == 'INDICATION':
+            indication = text.text if text.text is not None else ''
+        report = indication + ' ' + findings + ' ' + impression
+    return report
+
+class NLMCXRDataset(Dataset):
     def __init__(
         self,
-        folder,
+        image_path,
+        text_path,
         image_size,
-        exts = ['jpg', 'jpeg', 'png', 'tiff'],
-        convert_image_to_type = None
+        mode = 'train', #val, test
+        convert_image_to_type = None,
+        text_encoder_name = DEFAULT_T5_NAME
     ):
         super().__init__()
-        self.folder = folder
         self.image_size = image_size
-        self.paths = [p for ext in exts for p in Path(f'{folder}').glob(f'**/*.{ext}')]
+
+        self.encode_text = partial(t5_encode_text, name = text_encoder_name, return_attn_mask = True)
+
+        self.image_path = Path(image_path)
+        self.text_path = Path(text_path)
+
+        with open(f"/home/guo/git/Unsupervised-Structured-Reporting-via-Cycle-Consistency/src/data/radrestruct/{mode}_ids.json", "r") as f:
+            self.ids = json.load(f)
+
+        self.pairs = []
+        with open("/home/guo/git/Unsupervised-Structured-Reporting-via-Cycle-Consistency/src/data/radrestruct/id_to_img_mapping_frontal_reports.json", "r") as f:
+            id_to_img_mapping = json.load(f)
+            for id in self.ids:
+                for img in id_to_img_mapping[id]:
+                    report = get_report(self.text_path / f'{id}.xml')
+                    self.pairs.append((img, report))
+
 
         convert_fn = partial(convert_image_to, convert_image_to_type) if exists(convert_image_to_type) else nn.Identity()
 
@@ -113,12 +151,14 @@ class Dataset(Dataset):
         ])
 
     def __len__(self):
-        return len(self.paths)
+        return len(self.pairs)
 
     def __getitem__(self, index):
-        path = self.paths[index]
-        img = Image.open(path)
-        return self.transform(img)
+        img, report = self.pairs[index]
+        #open a grayscale image
+        img = Image.open(self.image_path / f'{img}.png').convert('L')
+        text_embed, text_mask = self.encode_text(report)
+        return self.transform(img), text_embed, text_mask
 
 def get_images_dataloader(
     folder,
