@@ -128,11 +128,11 @@ class NLMCXRDataset(Dataset):
         self.image_path = Path(image_path)
         self.text_path = Path(text_path)
 
-        with open(f"/home/guo/git/Unsupervised-Structured-Reporting-via-Cycle-Consistency/src/data/radrestruct/{mode}_ids.json", "r") as f:
+        with open(f"./data/radrestruct/{mode}_ids.json", "r") as f:
             self.ids = json.load(f)
 
         self.pairs = []
-        with open("/home/guo/git/Unsupervised-Structured-Reporting-via-Cycle-Consistency/src/data/radrestruct/id_to_img_mapping_frontal_reports.json", "r") as f:
+        with open("./data/radrestruct/id_to_img_mapping_frontal_reports.json", "r") as f:
             id_to_img_mapping = json.load(f)
             for id in self.ids:
                 for img in id_to_img_mapping[id]:
@@ -155,10 +155,9 @@ class NLMCXRDataset(Dataset):
 
     def __getitem__(self, index):
         img, report = self.pairs[index]
-        #open a grayscale image
         img = Image.open(self.image_path / f'{img}.png').convert('L')
-        text_embed, text_mask = self.encode_text(report)
-        return self.transform(img), text_embed, text_mask
+        text_embed, text_mask = self.encode_text([report])
+        return self.transform(img), text_embed[0], text_mask[0]
 
 def get_images_dataloader(
     folder,
