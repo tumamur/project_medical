@@ -17,11 +17,11 @@ from torch.cuda.amp import autocast, GradScaler
 
 import pytorch_warmup as warmup
 
-from imagen_pytorch.imagen_pytorch import Imagen, NullUnet
-from imagen_pytorch.elucidated_imagen import ElucidatedImagen
-from imagen_pytorch.data import cycle
+from models.imagen_pytorch.imagen_pytorch import Imagen, NullUnet
+from models.imagen_pytorch.elucidated_imagen import ElucidatedImagen
+from models.imagen_pytorch.data import cycle
 
-from imagen_pytorch.version import __version__
+from models.imagen_pytorch.version import __version__
 from packaging import version
 
 import numpy as np
