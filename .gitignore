@@ -126,5 +126,4 @@ dmypy.json
 
 experiments/
 
-tmp
-checkpoints/
+exp
