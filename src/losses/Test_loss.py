@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import pandas as pd
+import torch.nn.functional as F
+
 
 
 class ClassificationLoss(nn.Module):
@@ -10,14 +12,23 @@ class ClassificationLoss(nn.Module):
         df = pd.read_csv(reference_path)
         df = df.iloc[:, 6:].values
         self.data_ref = torch.tensor(df, dtype=torch.float32).to(self.device)
-        self.similarity = nn.CosineSimilarity(dim=1)
 
     def forward(self, output):
-        # print(output)
-        similarity = self.similarity(output, self.data_ref)
-        # print(similarity)
-        max_similarity, _ = similarity.max(dim=0)
-        # print(max_similarity)
+
+        # Only works for a batch_size of 1
+        # similarity = self.similarity(output, self.data_ref)
+        # max_similarity, _ = similarity.max(dim=0)
+        # loss = 1 - max_similarity.mean()
+
+        # Ensure that both output and data_ref have the same number of features (14)
+        assert output.size(1) == self.data_ref.size(1), "Number of features must match."
+        # Reshape output to [batch_size, 1, num_features] for broadcasting
+        output = output.unsqueeze(1)
+        # Calculate cosine similarity using torch.cosine_similarity
+        similarity = F.cosine_similarity(output, self.data_ref.unsqueeze(0), dim=2)
+        # Compute the maximum similarity for each row in output
+        max_similarity, _ = similarity.max(dim=1)
+        # Compute the loss
         loss = 1 - max_similarity.mean()
 
         return loss
