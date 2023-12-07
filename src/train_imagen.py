@@ -39,6 +39,7 @@ if __name__ == '__main__':
     args.sample_save_path = args.save_path + args.exp_name + f'/unet{args.unet_number}' + '/samples/'
 
     # unet for imagen
+    # feel free to add more unets here, but make sure to add them to the imagen model below
 
     unet1 = Unet(
         dim = 32,
@@ -63,7 +64,7 @@ if __name__ == '__main__':
     imagen = Imagen(
         condition_on_text = True,  # this must be set to False for unconditional Imagen
         unets = (unet1, unet2),
-        image_sizes = (64, 128),
+        image_sizes = (64, 256),
         timesteps = 1000,
         channels=1,
         cond_drop_prob = 0.1
@@ -78,9 +79,9 @@ if __name__ == '__main__':
         trainer.load(args.model_path)
 
     # instantiate the train, validation and datasets, which return the necessary inputs to the DDPM as tuple in the order of images, text embeddings, then text masks.
-    dataset_train = NLMCXRDataset(args.image_path, args.text_path, image_size=64, mode='train')
-    dataset_val = NLMCXRDataset(args.image_path, args.text_path, image_size=64, mode='val')
-    dataset_test = NLMCXRDataset(args.image_path, args.text_path, image_size=64, mode='test')
+    dataset_train = NLMCXRDataset(args.image_path, args.text_path, image_size=256, mode='train')
+    dataset_val = NLMCXRDataset(args.image_path, args.text_path, image_size=256, mode='val')
+    dataset_test = NLMCXRDataset(args.image_path, args.text_path, image_size=256, mode='test')
 
     trainer.add_train_dataset(dataset_train, batch_size = args.batch_size)
     trainer.add_valid_dataset(dataset_val, batch_size = args.batch_size)
