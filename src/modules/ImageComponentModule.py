@@ -11,7 +11,7 @@ from models.ARK import ARKModel
 from losses.CombinationLoss import CombinationLoss
 from torch.optim import lr_scheduler
 from utils.environment_settings import env_settings
-import torchmetrics.functional as mF
+import torchmetrics.functional as F
 from losses.Test_loss import ClassificationLoss
 
 torch.autograd.set_detect_anomaly(True)
@@ -34,6 +34,9 @@ class ImageComponentModule(pl.LightningModule):
         self.threshold = opt['model']["threshold"]
         self.data_imputation = opt['dataset']["data_imputation"]
         self.diseases = opt['dataset']['chexpert_labels']
+        self.hidden_dim1 = opt['model']["classification_head_hidden1"]
+        self.hidden_dim2 = opt['model']["classification_head_hidden2"]
+        self.dropout_rate = opt['model']["dropout_prob"]
         self.accumulated_outputs = []
         self.image_encoder_model = opt['model']["image_encoder_model"]
         self.metric = CombinationLoss(self.loss_func, self.data_imputation, self.diseases, self.threshold)
@@ -88,14 +91,14 @@ class ImageComponentModule(pl.LightningModule):
         loss = self.criterion(output)
         self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True)
         self.accumulate_outputs(output)
-        print(self.accumulated_outputs)
-        print(len(self.accumulated_outputs))
+        # print(self.accumulated_outputs)
+        # print(len(self.accumulated_outputs))
         if len(self.accumulated_outputs) == self.accumulated_steps:
             metric = self.compute_accumulated_metric()
             self.log('classification_metric', metric, on_step=True, on_epoch=True)
-            print(metric)
+            # print(metric)
 
-        print(loss)
+        # print(loss)
 
         return loss
 
@@ -120,7 +123,8 @@ class ImageComponentModule(pl.LightningModule):
         if self.image_encoder_model == "Ark":
             return ARKModel(num_classes=self.num_classes, ark_pretrained_path=env_settings.PRETRAINED_PATH['ARK'])
         elif self.image_encoder_model == "BioVil":
-            return BioViL(embedding_size=self.embedding_size, num_classes=self.num_classes)
+            return BioViL(embedding_size=self.embedding_size, num_classes=self.num_classes, hidden_1=self.hidden_dim1,
+                          hidden_2=self.hidden_dim2, dropout_rate=self.dropout_rate)
 
     def init_lr_scheduler(self, name, optimizer):
         scheduler_dict = {
