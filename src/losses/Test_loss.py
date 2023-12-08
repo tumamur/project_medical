@@ -10,7 +10,7 @@ class ClassificationLoss(nn.Module):
         super(ClassificationLoss, self).__init__()
         self.device = "cuda"
         df = pd.read_csv(reference_path)
-        df = df.iloc[:, 6:].values
+        df = df.iloc[:, 6:-1].values
         self.data_ref = torch.tensor(df, dtype=torch.float32).to(self.device)
 
     def forward(self, output):
