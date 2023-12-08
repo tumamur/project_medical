@@ -7,6 +7,7 @@ from models.Ark import ArkModel
 from models.BioViL import BioViL
 from utils.environment_settings import env_settings
 from utils.utils import read_config
+from torchvision.utils import save_image
 
 
 class CycleGAN(nn.Module):
@@ -53,8 +54,21 @@ class CycleGAN(nn.Module):
         pass
 
 
-params = read_config(env_settings.CONFIG)
-cycle_gan = CycleGAN(params)
+def save_image_samples(batches_done):
+    pass
+
+
+def show_image_samples(batches_done):
+    pass
+
+def main():
+    params = read_config(env_settings.CONFIG)
+    cycle_gan = CycleGAN(params)
+
+
+if __name__ == '__main__':
+    main()
+
 
 
 
