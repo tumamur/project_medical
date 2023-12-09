@@ -99,15 +99,23 @@ class ImageComponentModule(pl.LightningModule):
         # return {"optimizer": optimizer}
         
     def discriminator_step(self, real_labels, fake_labels):
-        # Squeeze the output of the discriminator to match the shape of the real_labels
-        real_loss = self.criterion(self.discriminator(real_labels).squeeze(), torch.ones_like(real_labels))
-        fake_loss = self.criterion(self.discriminator(fake_labels.detach()).squeeze(), torch.zeros_like(real_labels))
-        return (real_loss + fake_loss) / 2
+        # Ensure labels are of type Float
+        real_labels = real_labels.float()
+
+        # Adjust the shapes of real and fake labels for loss computation
+        # Assuming real_labels is of shape [batch_size, num_classes]
+        real_loss = self.criterion(self.discriminator(real_labels), torch.ones_like(real_labels))
+        fake_loss = self.criterion(self.discriminator(fake_labels.detach()), torch.zeros_like(real_labels))
+        disc_loss = (real_loss + fake_loss) / 2
+        self.log('discriminator_loss', disc_loss, on_step=True, on_epoch=True)
+        return disc_loss
 
 
     def generator_step(self, fake_labels):
-        # Generator training step
-        gen_loss = self.criterion(self.discriminator(fake_labels), torch.ones_like(fake_labels[:, 0]))
+        # Ensure fake_labels is of type Float
+        fake_labels = fake_labels.float()
+        # Compute generator loss
+        gen_loss = self.criterion(self.discriminator(fake_labels), torch.ones_like(fake_labels))
         self.log('generator_loss', gen_loss, on_step=True, on_epoch=True)
         return gen_loss
 
