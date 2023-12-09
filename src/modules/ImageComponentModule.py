@@ -119,7 +119,7 @@ class ImageComponentModule(pl.LightningModule):
         self.log('generator_loss', gen_loss, on_step=True, on_epoch=True)
         return gen_loss
 
-    def training_step(self, train_batch, batch_idx):
+    def training_step(self, train_batch, batch_idx, optimizer_idx):
         x = train_batch['target']
         y = train_batch['report']
 
@@ -127,15 +127,29 @@ class ImageComponentModule(pl.LightningModule):
         output = torch.sigmoid(output) # fake labels
         self.accumulate_outputs(output)
 
-        if self.loss_func == "Adversarial":
-            disc_loss = self.discriminator_step(y, output)
-            gen_loss = self.generator_step(output)
-            train_loss = gen_loss
+        if optimizer_idx == 0:
+            # For Generator and or similatiry loss
+            if self.loss_func == "Adversarial":
+                gen_loss = self.generator_step(output)
+                train_loss = gen_loss
 
-        elif self.loss_func == "Similarity":
-            similarity_loss = self.criterion(output)
-            train_loss = similarity_loss
-            self.log('similarity_loss', similarity_loss, on_step=True, on_epoch=True, prog_bar=True)
+            elif self.loss_func == "Similarity":
+                similarity_loss = self.criterion(output)
+                self.log('similarity_loss', similarity_loss, on_step=True, on_epoch=True, prog_bar=True)
+                train_loss = similarity_loss
+            else:
+                raise ValueError("Invalid loss function for Generator Optimizer")
+            
+            return train_loss
+            
+        elif optimizer_idx == 1:
+            # For Discriminator
+            if self.loss_func == "Adversarial":
+                # For adversarial training, compute loss for both generator and discriminator
+                disc_loss = self.discriminator_step(y, output)
+                return disc_loss
+            else:
+                raise ValueError("Invalid loss function for Discriminator Optimizer")
 
         self.log('loss', train_loss, on_step=True, on_epoch=True, prog_bar=True)
         if len(self.accumulated_outputs) == self.accumulated_steps:
