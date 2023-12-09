@@ -1,18 +1,19 @@
 import torch.nn as nn
 
 class ReportDiscriminator(nn.Module):
-    def __init__(self, input_dim):
+    def __init__(self, input_dim, output_dim):
         super(ReportDiscriminator, self).__init__()
         self.model = nn.Sequential(
             nn.Linear(input_dim, 128),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(128, 1),
-            nn.Sigmoid()
+            nn.Linear(128,output_dim),
         )
 
     def forward(self, x):
         x = x.float()
-        return self.model(x)
+        # Apply sigmoid activation to the output
+        # use a sigmoid activation at the end of the discriminator. This allows each class to be independently classified
+        return nn.sigmoid(self.model(x))
 
 
 

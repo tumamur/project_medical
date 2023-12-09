@@ -178,7 +178,7 @@ class ImageComponentModule(pl.LightningModule):
                           hidden_2=self.hidden_dim2, dropout_rate=self.dropout_rate)
         
     def _get_discriminator(self):
-        return ReportDiscriminator(input_dim=self.num_classes)
+        return ReportDiscriminator(input_dim=self.num_classes, output_dim=self.num_classes)
 
     # def init_lr_scheduler(self, name, optimizer):
     #     scheduler_dict = {
