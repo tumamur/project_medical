@@ -8,11 +8,12 @@ from health_multimodal.image.utils import ImageModelType
 from health_multimodal.image.model.pretrained import get_biovil_t_image_encoder, get_biovil_image_encoder
 from models.BioViL import BioViL
 from models.ARK import ARKModel
-from losses.CombinationLoss import CombinationLoss
+from models.Discriminator import ReportDiscriminator
+from losses.Metrics import Metrics
 from torch.optim import lr_scheduler
 from utils.environment_settings import env_settings
 import torchmetrics.functional as F
-from losses.Test_loss import ClassificationLoss
+from losses.ClassificationLoss import SimilarityLoss, AdversarialLoss
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -39,10 +40,11 @@ class ImageComponentModule(pl.LightningModule):
         self.dropout_rate = opt['model']["dropout_prob"]
         self.accumulated_outputs = []
         self.image_encoder_model = opt['model']["image_encoder_model"]
-        self.metric = CombinationLoss(self.loss_func, self.data_imputation, self.diseases, self.threshold)
+        self.metric = Metrics(self.loss_func, self.data_imputation, self.diseases, self.threshold)
         self.ref_path = env_settings.MASTER_LIST['zeros']
-        self.criterion = ClassificationLoss(self.ref_path)
+        self.criterion = self._get_criterion()
         self.model = self._get_model()
+        self.discriminator = self._get_discriminator()
         self.batch_size = opt['dataset']['batch_size']
 
     def forward(self, x):
@@ -71,53 +73,100 @@ class ImageComponentModule(pl.LightningModule):
         optimizer_dict = {
             "Adam": torch.optim.Adam(self.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay),
             "AdamW": torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay),
+            'D_Adam' : torch.optim.Adam(self.discriminator.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay),
+            'D_AdamW' : torch.optim.AdamW(self.discriminator.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay),
         }
-        optimizer = optimizer_dict[self.optimizer_name]
-        lr_scheduler = self.init_lr_scheduler(self.scheduler_name, optimizer)
-        if lr_scheduler is not None:
-            return {
-                "optimizer": optimizer,
-                "lr_scheduler": {
-                    "scheduler": lr_scheduler,
-                    "monitor": "val_loss",
-                },
-            }
-        return {"optimizer": optimizer}
+        if self.loss_func == "Adversarial":
+            gen_optimizer = optimizer_dict[self.optimizer_name]
+            d_optimizer_name = self.optimizer_name.replace('Adam', 'D_Adam')
+            disc_optimizer = optimizer_dict[d_optimizer_name]
+            return [gen_optimizer, disc_optimizer], [] 
+        
+        elif self.loss_func == "Similarity":
+            optimizer = optimizer_dict[self.optimizer_name]
+            return optimizer, [] 
+
+        # lr_scheduler = self.init_lr_scheduler(self.scheduler_name, optimizer)
+        # if lr_scheduler is not None:
+        #     return {
+        #         "optimizer": optimizer,
+        #         "lr_scheduler": {
+        #             "scheduler": lr_scheduler,
+        #             "monitor": "val_loss",
+        #         },
+        #     }
+        # return {"optimizer": optimizer}
+        
+    def discriminator_step(self, real_labels, fake_labels):
+        real_loss = self.adversarial_loss(self.discriminator(real_labels), torch.ones_like(real_labels[:, 0]))
+        fake_loss = self.adversarial_loss(self.discriminator(fake_labels.detach()), torch.zeros_like(fake_labels[:, 0]))
+        disc_loss = (real_loss + fake_loss) / 2
+        self.log('discriminator_loss', disc_loss, on_step=True, on_epoch=True)
+        return disc_loss
+
+    def generator_step(self, fake_labels):
+        # Generator training step
+        gen_loss = self.adversarial_loss(self.discriminator(fake_labels), torch.ones_like(fake_labels[:, 0]))
+        self.log('generator_loss', gen_loss, on_step=True, on_epoch=True)
+        return gen_loss
 
     def training_step(self, train_batch, batch_idx):
         x = train_batch['target']
+        y = train_batch['report']
+
         output = self.forward(x)
-        output = torch.sigmoid(output)
-        loss = self.criterion(output)
-        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True)
+        output = torch.sigmoid(output) # fake labels
         self.accumulate_outputs(output)
-        # print(self.accumulated_outputs)
-        # print(len(self.accumulated_outputs))
+
+        if self.loss_func == "Adversarial":
+            disc_loss = self.discriminator_step(y, output)
+            gen_loss = self.generator_step(output)
+            train_loss = gen_loss 
+
+        elif self.loss_func == "Similarity":
+            similarity_loss = self.criterion(output)
+            train_loss = similarity_loss
+            self.log('similarity_loss', similarity_loss, on_step=True, on_epoch=True, prog_bar=True)
+            
+
         if len(self.accumulated_outputs) == self.accumulated_steps:
             metric = self.compute_accumulated_metric()
             self.log('classification_metric', metric, on_step=True, on_epoch=True)
-            # print(metric)
 
-        # print(loss)
-
-        return loss
-
-
+        return train_loss
+    
     def validation_step(self, val_batch, batch_idx):
         x = val_batch['target']
+        y = val_batch['report']
+
         output = self.forward(x)
+        output = torch.sigmoid(output)
+
         self.accumulate_outputs(output)
 
-        output = torch.sigmoid(output)
-        loss = self.criterion(output)
-        self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True)
-        self.accumulate_outputs(output)
+        if self.loss_func == "Adversarial":
+            # For adversarial validation, compute loss for both generator and discriminator
+            disc_loss = self.discriminator_step(y, output)
+            gen_loss = self.generator_step(output)
+            val_loss = gen_loss  # You may choose to report generator loss or a combination
+
+        elif self.loss_func == "Similarity":
+            # For similarity validation, compute similarity loss
+            similarity_loss = self.criterion(output)
+            self.log('similarity_val_loss', similarity_loss, on_step=True, on_epoch=True, prog_bar=True)
+            val_loss = similarity_loss
 
         if len(self.accumulated_outputs) == self.accumulated_steps:
             metric = self.compute_accumulated_metric()
             self.log('classification_metric', metric, on_step=True, on_epoch=True)
 
-        return loss
+        return val_loss
+    
+    def _get_criterion(self):
+        if self.loss_func == "Similarity":
+            return SimilarityLoss(self.ref_path)
+        elif self.loss_func == "Adversarial":
+            return AdversarialLoss()
 
     def _get_model(self):
         if self.image_encoder_model == "Ark":
@@ -125,14 +174,17 @@ class ImageComponentModule(pl.LightningModule):
         elif self.image_encoder_model == "BioVil":
             return BioViL(embedding_size=self.embedding_size, num_classes=self.num_classes, hidden_1=self.hidden_dim1,
                           hidden_2=self.hidden_dim2, dropout_rate=self.dropout_rate)
+        
+    def _get_discriminator(self):
+        return ReportDiscriminator(input_dim=self.num_classes)
 
-    def init_lr_scheduler(self, name, optimizer):
-        scheduler_dict = {
-            "cosine": lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.n_epoch, eta_min=1e-7),
-            "exponential": lr_scheduler.StepLR(optimizer=optimizer, step_size=1, gamma=0.95),
-            "ReduceLROnPlateau": lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10,
-                                                                verbose=True),
-        }
-        if name in scheduler_dict:
-            return scheduler_dict[name]
-        return None
+    # def init_lr_scheduler(self, name, optimizer):
+    #     scheduler_dict = {
+    #         "cosine": lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.n_epoch, eta_min=1e-7),
+    #         "exponential": lr_scheduler.StepLR(optimizer=optimizer, step_size=1, gamma=0.95),
+    #         "ReduceLROnPlateau": lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10,
+    #                                                             verbose=True),
+    #     }
+    #     if name in scheduler_dict:
+    #         return scheduler_dict[name]
+    #     return None
