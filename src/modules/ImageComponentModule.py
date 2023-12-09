@@ -122,14 +122,14 @@ class ImageComponentModule(pl.LightningModule):
         if self.loss_func == "Adversarial":
             disc_loss = self.discriminator_step(y, output)
             gen_loss = self.generator_step(output)
-            train_loss = gen_loss 
+            train_loss = gen_loss
 
         elif self.loss_func == "Similarity":
             similarity_loss = self.criterion(output)
             train_loss = similarity_loss
             self.log('similarity_loss', similarity_loss, on_step=True, on_epoch=True, prog_bar=True)
-            
 
+        self.log('loss', train_loss, on_step=True, on_epoch=True, prog_bar=True)
         if len(self.accumulated_outputs) == self.accumulated_steps:
             metric = self.compute_accumulated_metric()
             self.log('classification_metric', metric, on_step=True, on_epoch=True)
@@ -154,9 +154,10 @@ class ImageComponentModule(pl.LightningModule):
         elif self.loss_func == "Similarity":
             # For similarity validation, compute similarity loss
             similarity_loss = self.criterion(output)
-            self.log('similarity_val_loss', similarity_loss, on_step=True, on_epoch=True, prog_bar=True)
             val_loss = similarity_loss
+            self.log('similarity_loss', similarity_loss, on_step=True, on_epoch=True, prog_bar=True)
 
+        self.log('val_loss', similarity_loss, on_step=True, on_epoch=True, prog_bar=True)
         if len(self.accumulated_outputs) == self.accumulated_steps:
             metric = self.compute_accumulated_metric()
             self.log('classification_metric', metric, on_step=True, on_epoch=True)
