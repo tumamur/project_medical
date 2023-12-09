@@ -165,7 +165,7 @@ class ImageComponentModule(pl.LightningModule):
             val_loss = similarity_loss
             self.log('similarity_loss', similarity_loss, on_step=True, on_epoch=True, prog_bar=True)
 
-        self.log('val_loss', similarity_loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log('val_loss', val_loss, on_step=True, on_epoch=True, prog_bar=True)
         if len(self.accumulated_outputs) == self.accumulated_steps:
             metric = self.compute_accumulated_metric()
             self.log('classification_metric', metric, on_step=True, on_epoch=True)
