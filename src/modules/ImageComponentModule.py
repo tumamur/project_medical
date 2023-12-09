@@ -99,15 +99,15 @@ class ImageComponentModule(pl.LightningModule):
         # return {"optimizer": optimizer}
         
     def discriminator_step(self, real_labels, fake_labels):
-        real_loss = self.adversarial_loss(self.discriminator(real_labels), torch.ones_like(real_labels[:, 0]))
-        fake_loss = self.adversarial_loss(self.discriminator(fake_labels.detach()), torch.zeros_like(fake_labels[:, 0]))
+        real_loss = self.criterion(self.discriminator(real_labels), torch.ones_like(real_labels[:, 0]))
+        fake_loss = self.criterion(self.discriminator(fake_labels.detach()), torch.zeros_like(fake_labels[:, 0]))
         disc_loss = (real_loss + fake_loss) / 2
         self.log('discriminator_loss', disc_loss, on_step=True, on_epoch=True)
         return disc_loss
 
     def generator_step(self, fake_labels):
         # Generator training step
-        gen_loss = self.adversarial_loss(self.discriminator(fake_labels), torch.ones_like(fake_labels[:, 0]))
+        gen_loss = self.criterion(self.discriminator(fake_labels), torch.ones_like(fake_labels[:, 0]))
         self.log('generator_loss', gen_loss, on_step=True, on_epoch=True)
         return gen_loss
 
