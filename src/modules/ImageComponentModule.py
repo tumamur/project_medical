@@ -27,6 +27,7 @@ class ImageComponentModule(pl.LightningModule):
         self.embedding_size = opt['model']["embedding_size"]
         self.learning_rate = opt['model']["learning_rate"]
         self.loss_func = opt['model']["loss"]
+        self.metrics = opt['model']["metrics"]
         self.optimizer_name = opt['model']["optimizer"]
         self.scheduler_name = opt['model']["scheduler"]
         self.weight_decay = opt['model']["weight_decay"]
@@ -40,7 +41,7 @@ class ImageComponentModule(pl.LightningModule):
         self.dropout_rate = opt['model']["dropout_prob"]
         self.accumulated_outputs = []
         self.image_encoder_model = opt['model']["image_encoder_model"]
-        self.metric = Metrics(self.loss_func, self.data_imputation, self.diseases, self.threshold)
+        self.metric = Metrics(self.metrics, self.data_imputation, self.diseases, self.threshold)
         self.ref_path = env_settings.MASTER_LIST['zeros']
         self.criterion = self._get_criterion()
         self.model = self._get_model()
