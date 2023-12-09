@@ -42,4 +42,27 @@ model:
   dropout_prob: 0.5
   check_val_every_n_epochs: 1
   monitor : 'val_loss'
+  channels: 3
+  img_height: 224
+  img_width: 224
+  lambda_cycle_loss: 1
+
+discriminator:
+  learning_rate: 0.001
+  optimizer: 'Adam' # AdamW
+  scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
+  weight_decay: 0.0001
+  beta1: 0.999
+  beta2: 0.999
+  monitor: 'val_loss'
+
+generator:
+  learning_rate: 0.001
+  optimizer: 'Adam' # AdamW
+  scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
+  weight_decay: 0.0001
+  beta1: 0.999
+  beta2: 0.999
+  monitor: 'val_loss'
+
 

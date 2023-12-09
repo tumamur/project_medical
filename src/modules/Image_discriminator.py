@@ -1,13 +1,15 @@
 import torch.nn as nn
 
 class ImageDiscriminator(nn.Module):
-    def __init__(self, input_shape):
+    def __init__(self, channels, img_height, img_width):
         super(ImageDiscriminator, self).__init__()
 
-        channels, height, width = input_shape
+        self.channels = channels
+        self.img_height = img_height
+        self.img_width = img_width
 
         # Calculate output shape of image discriminator (PatchGAN)
-        self.output_shape = (1, height // 2 ** 4, width // 2 ** 4)
+        self.output_shape = (1, self.img_height // 2 ** 4, self.img_width // 2 ** 4)
 
         def discriminator_block(in_channels, out_channels, normalize=True):
             """Returns downsampling layers of each discriminator block"""
@@ -21,7 +23,7 @@ class ImageDiscriminator(nn.Module):
 
         # C64 -> C128 -> C256 -> C512
         self.model = nn.Sequential(
-            *discriminator_block(channels, out_channels=64, normalize=False),
+            *discriminator_block(self.channels, out_channels=64, normalize=False),
             *discriminator_block(64, out_channels=128),
             *discriminator_block(128, out_channels=256),
             *discriminator_block(256, out_channels=512),
