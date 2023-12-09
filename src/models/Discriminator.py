@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch
 
 class ReportDiscriminator(nn.Module):
     def __init__(self, input_dim, output_dim):
@@ -13,7 +14,7 @@ class ReportDiscriminator(nn.Module):
         x = x.float()
         # Apply sigmoid activation to the output
         # use a sigmoid activation at the end of the discriminator. This allows each class to be independently classified
-        return nn.sigmoid(self.model(x))
+        return torch.sigmoid(self.model(x))
 
 
 
