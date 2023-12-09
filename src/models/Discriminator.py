@@ -11,6 +11,7 @@ class ReportDiscriminator(nn.Module):
         )
 
     def forward(self, x):
+        x = x.float()
         return self.model(x)
 
 
