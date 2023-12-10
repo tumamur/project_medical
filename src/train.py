@@ -25,7 +25,7 @@ def main(params):
     processor = DataHandler(opt=params["dataset"])
     chexpert_data_module = ChexpertDataModule(opt=params['dataset'], processor=processor)
 
-    if params['model']['loss_func'] == 'Adversarial':
+    if params['model']['loss'] == 'Adversarial':
         ImageEncoder = AdversarialClassificationModule(opt=params)
     else:
         ImageEncoder = ImageComponentModule(opt=params)
