@@ -4,6 +4,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 from modules.ImageComponentModule import ImageComponentModule
+from modules.AdversarialClassificationModule import AdversarialClassificationModule, ReportBuffer
 from modules.ChexpertModule import ChexpertDataModule
 from tensorboard import program
 from utils._prepare_data import DataHandler
@@ -24,7 +25,10 @@ def main(params):
     processor = DataHandler(opt=params["dataset"])
     chexpert_data_module = ChexpertDataModule(opt=params['dataset'], processor=processor)
 
-    ImageEncoder = ImageComponentModule(opt=params)
+    if params['model']['loss_func'] == 'Adversarial':
+        ImageEncoder = AdversarialClassificationModule(opt=params)
+    else:
+        ImageEncoder = ImageComponentModule(opt=params)
 
     experiment = env_settings.EXPERIMENTS + '/' + params['model']['image_encoder_model']
     logger = TensorBoardLogger(experiment, default_hp_metric=False)
