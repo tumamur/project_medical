@@ -52,7 +52,7 @@ class ReportBuffer:
                 else:
                     return_labels.append(label)
 
-        return_labels = torch.stack(return_labels)
+        return torch.stack(return_labels)
 
 
 class AdversarialClassificationModule(pl.LightningModule):
@@ -82,7 +82,7 @@ class AdversarialClassificationModule(pl.LightningModule):
 
     def forward(self, real_image):
         real_image = real_image.float()
-        fake_class = self.model(real_image)
+        fake_class = self.generator(real_image)
         return fake_class
     
     def get_lr_scheduler(self, optimizer):
@@ -108,10 +108,10 @@ class AdversarialClassificationModule(pl.LightningModule):
         d_optimizer_name = self.optimizer_name.replace('Adam', 'D_Adam')
         disc_optimizer = optimizer_dict[d_optimizer_name]
         optimizers = [gen_optimizer, disc_optimizer]
-        schedulers = [self.get_lr_scheduler(optimizer) for optimizer in optimizers]
+        #schedulers = [self.get_lr_scheduler(optimizer) for optimizer in optimizers]
+        #return optimizers, schedulers
+        return optimizers
 
-        return optimizers, schedulers
-    
     def adversarial_criterion(self, y_hat, y):
         return nn.BCEWithLogitsLoss()(y_hat, y)
     
@@ -133,7 +133,7 @@ class AdversarialClassificationModule(pl.LightningModule):
         real_loss = self.adversarial_criterion(real_hat, real_labels)
 
         # calculate loss on fake data
-        fake_hat = disc(fake)
+        fake_hat = disc(fake.detach())
         fake_labels = torch.zeros_like(fake_hat)
         fake_loss = self.adversarial_criterion(fake_hat, fake_labels)
 
@@ -146,7 +146,7 @@ class AdversarialClassificationModule(pl.LightningModule):
         return self.get_disc_loss(self.real_labels, fake_labels, self.discriminator)
 
 
-    def training_step(self, train_batch, batch_idx, optimizer_idx):
+    def training_step(self, train_batch, batch_idx):
         self.real_image = train_batch['target']
         self.real_labels = train_batch['report']
 
@@ -154,9 +154,9 @@ class AdversarialClassificationModule(pl.LightningModule):
 
         # generate fake labels
         self.fake_labels = self.forward(self.real_image)
-
+        #  print(self.fake_labels)
         # train generators
-        self.toggle_optimizer(opt_gen)
+        self.toggle_optimizer(opt_gen, 0)
         gen_loss = self.get_gen_loss()
         opt_gen.zero_grad()
         self.manual_backward(gen_loss)
@@ -164,7 +164,7 @@ class AdversarialClassificationModule(pl.LightningModule):
         self.untoggle_optimizer(opt_gen)
 
         # train discriminator
-        self.toggle_optimizer(opt_disc)
+        self.toggle_optimizer(opt_disc, 1)
         disc_loss = self.get_disc_loss_on_buffer()
         opt_disc.zero_grad()
         self.manual_backward(disc_loss)

@@ -12,9 +12,7 @@ class ReportDiscriminator(nn.Module):
 
     def forward(self, x):
         x = x.float()
-        # Apply sigmoid activation to the output
-        # use a sigmoid activation at the end of the discriminator. This allows each class to be independently classified
-        return torch.sigmoid(self.model(x))
+        return self.model(x)
 
 
 

@@ -47,6 +47,7 @@ model:
   img_height: 224
   img_width: 224
   lambda_cycle_loss: 1
+  buffer_size : 300
 
 discriminator:
   learning_rate: 0.001
