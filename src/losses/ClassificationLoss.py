@@ -35,7 +35,7 @@ class SimilarityLoss(nn.Module):
 class AdversarialLoss(nn.Module):
     def __init__(self):
         super(AdversarialLoss, self).__init__()
-        self.loss = nn.BCELoss()
+        self.loss = nn.BCEWithLogitsLoss()
 
     def forward(self, output, target):
         return self.loss(output, target)
