@@ -130,7 +130,7 @@ class CycleGAN(pl.LightningModule):
 
         # Adversarial loss
         adv_loss_class = self.class_disc(fake_class)
-        adv_loss_image = self.adversarial_criterion(self.image_disc(self.image_disc(fake_image), valid))
+        adv_loss_image = self.adversarial_criterion(self.image_disc(fake_image), valid)
         adv_loss = (adv_loss_image + adv_loss_class) / 2
 
         # Total generator loss
