@@ -28,6 +28,7 @@ model:
   num_classes : 13
   embedding_size : 128
   lerning_rate : 0.0001
+  betas : (0.5, 0.999),
   loss : 'Adversarial' # Similarity
   metrics : 'KLDivergence'
   learning_rate: 0.0001

@@ -18,6 +18,7 @@ cuda = True if torch.cuda.is_available() else False
 Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
 from torch.autograd import Variable
 import numpy as np
+import deepspeed as ds
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -65,9 +66,11 @@ class AdversarialClassificationModule(pl.LightningModule):
         self.num_classes = opt['model']["num_classes"]
         self.embedding_size = opt['model']["embedding_size"]
         self.learning_rate = opt['model']["learning_rate"]
+        self.betas = opt['model']["betas"]
         self.optimizer_name = opt['model']["optimizer"]
         self.scheduler_name = opt['model']["scheduler"]
         self.weight_decay = opt['model']["weight_decay"]
+        self.decay_epochs = opt['model']["n_epoch"]
         self.n_epoch = opt['model']["n_epoch"]
 
         self.image_encoder_model = opt['model']["image_encoder_model"]
@@ -80,41 +83,64 @@ class AdversarialClassificationModule(pl.LightningModule):
         self.discriminator = self._get_discriminator()
         self.buffer_fake_labels = ReportBuffer(self.buffer_size)
 
+        optimizer_dict = {
+            'Adam': ds.ops.adam.FusedAdam, 
+            'AdamW': torch.optim.AdamW,
+        }
+
+        self.optimizer = optimizer_dict[self.optimizer_name]
+
     def forward(self, real_image):
-        real_image = real_image.float()
-        fake_class = self.generator(real_image)
-        return fake_class
+        return self.generator(real_image)
+    
+    def init_weights(self):
+        def init_fn(m):
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_normal_(m.weight)
+                nn.init.constant_(m.bias, 0.0)
+            elif isinstance(m, nn.Conv2d):
+                nn.init.normal_(m.weight, 0.0, 0.02)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0.0)
+
+        self.generator.apply(init_fn)
+        self.discriminator.apply(init_fn)
+
+
+    def setup(self, stage):
+        if stage == 'fit':
+            self.init_weights()
+            print("Model initialized")
     
     def get_lr_scheduler(self, optimizer):
-        scheduler_dict = {
-            "cosine": lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.n_epoch, eta_min=1e-7),
-            "exponential": lr_scheduler.StepLR(optimizer=optimizer, step_size=1, gamma=0.95),
-            "ReduceLROnPlateau": lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10,
-                                                                verbose=True),
-        }
-        if self.scheduler_name in scheduler_dict:
-            return scheduler_dict[self.scheduler_name]
-        return None
+        def lr_lambda(epoch):
+            len_decay_phase = self.n_epochs - self.decay_epochs + 1.0
+            curr_decay_step = max(0, epoch - self.decay_epochs + 1.0)
+            val = 1.0 - curr_decay_step / len_decay_phase
+            return max(0.0, val)
+        
+        return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
 
     def configure_optimizers(self):
-        optimizer_dict = {
-            "Adam": torch.optim.Adam(self.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay),
-            "AdamW": torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay),
-            'D_Adam' : torch.optim.Adam(self.discriminator.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay),
-            'D_AdamW' : torch.optim.AdamW(self.discriminator.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay),
+        opt_config = {
+            "lr": self.learning_rate,
+            "betas": self.betas,
         }
-
-        gen_optimizer = optimizer_dict[self.optimizer_name]
-        d_optimizer_name = self.optimizer_name.replace('Adam', 'D_Adam')
-        disc_optimizer = optimizer_dict[d_optimizer_name]
-        optimizers = [gen_optimizer, disc_optimizer]
-        #schedulers = [self.get_lr_scheduler(optimizer) for optimizer in optimizers]
-        #return optimizers, schedulers
-        return optimizers
+        opt_gen = self.optimizer(
+            list(self.generator.parameters()),
+            **opt_config,
+        )
+        opt_disc = self.optimizer(
+            list(self.discriminator.parameters()),
+            **opt_config,
+        )
+        optimizers = [opt_gen, opt_disc]
+        schedulers = [self.get_lr_scheduler(opt) for opt in optimizers]
+        return optimizers, schedulers
 
     def adversarial_criterion(self, y_hat, y):
-        return nn.BCEWithLogitsLoss()(y_hat, y)
-    
+        return nn.functional.mse_loss()(y_hat, y)
+
     def get_adv_loss(self, fake, disc):
         fake_hat = disc(fake)
         real_labels = torch.ones_like(fake_hat)
@@ -153,8 +179,10 @@ class AdversarialClassificationModule(pl.LightningModule):
         opt_gen, opt_disc = self.optimizers()
 
         # generate fake labels
-        self.fake_labels = self.forward(self.real_image)
+        self.fake_labels = self.generator(self.real_image)
+        self.fake_labels = torch.sigmoid(self.fake_labels)
         #  print(self.fake_labels)
+
         # train generators
         self.toggle_optimizer(opt_gen, 0)
         gen_loss = self.get_gen_loss()
@@ -178,10 +206,27 @@ class AdversarialClassificationModule(pl.LightningModule):
         }
         self.log_dict(metrics, on_step=True, on_epoch=True, prog_bar=True)
 
+    def on_train_epoch_start(self):
+        # record learning rates
+        curr_lr = self.lr_schedulers()[0].get_last_lr()[0]
+        self.log("lr", curr_lr, on_step=False, on_epoch=True, prog_bar=True)
 
-    def validation_step(self, val_batch, batch_idx):
-        pass
+    def on_train_epoch_end(self):
+        # update learning rates
+        for sch in self.lr_schedulers():
+            sch.step()
+        
+        # print current state of epoch
+        logged_values = self.trainer.progress_bar_metrics
+        print(
+            f"Epoch {self.current_epoch+1}",
+            *[f"{k}: {v:.5f}" for k, v in logged_values.items()],
+            sep=" - ",
+        )
 
+    def on_train_end(self):
+        print("Training ended.")
+    
     def _get_model(self):
         if self.image_encoder_model == "Ark":
             return ARKModel(num_classes=self.num_classes, ark_pretrained_path=env_settings.PRETRAINED_PATH['ARK'])
