@@ -25,6 +25,9 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
 from torch.autograd import Variable
 import numpy as np
 import deepspeed as ds
+import torchvision.transforms as transforms
+from PIL import Image
+import io
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -33,42 +36,8 @@ class CycleGAN(pl.LightningModule):
     """
     Generator for image-to-report translation (report_generator).
     Generator for report-to-image translation (image_generator).
-    Discriminator for Generated Reports (report_dicriminator).
+    Discriminator for Generated Reports (report_dicriminator). --> Currenlty using ClassificationLoss (Cosine Similarity)
     Discriminator for Generated Images (image_generator).
-
-    Discriminator loss. 
-        For real images/reports fed into the discriminator, 
-        the output matrix is compared against a matrix of 1s using the mean squared error. 
-        For fake images/reports, the output matrix is compared against a matrix of 0s. 
-        This suggests that to minimize loss, 
-        the perfect discriminator outputs a matrix of 1s for real images and a matrix of 0s for fake images.
-
-
-    Generator loss.
-        This is composed of three different loss functions below.
-
-            Perceptual Loss:
-                The perceptual loss is calculated by comparing the difference in the VGG16 feature maps 
-                between the real and fake images. 
-                The VGG16 feature maps are extracted from the 3rd, 8th, and 15th convolutional layers. 
-                The mean squared error is used to compare the feature maps. 
-                The perceptual loss is used to preserve the high-level features of the image.
-
-            Adversarial loss:
-                Fake images/reports are fed into the discriminator and 
-                the output matrix is compared against a matrix of 1s using the mean squared error.
-                To minimize loss, the generator needs to 'fool' the discriminator into thinking that 
-                the fake images are real and output a matrix of 1s.
-   
-            Cycle loss. 
-                When a Monet painting is fed into the Monet-to-photo generator, 
-                and the generated image is fed back into the photo-to-Monet generator, 
-                it should transform back into the original Monet painting. 
-                The same applies for photos passed to the two generators to get back the original photos. 
-                To preserve information throughout this cycle, 
-                the l1 loss is used to measure the difference between the original image and the reconstructed image.
-                From the above, the mean squared error and 
-                the l1 loss are defined as the adversarial criterion and the reconstruction criterion respectively.
         
     """
 
@@ -125,7 +94,8 @@ class CycleGAN(pl.LightningModule):
         # will be used in predict step for evaluation
         img = img.float()
         report = self.report_generator(img)
-        return report
+        generated_img = self.image_generator(report)
+        return report, generated_img
     
     def init_weights(self):
         def init_fn(m):
@@ -323,6 +293,49 @@ class CycleGAN(pl.LightningModule):
         # self.untoggle_optimizer(disc_optimizer)
 
 
+    def validation_step(self, batch, batch_idx):
+        pass
+
+    def test_step(self, batch, batch_idx):
+        pass
+
+    def predict_step(self, batch, batch_idx):
+        # return generated report and generated image from generated report
+        report, image = self(batch['target'])
+        return report, image
+    
+
+    def on_validation_epoch_end(self):
+        # Select a small number of validation samples
+        num_samples = min(5, len(self.val_dataloader().dataset))
+        val_samples = next(iter(self.val_dataloader()))
+
+        # Generate reports and images for these samples
+        generated_reports, generated_images = self(val_samples['target'])
+
+        # Log the generated reports and images
+        for i in range(num_samples):
+            # Convert the tensor to a suitable image format (e.g., PIL Image)
+            # and log using the logger (e.g., TensorBoard, WandB)
+            # This is just an example, modify as per your logger and data format
+            generated_image = generated_images[i].cpu().detach()
+            # Convert image tensor to PIL Image or similar
+            img_pil = transforms.ToPILImage()(generated_image.squeeze()).convert("RGB")
+            img_buffer = io.BytesIO()
+            img_pil.save(img_buffer, format="JPEG")
+            img_buffer.seek(0)
+            # Log the image and the report text
+
+            generated_report = generated_reports[i].cpu().detach()
+            generated_report = torch.sigmpoid(generated_report)
+            generated_report = (generated_report > 0.5).int()
+            report_text = [self.opt['dataset']['chexpert_labels'][idx] for idx in range(len(generated_report)) if generated_report[idx] == 1]
+            report_text = ', '.join(sorted(generated_report))
+
+            self.logger.experiment.add_image(f"Generated Image {i}", img_buffer, self.current_epoch, dataformats='HWC')
+            self.logger.experiment.add_text(f"Generated Report {i}", report_text, self.current_epoch)
+
+    
     def _get_report_generator(self, model_name):
         if self.image_encoder_model == "Ark":
             return ARKModel(num_classes=self.num_classes, ark_pretrained_path=env_settings.PRETRAINED_PATH['ARK'])

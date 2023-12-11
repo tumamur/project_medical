@@ -29,12 +29,12 @@ model:
   embedding_size : 128
   lerning_rate : 0.0001
   betas : (0.5, 0.999),
-  loss : 'Adversarial' # Similarity
   metrics : 'KLDivergence'
   learning_rate: 0.0001
   optimizer : 'Adam' # AdamW
   scheduler : 'ReduceLROnPlateau' # cosine, exponential, polynomial
   weight_decay : 0.001
+  decay_epochs : 5
   accumulated_batches : 5 # number of batches to accumulate before optimizing (decide number of batches to calculate loss)
   n_epoch: 5
   threshold : 0.5
