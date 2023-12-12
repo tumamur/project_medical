@@ -3,13 +3,22 @@ import timm
 import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
+import health_multimodal.image
+from health_multimodal.image.model.model import BaseImageModel
+from health_multimodal.image.utils import ImageModelType
+from health_multimodal.image.model.pretrained import get_biovil_t_image_encoder, get_biovil_image_encoder
 from models.BioViL import BioViL
 from models.ARK import ARKModel
 from models.buffer import ReportBuffer, ImageBuffer
-from models.Discriminator import ImageDiscriminator
+from models.Discriminator import ReportDiscriminator, ImageDiscriminator
+from losses.Metrics import Metrics
+from losses.CombinationLoss import CombinationLoss
 from losses.Test_loss import ClassificationLoss
 from losses.Perceptual_loss import PerceptualLoss
+from torch.optim import lr_scheduler
 from utils.environment_settings import env_settings
+import torchmetrics.functional as F
+from losses.ClassificationLoss import SimilarityLoss, AdversarialLoss
 cuda = True if torch.cuda.is_available() else False
 Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
 from torch.autograd import Variable
@@ -18,6 +27,8 @@ import deepspeed as ds
 import torchvision.transforms as transforms
 from PIL import Image
 import io
+from models.imagen_pytorch.imagen_pytorch import ImagenTrainer
+
 torch.autograd.set_detect_anomaly(True)
 
 class CycleGAN(pl.LightningModule):
@@ -34,33 +45,35 @@ class CycleGAN(pl.LightningModule):
         super(CycleGAN, self).__init__()
         self.opt = opt
         self.save_hyperparameters(opt)
-
+        # self.automatic_optimization = False
         self.data_imputation = opt['dataset']['data_imputation']
         self.num_classes = opt['trainer']['num_classes']
         self.n_epochs = opt['trainer']['n_epoch']
         self.buffer_size = opt['trainer']["buffer_size"]
         self.lambda_cycle = opt['trainer']['lambda_cycle_loss']
 
-        # Initialize optimizers
         optimizer_dict = {
             'Adam': ds.ops.adam.FusedAdam, 
             'AdamW': torch.optim.AdamW,
         }
-        self.image_gen_optimizer = optimizer_dict[opt["image_generator"]["optimizer"]]
-        self.image_disc_optimizer = optimizer_dict[opt["image_discriminator"]["optimizer"]]
-        self.report_gen_optimizer = optimizer_dict[opt["report_generator"]["optimizer"]]
+        self.image_gen_optimizer = optimizer_dict[self.opt["image_generator"]["optimizer"]]
+        self.image_disc_optimizer = optimizer_dict[self.opt["image_discriminator"]["optimizer"]]
+        self.report_gen_optimizer = optimizer_dict[self.opt["report_generator"]["optimizer"]]
 
-        # Define components of the GAN
-        self.report_generator = self._get_report_generator(opt['report_generator']['image_encoder_model'])
+        # Define Report Generation Component
+        self.report_generator = self._get_report_generator(self.opt['report_generator']['image_encoder_model'])
         self.report_discriminator = self._get_report_discriminator()
         self.buffer_reports = ReportBuffer(self.buffer_size)
-        self.image_generator = self._get_image_generator(opt['image_generator']['report_encoder_model'])
+        
+        # Define Image Generation Component
+        self.image_generator = self._get_image_generator(self.opt['image_generator']['report_encoder_model'])
         self.image_discriminator = self._get_image_discriminator()
         self.buffer_images = ImageBuffer(self.buffer_size)
 
-        # Define loss functions
         self.img_consistency_loss = PerceptualLoss()
         self.img_adversarial_loss = nn.MSELoss()
+        # self.report_adversarial_loss = nn.MSELoss()
+        # self.report_consistency_loss = ClassificationLoss(env_settings.MASTER_LIST[self.data_imputation])
         self.report_consistency_loss = nn.BCEWithLogitsLoss()
 
     
@@ -112,7 +125,7 @@ class CycleGAN(pl.LightningModule):
             "lr" : self.opt["report_generator"]["learning_rate"],
             "betas" : (self.opt["report_generator"]["beta1"], self.opt["report_generator"]["beta2"])
         }
-        report_generator_optimizer = self.report_gen_optimizer(
+        report_generator_optimizer = self.report_gen_gen_optimizer(
             list(self.report_generator.parameters()),
             **report_gen_opt_config,
         )
@@ -129,6 +142,17 @@ class CycleGAN(pl.LightningModule):
         )
         image_discriminator_scheduler = self.get_lr_scheduler(image_discriminator_optimizer, self.opt["image_discriminator"]["decay_epochs"])
 
+        # report_disc_opt_config = {
+        #     "lr" : self.opt["report_discriminator"]["learning_rate"],
+        #     "betas" : (self.opt["report_discriminator"]["beta1"], self.opt["report_discriminator"]["beta2"])
+        # }
+        # report_discriminator_optimizer = self.optimizer(
+        #     list(self.report_discriminator.parameters()),
+        #     **report_disc_opt_config,
+        # )
+        # report_discriminator_scheduler = self.get_lr_scheduler(report_discriminator_optimizer, self.opt["report_discriminator"]["decay_epochs"])
+
+
         # optimizers = [image_generator_optimizer, report_generator_optimizer image_discriminator_optimizer, report_discriminator_optimizer]
         optimizers = [image_generator_optimizer, report_generator_optimizer, image_discriminator_optimizer]
         schedulers = [image_generator_scheduler, report_generator_scheduler, image_discriminator_scheduler]
@@ -143,6 +167,12 @@ class CycleGAN(pl.LightningModule):
         # reconstruction loss
         return self.img_consistency_loss(real_image, cycle_image)
     
+
+    # def report_adv_criterion(self, fake_report, real_report):
+    #     # adversarial loss
+    #     # additional discriminator network for reports (if needed)
+    #     return self.report_adversarial_loss(fake_report, real_report)
+
     def report_consistency_criterion(self, real_report, cycle_report):
         # reconstruction loss
         return self.report_consistency_loss(real_report, cycle_report)
@@ -184,15 +214,39 @@ class CycleGAN(pl.LightningModule):
         return total_gen_loss
     
 
+    # def report_discriminator_step(self, valid, fake):
+        # fake_report = self.buffer_reports(self.fake_report)
+        ###########################################################################################
+        # real_report_adv_loss = self.report_adv_criterion(self.report_discriminator(self.real_report), valid)
+        # fake_report_adv_loss = self.report_adv_criterion(self.report_discriminator(fake_report.detach()), fake)
+        ###########################################################################################
+
+        # total_report_disc_loss = (real_report_adv_loss + fake_report_adv_loss) / 2
+        # metrics = {
+        #     "report_disc_loss": total_report_disc_loss,
+        #     "report_disc_adv_loss_real": real_report_adv_loss,
+        #     "report_disc_adv_loss_fake": fake_report_adv_loss,
+        # }
+
+        # self.log_dict(metrics, on_step=False, on_epoch=True, prog_bar=True)
+        # return total_report_disc_loss
+
+
     def discriminator_step(self, valid, fake):
         # fake_report = self.buffer_reports(self.fake_report)
         fake_img = self.buffer_images(self.fake_img)
         # calculate loss for discriminator
+
         ###########################################################################################
         # calculate on real data
         real_img_adv_loss = self.img_adv_criterion(self.image_discriminator(self.real_img), valid)
         # calculate on fake data
         fake_img_adv_loss = self.img_adv_criterion(self.image_discriminator(fake_img.detach()), fake)
+        ###########################################################################################
+
+        # real_report_adv_loss = self.report_adv_criterion(self.report_discriminator(self.real_report), valid)
+        # fake_report_adv_loss = self.report_adv_criterion(self.report_discriminator(fake_report.detach()), fake)
+
         ###########################################################################################
 
         total_img_disc_loss = (real_img_adv_loss + fake_img_adv_loss) / 2
@@ -214,8 +268,15 @@ class CycleGAN(pl.LightningModule):
         # gen_optimizer, disc_optimizer = self.optimizers()
 
         # generate valid and fake labels
-        valid = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
-        fake = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape)))
+        valid = Variable(
+            Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape))),
+            requires_grad=False
+        )
+
+        fake = Variable(
+            Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape))),
+            requires_grad=False
+        )
 
         # generate fake reports and images
         self.fake_report = self.report_generator(self.real_img)
@@ -230,9 +291,26 @@ class CycleGAN(pl.LightningModule):
             return gen_loss
         
         elif optimizer_idx == 2 or optimizer_idx == 3:
-            disc_loss = self.discriminator_step(valid, fake)
-            return disc_loss
+            img_disc_loss = self.discriminator_step(valid, fake)
+            # report_disc_loss = self.report_discriminator_step(valid, fake)
+            return img_disc_loss
         
+        # # train generators
+        # self.toggle_optimizer(gen_optimizer,0)
+        # gen_loss = self.generator_step(valid)
+        # gen_optimizer.zero_grad()
+        # self.manual_backward(gen_loss)
+        # gen_optimizer.step()
+        # self.untoggle_optimizer(gen_optimizer)
+
+        # # train discriminator
+        # self.toggle_optimizer(disc_optimizer,1)
+        # disc_loss = self.discriminator_step(valid, fake)
+        # disc_optimizer.zero_grad()
+        # self.manual_backward(disc_loss)
+        # disc_optimizer.step()
+        # self.untoggle_optimizer(disc_optimizer)
+
 
     def validation_step(self, batch, batch_idx):
         pass
@@ -258,20 +336,21 @@ class CycleGAN(pl.LightningModule):
         for i in range(num_samples):
             # Convert the tensor to a suitable image format (e.g., PIL Image)
             # and log using the logger (e.g., TensorBoard, WandB)
+            # This is just an example, modify as per your logger and data format
             generated_image = generated_images[i].cpu().detach()
+            # Convert image tensor to PIL Image or similar
             img_pil = transforms.ToPILImage()(generated_image.squeeze()).convert("RGB")
             img_buffer = io.BytesIO()
             img_pil.save(img_buffer, format="JPEG")
             img_buffer.seek(0)
+            # Log the image and the report text
 
-            # Process the generated report
             generated_report = generated_reports[i].cpu().detach()
             generated_report = torch.sigmoid(generated_report)
             generated_report = (generated_report > 0.5).int()
-            report_text_labels = [self.opt['dataset']['chexpert_labels'][idx] for idx, val in enumerate(generated_report) if val == 1]
-            report_text = ', '.join(report_text_labels)
+            report_text = [self.opt['dataset']['chexpert_labels'][idx] for idx in range(len(generated_report)) if generated_report[idx] == 1]
+            report_text = ', '.join(sorted(generated_report))
 
-            # Log the image and the report text
             self.logger.experiment.add_image(f"Generated Image {i}", img_buffer, self.current_epoch, dataformats='HWC')
             self.logger.experiment.add_text(f"Generated Report {i}", report_text, self.current_epoch)
 
@@ -292,8 +371,12 @@ class CycleGAN(pl.LightningModule):
         
 
     def _get_report_discriminator(self):
+        # TODO : Implement additional discriminator network for reports (if needed)
+        # and use classificationLoss as the adversarial criterion
+        # return ReportDiscriminator(num_classes=self.num_classes)
         return ClassificationLoss(env_settings.MASTER_LIST[self.data_imputation])
     
+
     def _get_image_generator(self):
         # TODO : Implement image generator class
         return 
