@@ -20,16 +20,17 @@ def start_tensorboard(port, tracking_address: str):
 
 
 def main(params):
-    torch.manual_seed(params["model"]["seed"])
+    torch.manual_seed(params["trainer"]["seed"])
     processor = DataHandler(opt=params["dataset"])
     chexpert_data_module = ChexpertDataModule(opt=params['dataset'], processor=processor)
-    
-    CycleGAN_module = CycleGAN(opt=params)
+    chexpert_data_module.setup()
+    val_dataloader = chexpert_data_module.val_dataloader()
+    CycleGAN_module = CycleGAN(opt=params, val_dataloader = val_dataloader)
 
-    experiment = env_settings.EXPERIMENTS + '/' + params['image_generator']['report_encoder_model'] + "_" + params["report_generator"]["image_encoder_model"]
+    experiment = env_settings.EXPERIMENTS + params['image_generator']['report_encoder_model'] + "_" + params["report_generator"]["image_encoder_model"]
     logger = TensorBoardLogger(experiment, default_hp_metric=False)
 
-    file_name = params['model']['image_encoder_model'] + "_{epoch:02d}"
+    file_name = "cycle_gan" + "_{epoch:02d}"
     checkpoint_callback = ModelCheckpoint(
             dirpath=f'{experiment}/best_models/version_{logger.version}',
             filename=file_name,

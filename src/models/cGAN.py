@@ -10,6 +10,7 @@ from torch import autograd
 from torch.autograd import Variable
 from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
+import torch.nn.functional as F
 
 class cGAN(nn.Module):
     def __init__(self, generator_layer_size, z_size, img_size, class_num):
@@ -34,11 +35,15 @@ class cGAN(nn.Module):
     def forward(self, z, labels):
         # Reshape z
         z = z.view(-1, self.z_size)
-
+        z = F.interpolate(z.unsqueeze(1), size=(13, 13), mode='nearest')  # Change mode as needed
+        z = z.squeeze(1)  # z shape: [16, 13, 13]
+        
+        labels = labels.long()
         # One-hot vector to embedding vector
         c = self.label_emb(labels)
-
         # Concat image & label
+        print(c.shape)
+        print(z.shape)
         x = torch.cat([z, c], 1)
 
         # Generator out

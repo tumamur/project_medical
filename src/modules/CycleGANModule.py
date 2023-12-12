@@ -31,7 +31,7 @@ class CycleGAN(pl.LightningModule):
         
     """
 
-    def __init__(self, opt):
+    def __init__(self, opt, val_dataloader):
         super(CycleGAN, self).__init__()
         self.opt = opt
         self.save_hyperparameters(opt)
@@ -42,6 +42,8 @@ class CycleGAN(pl.LightningModule):
         self.n_epochs = opt['trainer']['n_epoch']
         self.buffer_size = opt['trainer']["buffer_size"]
         self.lambda_cycle = opt['trainer']['lambda_cycle_loss']
+        self.val_dataloader = val_dataloader
+        self.batch_size = opt["dataset"]["batch_size"]
         
 
         # Initialize optimizers
@@ -54,10 +56,10 @@ class CycleGAN(pl.LightningModule):
         self.report_gen_optimizer = optimizer_dict[opt["report_generator"]["optimizer"]]
 
         # Define components of the GAN
-        self.report_generator = self._get_report_generator(opt['report_generator']['image_encoder_model'])
+        self.report_generator = self._get_report_generator()
         self.report_discriminator = self._get_report_discriminator()
         self.buffer_reports = ReportBuffer(self.buffer_size)
-        self.image_generator = self._get_image_generator(opt['image_generator']['report_encoder_model'])
+        self.image_generator = self._get_image_generator()
         self.image_discriminator = self._get_image_discriminator()
         self.buffer_images = ImageBuffer(self.buffer_size)
 
@@ -69,25 +71,12 @@ class CycleGAN(pl.LightningModule):
     
     def forward(self, img):
         # will be used in predict step for evaluation
-        img = img.float()
-        report = self.report_generator(img)
-        generated_img = self.image_generator(report)
-        return report, generated_img
-    
-    def init_weights(self):
-        def init_fn(m):
-            if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.InstanceNorm2d)):
-                nn.init.normal_(m.weight, 0.0, 0.02)
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0.0)
-
-        for net in [self.report_generator, self.image_generator, self.image_discriminator]:
-            net.apply(init_fn)
-
-    def setup(self, stage):
-        if stage == "fit":
-            self.init_weights()
-            print("Model initialized.")
+        # img = img.float().to(self.device)
+        # report = self.report_generator(img)
+        # z = Variable(torch.randn_like(report)).to(self.device)
+        # generated_img = self.image_generator(z, report)
+        # return report, generated_img
+        return img, None
 
     def get_lr_scheduler(self, optimizer, decay_epochs):
         def lr_lambda(epoch):
@@ -212,9 +201,10 @@ class CycleGAN(pl.LightningModule):
 
     def training_step(self, batch, batch_idx, optimizer_idx):
         self.real_img = batch['target']
+        self.real_img = self.real_img.float()
         self.real_report = batch['report']
 
-        z = Variable(torch.randn(self.batch_size, self.opt["image_generator"]["z_size"]))
+        self.z = Variable(torch.randn(self.batch_size, self.num_classes)).to(self.device)
         
         # generate valid and fake labels
         valid = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
@@ -222,11 +212,11 @@ class CycleGAN(pl.LightningModule):
 
         # generate fake reports and images
         self.fake_report = self.report_generator(self.real_img)
-        self.fake_img = self.image_generator(z, self.real_report)
+        self.fake_img = self.image_generator(self.z, self.real_report)
 
         # reconstruct reports and images
         self.cycle_report = self.report_generator(self.fake_img)
-        self.cycle_img = self.image_generator(z, self.fake_report)
+        self.cycle_img = self.image_generator(self.z, self.fake_report)
 
         if optimizer_idx == 0 or optimizer_idx == 1:
             gen_loss = self.generator_step(valid)
@@ -249,42 +239,42 @@ class CycleGAN(pl.LightningModule):
         return report, image
     
 
-    def on_validation_epoch_end(self):
-        # Select a small number of validation samples
-        num_samples = min(5, len(self.val_dataloader().dataset))
-        val_samples = next(iter(self.val_dataloader()))
+    # def on_validation_epoch_end(self):
+    #     # Select a small number of validation samples
+    #     num_samples = min(5, self.batch_size)
+    #     val_samples = next(iter(self.val_dataloader))
 
-        # Generate reports and images for these samples
-        generated_reports, generated_images = self(val_samples['target'])
+    #     # Generate reports and images for these samples
+    #     generated_reports, generated_images = self(val_samples['target'])
 
-        # Log the generated reports and images
-        for i in range(num_samples):
-            # Convert the tensor to a suitable image format (e.g., PIL Image)
-            # and log using the logger (e.g., TensorBoard, WandB)
-            generated_image = generated_images[i].cpu().detach()
-            img_pil = transforms.ToPILImage()(generated_image.squeeze()).convert("RGB")
-            img_buffer = io.BytesIO()
-            img_pil.save(img_buffer, format="JPEG")
-            img_buffer.seek(0)
+    #     # Log the generated reports and images
+    #     for i in range(num_samples):
+    #         # Convert the tensor to a suitable image format (e.g., PIL Image)
+    #         # and log using the logger (e.g., TensorBoard, WandB)
+    #         generated_image = generated_images[i].cpu().detach()
+    #         img_pil = transforms.ToPILImage()(generated_image.squeeze()).convert("RGB")
+    #         img_buffer = io.BytesIO()
+    #         img_pil.save(img_buffer, format="JPEG")
+    #         img_buffer.seek(0)
 
-            # Process the generated report
-            generated_report = generated_reports[i].cpu().detach()
-            generated_report = torch.sigmoid(generated_report)
-            generated_report = (generated_report > 0.5).int()
-            report_text_labels = [self.opt['dataset']['chexpert_labels'][idx] for idx, val in enumerate(generated_report) if val == 1]
-            report_text = ', '.join(report_text_labels)
+    #         # Process the generated report
+    #         generated_report = generated_reports[i].cpu().detach()
+    #         generated_report = torch.sigmoid(generated_report)
+    #         generated_report = (generated_report > 0.5).int()
+    #         report_text_labels = [self.opt['dataset']['chexpert_labels'][idx] for idx, val in enumerate(generated_report) if val == 1]
+    #         report_text = ', '.join(report_text_labels)
 
-            # Log the image and the report text
-            self.logger.experiment.add_image(f"Generated Image {i}", img_buffer, self.current_epoch, dataformats='HWC')
-            self.logger.experiment.add_text(f"Generated Report {i}", report_text, self.current_epoch)
+    #         # Log the image and the report text
+    #         self.logger.experiment.add_image(f"Generated Image {i}", img_buffer, self.current_epoch, dataformats='HWC')
+    #         self.logger.experiment.add_text(f"Generated Report {i}", report_text, self.current_epoch)
 
     
-    def _get_report_generator(self, model_name):
-        if self.image_encoder_model == "Ark":
+    def _get_report_generator(self):
+        if self.opt["report_generator"]["image_encoder_model"] == "Ark":
             return ARKModel(num_classes=self.num_classes,
                             ark_pretrained_path=env_settings.PRETRAINED_PATH['ARK'])
         
-        elif self.image_encoder_model == "BioVil":
+        elif self.opt["report_generator"]["image_encoder_model"] == "BioVil":
             return BioViL(embedding_size=self.opt["report_generator"]["embedding_size"], 
                           num_classes=self.num_classes, 
                           hidden_1=self.opt["report_generator"]["classification_head_hidden1"],
@@ -299,14 +289,15 @@ class CycleGAN(pl.LightningModule):
     
     def _get_image_generator(self):
         return cGAN(generator_layer_size=self.opt["image_generator"]["generator_layer_size"],
-                    z_size=self.opt["image_generator"]["z_size"],
+                    z_size=self.num_classes,
                     img_size=self.input_size,
                     class_num=self.num_classes)
         
     def _get_image_discriminator(self):
-        return ImageDiscriminator(channels=self.opt['image_discriminator']['channels'], 
-                                  img_height=self.opt['image_discriminator']['img_height'],
-                                  img_width=self.opt['image_discriminator']['img_width'])
+        return ImageDiscriminator(input_shape=(self.opt['image_discriminator']['channels'], 
+                                               self.opt['image_discriminator']['img_height'],
+                                               self.opt['image_discriminator']['img_width'])
+                                 )
 
     
 
