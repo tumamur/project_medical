@@ -24,36 +24,24 @@ def main(params):
     torch.manual_seed(params["model"]["seed"])
     processor = DataHandler(opt=params["dataset"])
     chexpert_data_module = ChexpertDataModule(opt=params['dataset'], processor=processor)
+    
+    CycleGAN = CycleGAN(opt=params)
 
-    if params['model']['loss'] == 'Adversarial':
-        ImageEncoder = AdversarialClassificationModule(opt=params)
-    else:
-        ImageEncoder = ImageComponentModule(opt=params)
-
-    experiment = env_settings.EXPERIMENTS + '/' + params['model']['image_encoder_model']
+    experiment = env_settings.EXPERIMENTS + '/' + params['image_generator']['report_encoder_model'] + "_" + params["report_generator"]["image_encoder_model"]
     logger = TensorBoardLogger(experiment, default_hp_metric=False)
 
-    monitor = params['model']['monitor']
-    try:
-        monitor_metrics_mode = get_monitor_metrics_mode()[monitor]
-    except:
-        raise Exception(f"Monitor {monitor} not found in the config file")
-
-    file_name = params['model']['image_encoder_model'] + "_{epoch:02d}_{" + monitor + ":.4f}"
-
+    file_name = params['model']['image_encoder_model'] + "_{epoch:02d}"
     checkpoint_callback = ModelCheckpoint(
-            monitor=monitor,
             dirpath=f'{experiment}/best_models/version_{logger.version}',
             filename=file_name,
-            save_top_k=1,
-            mode=monitor_metrics_mode,
+            save_last=1,
     )
 
     # Create trainer
     trainer = pl.Trainer(accelerator="gpu",
-                        max_epochs=params['model']['n_epoch'],
-                        check_val_every_n_epoch=params['model']['check_val_every_n_epochs'],
-                        log_every_n_steps=params['model']['accumulated_batches']*params['dataset']['batch_size'],
+                        max_epochs=params['trainer']['n_epoch'],
+                        check_val_every_n_epoch=params['trainer']['check_val_every_n_epochs'],
+                        log_every_n_steps=params["trainer"]["buffer_size"],
                         callbacks=[checkpoint_callback],
                         logger=logger
                         )
@@ -66,7 +54,7 @@ def main(params):
 
     # Start training
     torch.autograd.set_detect_anomaly(True)
-    trainer.fit(ImageEncoder, chexpert_data_module)
+    trainer.fit(CycleGAN, chexpert_data_module)
 
 
 if __name__ == '__main__':

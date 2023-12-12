@@ -11,7 +11,7 @@ from torch.autograd import Variable
 from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
 
-class Generator(nn.Module):
+class cGAN(nn.Module):
     def __init__(self, generator_layer_size, z_size, img_size, class_num):
         super().__init__()
 

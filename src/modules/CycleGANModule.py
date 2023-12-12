@@ -7,6 +7,7 @@ from models.BioViL import BioViL
 from models.ARK import ARKModel
 from models.buffer import ReportBuffer, ImageBuffer
 from models.Discriminator import ImageDiscriminator
+from models.cGAN import cGAN
 from losses.Test_loss import ClassificationLoss
 from losses.Perceptual_loss import PerceptualLoss
 from utils.environment_settings import env_settings
@@ -36,10 +37,12 @@ class CycleGAN(pl.LightningModule):
         self.save_hyperparameters(opt)
 
         self.data_imputation = opt['dataset']['data_imputation']
+        self.input_size = opt["dataset"]["input_size"]
         self.num_classes = opt['trainer']['num_classes']
         self.n_epochs = opt['trainer']['n_epoch']
         self.buffer_size = opt['trainer']["buffer_size"]
         self.lambda_cycle = opt['trainer']['lambda_cycle_loss']
+        
 
         # Initialize optimizers
         optimizer_dict = {
@@ -68,7 +71,7 @@ class CycleGAN(pl.LightningModule):
         # will be used in predict step for evaluation
         img = img.float()
         report = self.report_generator(img)
-        generated_img = self.image_generator.sample(report)
+        generated_img = self.image_generator(report)
         return report, generated_img
     
     def init_weights(self):
@@ -211,19 +214,19 @@ class CycleGAN(pl.LightningModule):
         self.real_img = batch['target']
         self.real_report = batch['report']
 
-        # gen_optimizer, disc_optimizer = self.optimizers()
-
+        z = Variable(torch.randn(self.batch_size, self.opt["image_generator"]["z_size"]))
+        
         # generate valid and fake labels
         valid = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
         fake = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape)))
 
         # generate fake reports and images
         self.fake_report = self.report_generator(self.real_img)
-        self.fake_img = self.image_generator.sample(self.real_report)
+        self.fake_img = self.image_generator(z, self.real_report)
 
         # reconstruct reports and images
         self.cycle_report = self.report_generator(self.fake_img)
-        self.cycle_img = self.image_generator.sample(self.fake_report)
+        self.cycle_img = self.image_generator(z, self.fake_report)
 
         if optimizer_idx == 0 or optimizer_idx == 1:
             gen_loss = self.generator_step(valid)
@@ -295,8 +298,10 @@ class CycleGAN(pl.LightningModule):
         return ClassificationLoss(env_settings.MASTER_LIST[self.data_imputation])
     
     def _get_image_generator(self):
-        # TODO : Implement image generator class
-        return 
+        return cGAN(generator_layer_size=self.opt["image_generator"]["generator_layer_size"],
+                    z_size=self.opt["image_generator"]["z_size"],
+                    img_size=self.input_size,
+                    class_num=self.num_classes)
         
     def _get_image_discriminator(self):
         return ImageDiscriminator(channels=self.opt['image_discriminator']['channels'], 
