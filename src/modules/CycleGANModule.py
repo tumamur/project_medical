@@ -28,6 +28,7 @@ import deepspeed as ds
 import torchvision.transforms as transforms
 from PIL import Image
 import io
+from models.imagen_pytorch.imagen_pytorch import ImagenTrainer
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -94,7 +95,7 @@ class CycleGAN(pl.LightningModule):
         # will be used in predict step for evaluation
         img = img.float()
         report = self.report_generator(img)
-        generated_img = self.image_generator(report)
+        generated_img = self.image_generator.sample(report)
         return report, generated_img
     
     def init_weights(self):
@@ -261,11 +262,11 @@ class CycleGAN(pl.LightningModule):
 
         # generate fake reports and images
         self.fake_report = self.report_generator(self.real_img)
-        self.fake_img = self.image_generator(self.real_report)
+        self.fake_img = self.image_generator.sample(self.real_report)
 
         # reconstruct reports and images
         self.cycle_report = self.report_generator(self.fake_img)
-        self.cycle_img = self.image_generator(self.fake_report)
+        self.cycle_img = self.image_generator.sample(self.fake_report)
 
         if optimizer_idx == 0:
             gen_loss = self.generator_step(valid)
@@ -354,6 +355,7 @@ class CycleGAN(pl.LightningModule):
     
 
     def _get_image_generator(self):
+        # unet for imagen
         unet1 = Unet(
             dim = 32,
             cond_dim = 512,
@@ -372,7 +374,9 @@ class CycleGAN(pl.LightningModule):
             layer_cross_attns = (False, False, False, True)
         )
 
-        return Imagen(
+        # imagen, which contains the unets above (base unet and super resoluting ones)
+
+        imagen = Imagen(
             condition_on_text = True,  # this must be set to False for unconditional Imagen
             unets = (unet1, unet2),
             image_sizes = (64, 128),
@@ -380,6 +384,13 @@ class CycleGAN(pl.LightningModule):
             channels=1,
             cond_drop_prob = 0.1
         )
+
+        trainer = ImagenTrainer(
+            imagen = imagen,
+            split_valid_from_train = False, # whether to split the validation dataset from the training
+        ).cuda()
+
+        return trainer
         
     def _get_image_discriminator(self):
         return ImageDiscriminator(channels=self.opt['model']['channels'], 
