@@ -3,13 +3,12 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
-from modules.ImageComponentModule import ImageComponentModule
-from modules.AdversarialClassificationModule import AdversarialClassificationModule, ReportBuffer
 from modules.ChexpertModule import ChexpertDataModule
+from modules.CycleGANModule import CycleGAN
 from tensorboard import program
 from utils._prepare_data import DataHandler
 from utils.environment_settings import env_settings
-from utils.utils import read_config, get_monitor_metrics_mode
+from utils.utils import read_config
 
 
 def start_tensorboard(port, tracking_address: str):
@@ -25,7 +24,7 @@ def main(params):
     processor = DataHandler(opt=params["dataset"])
     chexpert_data_module = ChexpertDataModule(opt=params['dataset'], processor=processor)
     
-    CycleGAN = CycleGAN(opt=params)
+    CycleGAN_module = CycleGAN(opt=params)
 
     experiment = env_settings.EXPERIMENTS + '/' + params['image_generator']['report_encoder_model'] + "_" + params["report_generator"]["image_encoder_model"]
     logger = TensorBoardLogger(experiment, default_hp_metric=False)
@@ -54,7 +53,7 @@ def main(params):
 
     # Start training
     torch.autograd.set_detect_anomaly(True)
-    trainer.fit(CycleGAN, chexpert_data_module)
+    trainer.fit(CycleGAN_module, chexpert_data_module)
 
 
 if __name__ == '__main__':
