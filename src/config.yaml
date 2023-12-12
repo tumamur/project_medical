@@ -23,49 +23,71 @@ dataset:
   paired: False
 
 
-model:
-  seed : 42
-  num_classes : 13
-  embedding_size : 128
-  lerning_rate : 0.0001
-  betas : (0.5, 0.999),
-  metrics : 'KLDivergence'
-  learning_rate: 0.0001
-  optimizer : 'Adam' # AdamW
-  scheduler : 'ReduceLROnPlateau' # cosine, exponential, polynomial
-  weight_decay : 0.001
+image_generator:
+  learning_rate: 0.001
+  optimizer: 'Adam' # AdamW
+  scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
+  report_encoder_model : "Imagen"
+  weight_decay: 0.0001
   decay_epochs : 5
-  accumulated_batches : 5 # number of batches to accumulate before optimizing (decide number of batches to calculate loss)
-  n_epoch: 5
-  threshold : 0.5
+  beta1: 0.999
+  beta2: 0.999
+  monitor: 'val_loss'
+
+
+image_discriminator:
+  learning_rate: 0.001
+  optimizer: 'Adam' # AdamW
+  scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
+  weight_decay: 0.0001
+  decay_epochs : 5
+  beta1: 0.999
+  beta2: 0.999
+  monitor: 'val_loss'
+  channels: 3
+  img_height: 224
+  img_width: 224
+
+
+report_generator:
+  learning_rate: 0.001
+  optimizer: 'Adam' # AdamW
+  scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
+  weight_decay: 0.0001
+  decay_epochs : 5
+  beta1: 0.999
+  beta2: 0.999
+  monitor: 'val_loss'
   image_encoder_model: "BioVil"
   classification_head_hidden1: 512
   classification_head_hidden2: 256
   dropout_prob: 0.5
-  check_val_every_n_epochs: 1
-  monitor : 'val_loss'
-  channels: 3
-  img_height: 224
-  img_width: 224
+  embedding_size : 128
+
+
+report_discriminator:
+  learning_rate: 0.001
+  optimizer: 'Adam' # AdamW
+  scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
+  weight_decay: 0.0001
+  decay_epochs : 5
+  beta1: 0.999
+  beta2: 0.999
+
+
+trainer :
+  num_classes : 13
   lambda_cycle_loss: 1
+  seed : 42
   buffer_size : 300
+  check_val_every_n_epochs: 1
+  n_epoch: 5
+  threshold : 0.5
+  accumulated_batches : 5 # number of batches to accumulate before optimizing (decide number of batches to calculate loss)
+  metrics : "KLDivergence"
 
-discriminator:
-  learning_rate: 0.001
-  optimizer: 'Adam' # AdamW
-  scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
-  weight_decay: 0.0001
-  beta1: 0.999
-  beta2: 0.999
-  monitor: 'val_loss'
 
-generator:
-  learning_rate: 0.001
-  optimizer: 'Adam' # AdamW
-  scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
-  weight_decay: 0.0001
-  beta1: 0.999
-  beta2: 0.999
-  monitor: 'val_loss'
+
+
 
 

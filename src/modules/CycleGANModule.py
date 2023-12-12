@@ -11,7 +11,6 @@ from models.BioViL import BioViL
 from models.ARK import ARKModel
 from models.buffer import ReportBuffer, ImageBuffer
 from models.Discriminator import ReportDiscriminator, ImageDiscriminator
-from models.imagen_pytorch.imagen_pytorch import Unet, Imagen
 from losses.Metrics import Metrics
 from losses.CombinationLoss import CombinationLoss
 from losses.Test_loss import ClassificationLoss
@@ -48,39 +47,26 @@ class CycleGAN(pl.LightningModule):
         self.save_hyperparameters(opt)
         # self.automatic_optimization = False
         self.data_imputation = opt['dataset']['data_imputation']
-        self.num_classes = opt['model']['num_classes']
-        self.embedding_size = opt['model']['embedding_size']
-        self.learning_rate = opt['model']['learning_rate']
-        self.betas = opt['model']['betas']
-        self.weight_decay = opt['model']['weight_decay']
-        self.optimizer_name = opt['model']['optimizer']
-        self.scheduler_name = opt['model']['scheduler']
-        self.decay_epochs = opt['model']['decay_epochs']
-        self.n_epochs = opt['model']['n_epoch']
+        self.num_classes = opt['trainer']['num_classes']
+        self.n_epochs = opt['trainer']['n_epoch']
+        self.buffer_size = opt['trainer']["buffer_size"]
+        self.lambda_cycle = opt['trainer']['lambda_cycle_loss']
 
         optimizer_dict = {
             'Adam': ds.ops.adam.FusedAdam, 
             'AdamW': torch.optim.AdamW,
         }
-
-        self.optimizer = optimizer_dict[self.optimizer_name]
-
-        # Define Cycle GAN
-        self.buffer_size = opt['model']["buffer_size"]
+        self.image_gen_optimizer = optimizer_dict[self.opt["image_generator"]["optimizer"]]
+        self.image_disc_optimizer = optimizer_dict[self.opt["image_discriminator"]["optimizer"]]
+        self.report_gen_optimizer = optimizer_dict[self.opt["report_generator"]["optimizer"]]
 
         # Define Report Generation Component
-        self.report_generator_model = opt['model']['report_generation_model']
-        self.hidden_dim1 = opt['model']["classification_head_hidden1"]
-        self.hidden_dim2 = opt['model']["classification_head_hidden2"]
-        self.dropout_rate = opt['model']["dropout_prob"]
-        self.report_generator = self._get_report_generator(self.report_generator_model)
+        self.report_generator = self._get_report_generator(self.opt['report_generator']['image_encoder_model'])
         self.report_discriminator = self._get_report_discriminator()
         self.buffer_reports = ReportBuffer(self.buffer_size)
-        self.lambda_cycle = opt['model']['lambda_cycle_loss']
-
+        
         # Define Image Generation Component
-        self.image_generator_model = opt['model']['image_generation_model']
-        self.image_generator = self._get_image_generator(self.image_generator_model)
+        self.image_generator = self._get_image_generator(self.opt['image_generator']['report_encoder_model'])
         self.image_discriminator = self._get_image_discriminator()
         self.buffer_images = ImageBuffer(self.buffer_size)
 
@@ -105,7 +91,7 @@ class CycleGAN(pl.LightningModule):
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0.0)
 
-        for net in [self.report_generator, self.image_generator, self.report_discriminator, self.image_discriminator]:
+        for net in [self.report_generator, self.image_generator, self.image_discriminator]:
             net.apply(init_fn)
 
     def setup(self, stage):
@@ -113,10 +99,10 @@ class CycleGAN(pl.LightningModule):
             self.init_weights()
             print("Model initialized.")
 
-    def get_lr_scheduler(self, optimizer):
+    def get_lr_scheduler(self, optimizer, decay_epochs):
         def lr_lambda(epoch):
-            len_decay_phase = self.n_epochs - self.decay_epochs + 1.0
-            curr_decay_step = max(0, epoch - self.decay_epochs + 1.0)
+            len_decay_phase = self.n_epochs - decay_epochs + 1.0
+            curr_decay_step = max(0, epoch - decay_epochs + 1.0)
             val = 1.0 - curr_decay_step / len_decay_phase
             return max(0.0, val)
         
@@ -124,20 +110,52 @@ class CycleGAN(pl.LightningModule):
     
 
     def configure_optimizers(self):
-        opt_config = {
-            "lr": self.learning_rate,
-            "betas": self.betas,
+        image_gen_opt_config = {
+            "lr" : self.opt["image_generator"]["learning_rate"],
+            "betas" : (self.opt["image_generator"]["beta1"], self.opt["image_generator"]["beta2"])
         }
-        generator_optimizer = self.optimizer(
-            list(self.report_generator.parameters()) + list(self.image_generator.parameters()),
-            **opt_config,
+        image_generator_optimizer = self.optimizer(
+            list(self.image_generator.parameters()),
+            **image_gen_opt_config,
         )
-        discriminator_optimizer = self.optimizer(
-            list(self.report_discriminator.parameters()) + list(self.image_discriminator.parameters()),
-            **opt_config,
+        image_generator_scheduler = self.get_lr_scheduler(image_generator_optimizer, self.opt["image_generator"]["decay_epochs"])
+
+
+        report_gen_opt_config = {
+            "lr" : self.opt["report_generator"]["learning_rate"],
+            "betas" : (self.opt["report_generator"]["beta1"], self.opt["report_generator"]["beta2"])
+        }
+        report_generator_optimizer = self.optimizer(
+            list(self.report_generator.parameters()),
+            **report_gen_opt_config,
         )
-        optimizers = [generator_optimizer, discriminator_optimizer]
-        schedulers = [self.get_lr_scheduler(opt) for opt in optimizers]
+        report_generator_scheduler = self.get_lr_scheduler(report_generator_optimizer, self.opt["report_generator"]["decay_epochs"])
+
+
+        image_disc_opt_config = {
+            "lr" : self.opt["image_discriminator"]["learning_rate"],
+            "betas" : (self.opt["image_discriminator"]["beta1"], self.opt["image_discriminator"]["beta2"])
+        }
+        image_discriminator_optimizer = self.optimizer(
+            list(self.image_discriminator.parameters()),
+            **image_disc_opt_config,
+        )
+        image_discriminator_scheduler = self.get_lr_scheduler(image_discriminator_optimizer, self.opt["image_discriminator"]["decay_epochs"])
+
+        # report_disc_opt_config = {
+        #     "lr" : self.opt["report_discriminator"]["learning_rate"],
+        #     "betas" : (self.opt["report_discriminator"]["beta1"], self.opt["report_discriminator"]["beta2"])
+        # }
+        # report_discriminator_optimizer = self.optimizer(
+        #     list(self.report_discriminator.parameters()),
+        #     **report_disc_opt_config,
+        # )
+        # report_discriminator_scheduler = self.get_lr_scheduler(report_discriminator_optimizer, self.opt["report_discriminator"]["decay_epochs"])
+
+
+        # optimizers = [image_generator_optimizer, report_generator_optimizer image_discriminator_optimizer, report_discriminator_optimizer]
+        optimizers = [image_generator_optimizer, report_generator_optimizer, image_discriminator_optimizer]
+        schedulers = [image_generator_scheduler, report_generator_scheduler, image_discriminator_scheduler]
         return optimizers, schedulers
 
 
@@ -268,11 +286,11 @@ class CycleGAN(pl.LightningModule):
         self.cycle_report = self.report_generator(self.fake_img)
         self.cycle_img = self.image_generator.sample(self.fake_report)
 
-        if optimizer_idx == 0:
+        if optimizer_idx == 0 or optimizer_idx == 1:
             gen_loss = self.generator_step(valid)
             return gen_loss
         
-        elif optimizer_idx == 1:
+        elif optimizer_idx == 2 or optimizer_idx == 3:
             img_disc_loss = self.discriminator_step(valid, fake)
             # report_disc_loss = self.report_discriminator_step(valid, fake)
             return img_disc_loss
@@ -339,10 +357,15 @@ class CycleGAN(pl.LightningModule):
     
     def _get_report_generator(self, model_name):
         if self.image_encoder_model == "Ark":
-            return ARKModel(num_classes=self.num_classes, ark_pretrained_path=env_settings.PRETRAINED_PATH['ARK'])
+            return ARKModel(num_classes=self.num_classes,
+                            ark_pretrained_path=env_settings.PRETRAINED_PATH['ARK'])
+        
         elif self.image_encoder_model == "BioVil":
-            return BioViL(embedding_size=self.embedding_size, num_classes=self.num_classes, hidden_1=self.hidden_dim1,
-                          hidden_2=self.hidden_dim2, dropout_rate=self.dropout_rate)
+            return BioViL(embedding_size=self.opt["report_generator"]["embedding_size"], 
+                          num_classes=self.num_classes, 
+                          hidden_1=self.opt["report_generator"]["classification_head_hidden1"],
+                          hidden_2=self.opt["report_generator"]["classification_head_hidden2"], 
+                          dropout_rate=self.opt["report_generator"]["dropout_prob"])
         else:
             raise NotImplementedError(f"Model {model_name} not implemented for report generation.")
         
@@ -355,47 +378,13 @@ class CycleGAN(pl.LightningModule):
     
 
     def _get_image_generator(self):
-        # unet for imagen
-        unet1 = Unet(
-            dim = 32,
-            cond_dim = 512,
-            dim_mults = (1, 2, 4, 8),
-            num_resnet_blocks = 3,
-            layer_attns = (False, True, True, True),
-            layer_cross_attns = (False, True, True, True)
-        )
-
-        unet2 = Unet(
-            dim = 32,
-            cond_dim = 512,
-            dim_mults = (1, 2, 4, 8),
-            num_resnet_blocks = (2, 4, 8, 8),
-            layer_attns = (False, False, False, True),
-            layer_cross_attns = (False, False, False, True)
-        )
-
-        # imagen, which contains the unets above (base unet and super resoluting ones)
-
-        imagen = Imagen(
-            condition_on_text = True,  # this must be set to False for unconditional Imagen
-            unets = (unet1, unet2),
-            image_sizes = (64, 128),
-            timesteps = 1000,
-            channels=1,
-            cond_drop_prob = 0.1
-        )
-
-        trainer = ImagenTrainer(
-            imagen = imagen,
-            split_valid_from_train = False, # whether to split the validation dataset from the training
-        ).cuda()
-
-        return trainer
+        # TODO : Implement image generator class
+        return 
         
     def _get_image_discriminator(self):
-        return ImageDiscriminator(channels=self.opt['model']['channels'], 
-                                  img_height=self.opt['model']['img_height'],
-                                  img_width=self.opt['model']['img_width'])
+        return ImageDiscriminator(channels=self.opt['image_discriminator']['channels'], 
+                                  img_height=self.opt['image_discriminator']['img_height'],
+                                  img_width=self.opt['image_discriminator']['img_width'])
 
     
 
