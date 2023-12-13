@@ -270,11 +270,12 @@ class CycleGAN(pl.LightningModule):
 
     
     def _get_report_generator(self):
-        if self.opt["report_generator"]["image_encoder_model"] == "Ark":
+        model_name = self.opt["report_generator"]["image_encoder_model"]
+        if model_name == "Ark":
             return ARKModel(num_classes=self.num_classes,
                             ark_pretrained_path=env_settings.PRETRAINED_PATH['ARK'])
         
-        elif self.opt["report_generator"]["image_encoder_model"] == "BioVil":
+        elif model_name == "BioVil":
             return BioViL(embedding_size=self.opt["report_generator"]["embedding_size"], 
                           num_classes=self.num_classes, 
                           hidden_1=self.opt["report_generator"]["classification_head_hidden1"],
