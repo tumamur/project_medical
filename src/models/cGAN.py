@@ -19,7 +19,7 @@ class cGAN(nn.Module):
         self.z_size = z_size
         self.img_size = img_size
 
-        self.label_emb = nn.Embedding(class_num, class_num)
+        # self.label_emb = nn.Embedding(class_num, class_num)
 
         self.model = nn.Sequential(
             nn.Linear(self.z_size + class_num, generator_layer_size[0]),
@@ -28,39 +28,35 @@ class cGAN(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(generator_layer_size[1], generator_layer_size[2]),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(generator_layer_size[2], self.img_size * self.img_size),
+            nn.Linear(generator_layer_size[2], self.img_size * self.img_size * 3),
             nn.Tanh()
         )
 
     def forward(self, z, labels):
         # Reshape z
         z = z.view(-1, self.z_size)
-        z = F.interpolate(z.unsqueeze(1), size=(13, 13), mode='nearest')  # Change mode as needed
-        z = z.squeeze(1)  # z shape: [16, 13, 13]
-        
-        labels = labels.long()
         # One-hot vector to embedding vector
-        c = self.label_emb(labels)
+        # c = self.label_emb(labels)
         # Concat image & label
-        print(c.shape)
-        print(z.shape)
+        c = labels
+
         x = torch.cat([z, c], 1)
 
         # Generator out
         out = self.model(x)
 
-        return out.view(-1, self.img_size, self.img_size)
+        return out.view(-1, 3, self.img_size, self.img_size)
 
 
 class Discriminator(nn.Module):
     def __init__(self, discriminator_layer_size, img_size, class_num):
         super().__init__()
 
-        self.label_emb = nn.Embedding(class_num, class_num)
+        # self.label_emb = nn.Embedding(class_num, class_num)
         self.img_size = img_size
 
         self.model = nn.Sequential(
-            nn.Linear(self.img_size * self.img_size + class_num, discriminator_layer_size[0]),
+            nn.Linear(3 * self.img_size * self.img_size + class_num, discriminator_layer_size[0]),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Dropout(0.3),
             nn.Linear(discriminator_layer_size[0], discriminator_layer_size[1]),
@@ -75,11 +71,12 @@ class Discriminator(nn.Module):
 
     def forward(self, x, labels):
         # Reshape fake image
-        x = x.view(-1, self.img_size * self.img_size)
-
+        # print(f'x_shape: {x.shape}')
+        x = x.view(-1, 3 * self.img_size * self.img_size)
+        # print(x.shape)
         # One-hot vector to embedding vector
-        c = self.label_emb(labels)
-
+        # c = self.label_emb(labels)
+        c = labels
         # Concat image & label
         x = torch.cat([x, c], 1)
 

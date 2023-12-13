@@ -44,6 +44,7 @@ class CycleGAN(pl.LightningModule):
         self.lambda_cycle = opt['trainer']['lambda_cycle_loss']
         self.val_dataloader = val_dataloader
         self.batch_size = opt["dataset"]["batch_size"]
+        self.z_size = opt["image_generator"]["z_size"]
         
 
         # Initialize optimizers
@@ -204,7 +205,7 @@ class CycleGAN(pl.LightningModule):
         self.real_img = self.real_img.float()
         self.real_report = batch['report']
 
-        self.z = Variable(torch.randn(self.batch_size, self.num_classes)).to(self.device)
+        z = Variable(torch.randn(self.batch_size, self.z_size)).to(self.device)
         
         # generate valid and fake labels
         valid = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
@@ -212,7 +213,7 @@ class CycleGAN(pl.LightningModule):
 
         # generate fake reports and images
         self.fake_report = self.report_generator(self.real_img)
-        self.fake_img = self.image_generator(self.z, self.real_report)
+        self.fake_img = self.image_generator(z, self.real_report)
 
         # reconstruct reports and images
         self.cycle_report = self.report_generator(self.fake_img)
@@ -289,7 +290,7 @@ class CycleGAN(pl.LightningModule):
     
     def _get_image_generator(self):
         return cGAN(generator_layer_size=self.opt["image_generator"]["generator_layer_size"],
-                    z_size=self.num_classes,
+                    z_size=self.z_size,
                     img_size=self.input_size,
                     class_num=self.num_classes)
         
