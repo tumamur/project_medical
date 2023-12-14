@@ -20,32 +20,24 @@ class PerceptualLoss(nn.Module):
         for param in self.content_layers.parameters():
             param.requires_grad = False
 
-        # Normalization for VGG19
-        self.normalize = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ])
-
     def forward(self, y_true, y_pred):
         # Normalize pixel values to be in the range [0, 1]
         y_true = y_true / 255.0
         y_pred = y_pred / 255.0
-
-        # Normalize images for VGG19
-        y_true_normalized = self.normalize(y_true.clone().cpu()).unsqueeze(0)
-        y_pred_normalized = self.normalize(y_pred.clone().cpu()).unsqueeze(0)
-
+    
+    
+        # Apply normalization for VGG19
+        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        y_true_normalized = normalize(y_true)
+        y_pred_normalized = normalize(y_pred)
+    
         # Extract features from the target (y_true) and generated (y_pred) images
         true_features = self.content_layers(y_true_normalized)
         pred_features = self.content_layers(y_pred_normalized)
-
+    
         # Calculate perceptual loss as the mean squared difference between features
-        loss = 0.0
-        for true_feature, pred_feature in zip(true_features, pred_features):
-            loss += nn.functional.mse_loss(true_feature, pred_feature)
-
+        loss = nn.functional.mse_loss(true_features, pred_features)
+    
         return loss
 
 

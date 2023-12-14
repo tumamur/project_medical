@@ -18,6 +18,7 @@ import numpy as np
 import deepspeed as ds
 import torchvision.transforms as transforms
 from PIL import Image
+from torchvision.transforms.functional import to_tensor
 import io
 torch.autograd.set_detect_anomaly(True)
 
@@ -72,12 +73,16 @@ class CycleGAN(pl.LightningModule):
     
     def forward(self, img):
         # will be used in predict step for evaluation
-        # img = img.float().to(self.device)
-        # report = self.report_generator(img)
-        # z = Variable(torch.randn_like(report)).to(self.device)
-        # generated_img = self.image_generator(z, report)
-        # return report, generated_img
-        return img, None
+        img = img.float().to(self.device)
+        report = self.report_generator(img).float()
+        
+        print(report.shape)
+        z = Variable(torch.randn(self.batch_size, self.z_size)).float().to(self.device)
+        print(z.shape)
+        
+        generated_img = self.image_generator(z, report)
+        return report, generated_img
+        #return img, None
 
     def get_lr_scheduler(self, optimizer, decay_epochs):
         def lr_lambda(epoch):
@@ -201,11 +206,10 @@ class CycleGAN(pl.LightningModule):
 
 
     def training_step(self, batch, batch_idx, optimizer_idx):
-        self.real_img = batch['target']
-        self.real_img = self.real_img.float()
-        self.real_report = batch['report']
+        self.real_img = batch['target'].float()
+        self.real_report = batch['report'].float()
 
-        z = Variable(torch.randn(self.batch_size, self.z_size)).to(self.device)
+        z = Variable(torch.randn(self.batch_size, self.z_size)).float().to(self.device)
         
         # generate valid and fake labels
         valid = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
@@ -217,7 +221,7 @@ class CycleGAN(pl.LightningModule):
 
         # reconstruct reports and images
         self.cycle_report = self.report_generator(self.fake_img)
-        self.cycle_img = self.image_generator(self.z, self.fake_report)
+        self.cycle_img = self.image_generator(z, self.fake_report)
 
         if optimizer_idx == 0 or optimizer_idx == 1:
             gen_loss = self.generator_step(valid)
@@ -240,34 +244,33 @@ class CycleGAN(pl.LightningModule):
         return report, image
     
 
-    # def on_validation_epoch_end(self):
-    #     # Select a small number of validation samples
-    #     num_samples = min(5, self.batch_size)
-    #     val_samples = next(iter(self.val_dataloader))
-
-    #     # Generate reports and images for these samples
-    #     generated_reports, generated_images = self(val_samples['target'])
-
-    #     # Log the generated reports and images
-    #     for i in range(num_samples):
-    #         # Convert the tensor to a suitable image format (e.g., PIL Image)
-    #         # and log using the logger (e.g., TensorBoard, WandB)
-    #         generated_image = generated_images[i].cpu().detach()
-    #         img_pil = transforms.ToPILImage()(generated_image.squeeze()).convert("RGB")
-    #         img_buffer = io.BytesIO()
-    #         img_pil.save(img_buffer, format="JPEG")
-    #         img_buffer.seek(0)
-
-    #         # Process the generated report
-    #         generated_report = generated_reports[i].cpu().detach()
-    #         generated_report = torch.sigmoid(generated_report)
-    #         generated_report = (generated_report > 0.5).int()
-    #         report_text_labels = [self.opt['dataset']['chexpert_labels'][idx] for idx, val in enumerate(generated_report) if val == 1]
-    #         report_text = ', '.join(report_text_labels)
-
-    #         # Log the image and the report text
-    #         self.logger.experiment.add_image(f"Generated Image {i}", img_buffer, self.current_epoch, dataformats='HWC')
-    #         self.logger.experiment.add_text(f"Generated Report {i}", report_text, self.current_epoch)
+    def on_validation_epoch_end(self):
+        # Select a small number of validation samples
+        num_samples = min(5, self.batch_size)
+        val_samples = next(iter(self.val_dataloader))
+    
+        # Generate reports and images for these samples
+        generated_reports, generated_images = self(val_samples['target'])
+    
+        # Log the generated reports and images
+        for i in range(num_samples):
+            # Convert the tensor to a suitable image format (e.g., PIL Image)
+            generated_image = generated_images[i].cpu().detach()
+            img_pil = transforms.ToPILImage()(generated_image.squeeze()).convert("RGB")
+    
+            # Convert PIL Image back to tensor
+            img_tensor = to_tensor(img_pil)
+    
+            # Process the generated report
+            generated_report = generated_reports[i].cpu().detach()
+            generated_report = torch.sigmoid(generated_report)
+            generated_report = (generated_report > 0.5).int()
+            report_text_labels = [self.opt['dataset']['chexpert_labels'][idx] for idx, val in enumerate(generated_report) if val == 1]
+            report_text = ', '.join(report_text_labels)
+    
+            # Log the image and the report text
+            self.logger.experiment.add_image(f"Generated Image {i}", img_tensor, self.current_epoch, dataformats='CHW')
+            self.logger.experiment.add_text(f"Generated Report {i}", report_text, self.current_epoch)
 
     
     def _get_report_generator(self):
@@ -300,9 +303,3 @@ class CycleGAN(pl.LightningModule):
                                                self.opt['image_discriminator']['img_height'],
                                                self.opt['image_discriminator']['img_width'])
                                  )
-
-    
-
-        
-        
-
