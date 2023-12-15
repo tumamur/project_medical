@@ -155,17 +155,20 @@ class CycleGAN(pl.LightningModule):
         adv_loss_RI = self.img_adv_criterion(self.image_discriminator(self.fake_img), valid)
         # TODO : Should we really divide by 2?
         total_adv_loss = adv_loss_IR + adv_loss_RI
+        # print(f'adv_loss:{total_adv_loss}')
         ############################################################################################
         
         # cycle loss
         cycle_loss_IRI = self.img_consistency_criterion(self.real_img, self.cycle_img)
-        cycle_loss_RIR = self.report_consistency_criterion(self.real_report, self.cycle_report)
+        # print(f'cycle_loss_IRI:{cycle_loss_IRI}')
+        cycle_loss_RIR = self.report_consistency_criterion(self.cycle_report, self.real_report)
+        print(f'cycle_loss_RIR:{cycle_loss_RIR}')
         total_cycle_loss = self.lambda_cycle * (cycle_loss_IRI + cycle_loss_RIR)
 
         ############################################################################################
 
         total_gen_loss = total_adv_loss + total_cycle_loss
-
+        print(f'gen_loss:{total_gen_loss}')
         ############################################################################################
 
         # Log losses
@@ -178,7 +181,7 @@ class CycleGAN(pl.LightningModule):
             "gen_cycle_loss_IRI": cycle_loss_IRI,
             "gen_cycle_loss_RIR": cycle_loss_RIR,
         }
-        self.log_dict(metrics, on_step=False, on_epoch=True, prog_bar=True)
+        self.log_dict(metrics, on_step=True, on_epoch=True, prog_bar=True)
         return total_gen_loss
     
 
@@ -192,15 +195,19 @@ class CycleGAN(pl.LightningModule):
         # calculate on fake data
         fake_img_adv_loss = self.img_adv_criterion(self.image_discriminator(fake_img.detach()), fake)
         ###########################################################################################
-
+        print(f'disc_real_adv:{real_img_adv_loss}')
+        print(f'disc_fake_adv:{fake_img_adv_loss}')
+        
         total_img_disc_loss = (real_img_adv_loss + fake_img_adv_loss) / 2
+        print(f'disc_total:{total_img_disc_loss}')
+        
         metrics = {
             "img_disc_loss": total_img_disc_loss,
             "img_disc_adv_loss_real": real_img_adv_loss,
             "img_disc_adv_loss_fake": fake_img_adv_loss,
         }
 
-        self.log_dict(metrics, on_step=False, on_epoch=True, prog_bar=True)
+        self.log_dict(metrics, on_step=True, on_epoch=True, prog_bar=True)
         return total_img_disc_loss
 
 
