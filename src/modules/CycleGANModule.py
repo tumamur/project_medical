@@ -21,6 +21,7 @@ from PIL import Image
 from torchvision.transforms.functional import to_tensor
 import io
 torch.autograd.set_detect_anomaly(True)
+import matplotlib.pyplot as plt
 
 class CycleGAN(pl.LightningModule):
 
@@ -47,6 +48,7 @@ class CycleGAN(pl.LightningModule):
         self.batch_size = opt["dataset"]["batch_size"]
         self.z_size = opt["image_generator"]["z_size"]
         self.log_images_steps = opt["trainer"]["log_images_steps"]
+        self.MSE = nn.MSELoss()
         
 
         # Initialize optimizers
@@ -159,10 +161,11 @@ class CycleGAN(pl.LightningModule):
         
         # cycle loss
         cycle_loss_IRI = self.img_consistency_criterion(self.real_img, self.cycle_img)
+        cycle_loss_IRI_MSE = self.MSE(self.real_img, self.cycle_img)
         # print(f'cycle_loss_IRI:{cycle_loss_IRI}')
         cycle_loss_RIR = self.report_consistency_criterion(self.cycle_report, self.real_report)
         # print(f'cycle_loss_RIR:{cycle_loss_RIR}')
-        total_cycle_loss = self.lambda_cycle * (cycle_loss_IRI + cycle_loss_RIR)
+        total_cycle_loss = self.lambda_cycle * (cycle_loss_IRI + cycle_loss_RIR + cycle_loss_IRI_MSE)
 
         ############################################################################################
 
@@ -230,6 +233,7 @@ class CycleGAN(pl.LightningModule):
         if (batch_idx % self.log_images_steps) == 0 and optimizer_idx == 0:
             self.log_images_on_cycle(batch_idx)
             self.log_reports_on_cycle(batch_idx)
+            self.visualize_images(batch_idx)
 
         if optimizer_idx == 0 or optimizer_idx == 1:
             gen_loss = self.generator_step(valid)
@@ -286,13 +290,17 @@ class CycleGAN(pl.LightningModule):
         cycle_img_1 = self.cycle_img[0]
         real_img_1 = self.real_img[0]
         fake_img_1 = self.fake_img[0]
-        cycle_img_pil = transforms.ToPILImage()(cycle_img_1.squeeze()).convert("RGB")
-        real_img_pil = transforms.ToPILImage()(real_img_1.squeeze()).convert('RGB')
-        fake_img_pil = transforms.ToPILImage()(fake_img_1.squeeze()).convert("RGB")
 
-        cycle_img_tensor = to_tensor(cycle_img_pil)
-        real_img_tensor = to_tensor(real_img_pil)
-        fake_img_tensor = to_tensor(fake_img_pil)
+        #cycle_img_pil = transforms.ToPILImage()(cycle_img_1.squeeze()).convert("RGB")
+        #real_img_pil = transforms.ToPILImage()(real_img_1.squeeze()).convert('RGB')
+        #fake_img_pil = transforms.ToPILImage()(fake_img_1.squeeze()).convert("RGB")
+
+        #cycle_img_tensor = to_tensor(cycle_img_pil)
+        #real_img_tensor = to_tensor(real_img_pil)
+        #fake_img_tensor = to_tensor(fake_img_pil)
+        cycle_img_tensor = cycle_img_1
+        real_img_tensor = real_img_1
+        fake_img_tensor = fake_img_1
 
         step = self.current_epoch * batch_idx + batch_idx
 
@@ -323,7 +331,17 @@ class CycleGAN(pl.LightningModule):
         self.logger.experiment.add_text(f"On step cycle report", report_text_real, step)
         self.logger.experiment.add_text(f"On step real report", report_text_cycle, step)
 
-    
+    def visualize_images(self, batch_idx):
+        tensor = self.real_img[0]
+        plt.imshow(tensor.permute(1, 2, 0).cpu().detach())
+        plt.axis('off')
+        plt.show()
+
+        cycle_tensor = self.cycle_img[0]
+        plt.imshow(cycle_tensor.permute(1, 2, 0).cpu().detach())
+        plt.axis('off')
+        plt.show()
+
     def _get_report_generator(self):
         model_name = self.opt["report_generator"]["image_encoder_model"]
         if model_name == "Ark":

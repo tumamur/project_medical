@@ -63,7 +63,7 @@ class cGAN(nn.Module):
 
 class cGANconv(nn.Module):
     def __init__(self, z_size, img_size, class_num, img_channels):
-        super(cGANcomplex, self).__init__()
+        super(cGANconv, self).__init__()
         self.z_size = z_size
         self.features = 64
         self.img_size = img_size
