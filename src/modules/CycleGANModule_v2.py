@@ -133,7 +133,7 @@ class CycleGAN(pl.LightningModule):
                  "lr" : self.opt["report_discriminator"]["learning_rate"],
                  "betas" : (self.opt["report_discriminator"]["beta1"], self.opt["report_discriminator"]["beta2"])
              }
-        report_discriminator_optimizer = self.optimizer(
+        report_discriminator_optimizer = self.report_disc_optimizer(
                  list(self.report_discriminator.parameters()),
                  **report_disc_opt_config,
              )
