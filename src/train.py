@@ -25,9 +25,11 @@ def main(params):
     chexpert_data_module = ChexpertDataModule(opt=params['dataset'], processor=processor)
     chexpert_data_module.setup()
     val_dataloader = chexpert_data_module.val_dataloader()
-    CycleGAN_module = CycleGAN(opt=params, val_dataloader = val_dataloader)
+    CycleGAN_module = CycleGAN(opt=params, val_dataloader=val_dataloader)
 
-    experiment = env_settings.EXPERIMENTS + params['image_generator']['report_encoder_model'] + "_" + params["report_generator"]["image_encoder_model"]
+    experiment = (env_settings.EXPERIMENTS + params['image_generator']['report_encoder_model']
+                  + "_" + params["report_generator"]["image_encoder_model"])
+
     logger = TensorBoardLogger(experiment, default_hp_metric=False)
 
     file_name = "cycle_gan" + "_{epoch:02d}"
@@ -43,8 +45,7 @@ def main(params):
                         check_val_every_n_epoch=params['trainer']['check_val_every_n_epochs'],
                         log_every_n_steps=params["trainer"]["buffer_size"],
                         callbacks=[checkpoint_callback],
-                        logger=logger
-                        )
+                        logger=logger)
 
     # start tensorboard
     try:

@@ -28,7 +28,7 @@ def generator_train_step(batch_size, discriminator, generator, g_optimizer, crit
     # Generating fake images
     fake_images = generator(z, labels)
     # Disciminating fake images
-    print(fake_images.shape)
+    # print(fake_images.shape)
     validity = discriminator(fake_images, labels)
     # Calculating discrimination loss (fake images)
     g_loss = criterion(validity, Variable(torch.ones(batch_size)).to(device))

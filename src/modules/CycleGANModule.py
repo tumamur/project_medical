@@ -7,7 +7,7 @@ from models.BioViL import BioViL
 from models.ARK import ARKModel
 from models.buffer import ReportBuffer, ImageBuffer
 from models.Discriminator import ImageDiscriminator
-from models.cGAN import cGAN
+from models.cGAN import cGAN, cGANconv
 from losses.Test_loss import ClassificationLoss
 from losses.Perceptual_loss import PerceptualLoss
 from utils.environment_settings import env_settings
@@ -46,6 +46,7 @@ class CycleGAN(pl.LightningModule):
         self.val_dataloader = val_dataloader
         self.batch_size = opt["dataset"]["batch_size"]
         self.z_size = opt["image_generator"]["z_size"]
+        self.log_images_steps = opt["trainer"]["log_images_steps"]
         
 
         # Initialize optimizers
@@ -75,11 +76,9 @@ class CycleGAN(pl.LightningModule):
         # will be used in predict step for evaluation
         img = img.float().to(self.device)
         report = self.report_generator(img).float()
-        
-        print(report.shape)
+
         z = Variable(torch.randn(self.batch_size, self.z_size)).float().to(self.device)
-        print(z.shape)
-        
+
         generated_img = self.image_generator(z, report)
         return report, generated_img
         #return img, None
@@ -162,13 +161,13 @@ class CycleGAN(pl.LightningModule):
         cycle_loss_IRI = self.img_consistency_criterion(self.real_img, self.cycle_img)
         # print(f'cycle_loss_IRI:{cycle_loss_IRI}')
         cycle_loss_RIR = self.report_consistency_criterion(self.cycle_report, self.real_report)
-        print(f'cycle_loss_RIR:{cycle_loss_RIR}')
+        # print(f'cycle_loss_RIR:{cycle_loss_RIR}')
         total_cycle_loss = self.lambda_cycle * (cycle_loss_IRI + cycle_loss_RIR)
 
         ############################################################################################
 
         total_gen_loss = total_adv_loss + total_cycle_loss
-        print(f'gen_loss:{total_gen_loss}')
+        # print(f'gen_loss:{total_gen_loss}')
         ############################################################################################
 
         # Log losses
@@ -183,7 +182,6 @@ class CycleGAN(pl.LightningModule):
         }
         self.log_dict(metrics, on_step=True, on_epoch=True, prog_bar=True)
         return total_gen_loss
-    
 
     def discriminator_step(self, valid, fake):
         # fake_report = self.buffer_reports(self.fake_report)
@@ -195,11 +193,11 @@ class CycleGAN(pl.LightningModule):
         # calculate on fake data
         fake_img_adv_loss = self.img_adv_criterion(self.image_discriminator(fake_img.detach()), fake)
         ###########################################################################################
-        print(f'disc_real_adv:{real_img_adv_loss}')
-        print(f'disc_fake_adv:{fake_img_adv_loss}')
+        # print(f'disc_real_adv:{real_img_adv_loss}')
+        # print(f'disc_fake_adv:{fake_img_adv_loss}')
         
         total_img_disc_loss = (real_img_adv_loss + fake_img_adv_loss) / 2
-        print(f'disc_total:{total_img_disc_loss}')
+        # print(f'disc_total:{total_img_disc_loss}')
         
         metrics = {
             "img_disc_loss": total_img_disc_loss,
@@ -210,13 +208,12 @@ class CycleGAN(pl.LightningModule):
         self.log_dict(metrics, on_step=True, on_epoch=True, prog_bar=True)
         return total_img_disc_loss
 
-
-
     def training_step(self, batch, batch_idx, optimizer_idx):
         self.real_img = batch['target'].float()
         self.real_report = batch['report'].float()
+        batch_nmb = self.real_img.shape[0]
 
-        z = Variable(torch.randn(self.batch_size, self.z_size)).float().to(self.device)
+        z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)
         
         # generate valid and fake labels
         valid = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
@@ -229,6 +226,10 @@ class CycleGAN(pl.LightningModule):
         # reconstruct reports and images
         self.cycle_report = self.report_generator(self.fake_img)
         self.cycle_img = self.image_generator(z, self.fake_report)
+
+        if (batch_idx % self.log_images_steps) == 0 and optimizer_idx == 0:
+            self.log_images_on_cycle(batch_idx)
+            self.log_reports_on_cycle(batch_idx)
 
         if optimizer_idx == 0 or optimizer_idx == 1:
             gen_loss = self.generator_step(valid)
@@ -279,6 +280,49 @@ class CycleGAN(pl.LightningModule):
             self.logger.experiment.add_image(f"Generated Image {i}", img_tensor, self.current_epoch, dataformats='CHW')
             self.logger.experiment.add_text(f"Generated Report {i}", report_text, self.current_epoch)
 
+
+    def log_images_on_cycle(self, batch_idx):
+
+        cycle_img_1 = self.cycle_img[0]
+        real_img_1 = self.real_img[0]
+        fake_img_1 = self.fake_img[0]
+        cycle_img_pil = transforms.ToPILImage()(cycle_img_1.squeeze()).convert("RGB")
+        real_img_pil = transforms.ToPILImage()(real_img_1.squeeze()).convert('RGB')
+        fake_img_pil = transforms.ToPILImage()(fake_img_1.squeeze()).convert("RGB")
+
+        cycle_img_tensor = to_tensor(cycle_img_pil)
+        real_img_tensor = to_tensor(real_img_pil)
+        fake_img_tensor = to_tensor(fake_img_pil)
+
+        step = self.current_epoch * batch_idx + batch_idx
+
+        self.logger.experiment.add_image(f"On step cycle img", cycle_img_tensor, step, dataformats='CHW')
+        self.logger.experiment.add_image(f"On step real img", real_img_tensor, step, dataformats='CHW')
+        self.logger.experiment.add_image(f"On step fake_img", fake_img_tensor, step, dataformats='CHW')
+
+    def log_reports_on_cycle(self, batch_idx):
+        real_report = self.real_report[0]
+        cycle_report = self.cycle_report[0]
+        # Process the generated report
+        real_report = real_report.cpu().detach()
+        real_report = torch.sigmoid(real_report)
+        real_report = (real_report > 0.5).int()
+        report_text_labels = [self.opt['dataset']['chexpert_labels'][idx] for idx, val in enumerate(real_report) if
+                              val == 1]
+        report_text_real = ', '.join(report_text_labels)
+
+        generated_report = cycle_report.cpu().detach()
+        generated_report = torch.sigmoid(generated_report)
+        generated_report = (generated_report > 0.5).int()
+        report_text_labels_cycle = [self.opt['dataset']['chexpert_labels'][idx] for idx, val in enumerate(generated_report) if
+                              val == 1]
+        report_text_cycle = ', '.join(report_text_labels_cycle)
+
+        step = self.current_epoch * batch_idx + batch_idx
+
+        self.logger.experiment.add_text(f"On step cycle report", report_text_real, step)
+        self.logger.experiment.add_text(f"On step real report", report_text_cycle, step)
+
     
     def _get_report_generator(self):
         model_name = self.opt["report_generator"]["image_encoder_model"]
@@ -300,10 +344,12 @@ class CycleGAN(pl.LightningModule):
         return ClassificationLoss(env_settings.MASTER_LIST[self.data_imputation])
     
     def _get_image_generator(self):
-        return cGAN(generator_layer_size=self.opt["image_generator"]["generator_layer_size"],
-                    z_size=self.z_size,
-                    img_size=self.input_size,
-                    class_num=self.num_classes)
+        # return cGAN(generator_layer_size=self.opt["image_generator"]["generator_layer_size"],
+          #          z_size=self.z_size,
+           #         img_size=self.input_size,
+            #        class_num=self.num_classes)
+        return cGANconv(z_size=self.z_size, img_size=self.input_size, class_num=self.num_classes,
+                           img_channels=self.opt["image_discriminator"]["channels"])
         
     def _get_image_discriminator(self):
         return ImageDiscriminator(input_shape=(self.opt['image_discriminator']['channels'], 

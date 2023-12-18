@@ -32,7 +32,7 @@ image_generator:
   z_size : 100
   weight_decay: 0.0001
   decay_epochs : 5
-  beta1: 0.999
+  beta1: 0.9
   beta2: 0.999
   monitor: 'val_loss'
 
@@ -43,7 +43,7 @@ image_discriminator:
   scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
   weight_decay: 0.0001
   decay_epochs : 5
-  beta1: 0.999
+  beta1: 0.9
   beta2: 0.999
   monitor: 'val_loss'
   channels: 3
@@ -57,7 +57,7 @@ report_generator:
   scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
   weight_decay: 0.0001
   decay_epochs : 5
-  beta1: 0.999
+  beta1: 0.9
   beta2: 0.999
   monitor: 'val_loss'
   image_encoder_model: "BioVil"
@@ -73,13 +73,13 @@ report_discriminator:
   scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
   weight_decay: 0.0001
   decay_epochs : 5
-  beta1: 0.999
+  beta1: 0.9
   beta2: 0.999
 
 
 trainer :
   num_classes : 13
-  lambda_cycle_loss: 1
+  lambda_cycle_loss: 10
   seed : 42
   buffer_size : 300
   check_val_every_n_epochs: 1
@@ -87,6 +87,7 @@ trainer :
   threshold : 0.5
   accumulated_batches : 5 # number of batches to accumulate before optimizing (decide number of batches to calculate loss)
   metrics : "KLDivergence"
+  log_images_steps: 100
 
 
 
