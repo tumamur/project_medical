@@ -2,12 +2,12 @@ import torch.nn as nn
 import torch
 
 class ReportDiscriminator(nn.Module):
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim):
         super(ReportDiscriminator, self).__init__()
         self.model = nn.Sequential(
             nn.Linear(input_dim, 128),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(128,output_dim),
+            nn.Linear(128,1),
         )
 
     def forward(self, x):
