@@ -206,12 +206,12 @@ class CycleGAN(pl.LightningModule):
         return total_gen_loss
     
     def report_discriminator_step(self, valid, fake):
-        fake_report = self.buffer_reports(self.fake_reports)
+        # fake_report = self.buffer_reports(self.fake_report)
 
         # calculate loss for discriminator
         real_report_adv_loss = self.report_adv_criterion(self.report_discriminator(self.real_report), valid)
         # calculate on fake data
-        fake_report_adv_loss = self.report_adv_criterion(self.report_discriminator(self.fake_report.detach()), fake)
+        fake_report_adv_loss = self.report_adv_criterion(self.report_discriminator(self.fake_report), fake)
 
         total_report_disc_loss = (real_report_adv_loss + fake_report_adv_loss) / 2
 
@@ -232,7 +232,7 @@ class CycleGAN(pl.LightningModule):
         # calculate on real data
         real_img_adv_loss = self.img_adv_criterion(self.image_discriminator(self.real_img), valid)
         # calculate on fake data
-        fake_img_adv_loss = self.img_adv_criterion(self.image_discriminator(fake_img.detach()), fake)
+        fake_img_adv_loss = self.img_adv_criterion(self.image_discriminator(fake_img), fake)
         ###########################################################################################
         # print(f'disc_real_adv:{real_img_adv_loss}')
         # print(f'disc_fake_adv:{fake_img_adv_loss}')
@@ -261,8 +261,10 @@ class CycleGAN(pl.LightningModule):
         fake_img = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape)))
 
         # generate valid and fake labels for report discriminator
-        valid_report = Tensor(np.ones((self.real_report.size(0), *self.report_discriminator.output_shape)))
-        fake_report = Tensor(np.zeros((self.real_report.size(0), *self.report_discriminator.output_shape)))
+        valid_report = torch.ones(self.real_report.size(0), 1, device=self.device, requires_grad=True)
+        fake_report = torch.zeros(self.real_report.size(0), 1, device=self.device, requires_grad=True)
+        # valid_report = Tensor(np.ones((self.real_report.size(0), *self.report_discriminator.output_shape))).to(self.device)
+        # fake_report = Tensor(np.zeros((self.real_report.size(0), *self.report_discriminator.output_shape))).to(self.device)
 
         # generate fake reports and images
         self.fake_report = self.report_generator(self.real_img)
@@ -272,20 +274,20 @@ class CycleGAN(pl.LightningModule):
         self.cycle_report = self.report_generator(self.fake_img)
         self.cycle_img = self.image_generator(z, self.fake_report)
 
-        if (batch_idx % self.log_images_steps) == 0 and optimizer_idx == 0:
-            self.log_images_on_cycle(batch_idx)
-            self.log_reports_on_cycle(batch_idx)
-            self.visualize_images(batch_idx)
-
         if optimizer_idx == 0 or optimizer_idx == 1:
             gen_loss = self.generator_step(valid_img, valid_report)
-            return gen_loss
+            return {"loss": gen_loss}
         
         elif optimizer_idx == 2 or optimizer_idx == 3:
             img_disc_loss = self.img_discriminator_step(valid_img, fake_img)
             report_disc_loss = self.report_discriminator_step(valid_report, fake_report)
-            return img_disc_loss, report_disc_loss
-        
+            # Combine the losses in a dictionary
+            return {"loss": img_disc_loss, "report_disc_loss": report_disc_loss}
+
+        if (batch_idx % self.log_images_steps) == 0 and optimizer_idx == 0:
+            self.log_images_on_cycle(batch_idx)
+            self.log_reports_on_cycle(batch_idx)
+            self.visualize_images(batch_idx)
 
     def validation_step(self, batch, batch_idx):
         pass

@@ -4,14 +4,16 @@ import torch
 class ReportDiscriminator(nn.Module):
     def __init__(self, input_dim):
         super(ReportDiscriminator, self).__init__()
+
+        self.output_shape = (1, )
+
         self.model = nn.Sequential(
             nn.Linear(input_dim, 128),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn.LeakyReLU(0.2, inplace=False),
             nn.Linear(128,1),
         )
 
     def forward(self, x):
-        x = x.float()
         return self.model(x)
 
 
