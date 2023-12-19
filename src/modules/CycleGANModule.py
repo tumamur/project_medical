@@ -10,6 +10,7 @@ from models.Discriminator import ImageDiscriminator
 from models.cGAN import cGAN, cGANconv
 from losses.Test_loss import ClassificationLoss
 from losses.Perceptual_loss import PerceptualLoss
+from losses.Perceptual_xray import PerceptualLossXray
 from utils.environment_settings import env_settings
 cuda = True if torch.cuda.is_available() else False
 Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
@@ -70,6 +71,7 @@ class CycleGAN(pl.LightningModule):
 
         # Define loss functions
         self.img_consistency_loss = PerceptualLoss()
+        # self.img_consistency_loss = PerceptualLossXray()
         self.img_adversarial_loss = nn.MSELoss()
         self.report_consistency_loss = nn.BCEWithLogitsLoss()
 
@@ -165,7 +167,7 @@ class CycleGAN(pl.LightningModule):
         # print(f'cycle_loss_IRI:{cycle_loss_IRI}')
         cycle_loss_RIR = self.report_consistency_criterion(self.cycle_report, self.real_report)
         # print(f'cycle_loss_RIR:{cycle_loss_RIR}')
-        total_cycle_loss = self.lambda_cycle * (cycle_loss_IRI + cycle_loss_RIR + cycle_loss_IRI_MSE)
+        total_cycle_loss = self.lambda_cycle * (cycle_loss_IRI + cycle_loss_RIR) + 10 * cycle_loss_IRI_MSE
 
         ############################################################################################
 
@@ -182,6 +184,7 @@ class CycleGAN(pl.LightningModule):
             "gen_adv_loss_RI": adv_loss_RI,
             "gen_cycle_loss_IRI": cycle_loss_IRI,
             "gen_cycle_loss_RIR": cycle_loss_RIR,
+            "gen_cycle_loss_IR_MSE": cycle_loss_IRI_MSE,
         }
         self.log_dict(metrics, on_step=True, on_epoch=True, prog_bar=True)
         return total_gen_loss
@@ -199,7 +202,7 @@ class CycleGAN(pl.LightningModule):
         # print(f'disc_real_adv:{real_img_adv_loss}')
         # print(f'disc_fake_adv:{fake_img_adv_loss}')
         
-        total_img_disc_loss = (real_img_adv_loss + fake_img_adv_loss) / 2
+        total_img_disc_loss = (real_img_adv_loss + fake_img_adv_loss) / 2 * 0.1
         # print(f'disc_total:{total_img_disc_loss}')
         
         metrics = {
@@ -221,19 +224,26 @@ class CycleGAN(pl.LightningModule):
         # generate valid and fake labels
         valid = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
         fake = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape)))
-
         # generate fake reports and images
         self.fake_report = self.report_generator(self.real_img)
         self.fake_img = self.image_generator(z, self.real_report)
 
+        fake_reports = torch.sigmoid(self.fake_report)
+        fake_reports = torch.where(fake_reports < 0.5, 0, fake_reports)
+        fake_reports = torch.where(fake_reports >= 0.5, 1, fake_reports)
         # reconstruct reports and images
         self.cycle_report = self.report_generator(self.fake_img)
-        self.cycle_img = self.image_generator(z, self.fake_report)
+        self.cycle_img = self.image_generator(z, fake_reports)
 
         if (batch_idx % self.log_images_steps) == 0 and optimizer_idx == 0:
             self.log_images_on_cycle(batch_idx)
             self.log_reports_on_cycle(batch_idx)
             self.visualize_images(batch_idx)
+
+        #if (self.current_epoch % 5) == 0 and optimizer_idx == 0 and batch_idx == 1:
+         #   self.log_images_on_cycle(batch_idx)
+          #  self.log_reports_on_cycle(batch_idx)
+           # self.visualize_images(batch_idx)
 
         if optimizer_idx == 0 or optimizer_idx == 1:
             gen_loss = self.generator_step(valid)
@@ -333,12 +343,27 @@ class CycleGAN(pl.LightningModule):
 
     def visualize_images(self, batch_idx):
         tensor = self.real_img[0]
-        plt.imshow(tensor.permute(1, 2, 0).cpu().detach())
+        mean = [0.485, 0.456, 0.406]
+        std = [0.229, 0.224, 0.225]
+        denorm = tensor.clone().cpu().detach()
+        for t, m, s in zip(denorm, mean, std):
+            t.mul_(s).add_(m)
+
+        image_to_display = denorm.numpy().transpose(1, 2, 0)
+        image_to_display = np.clip(image_to_display, 0, 1)
+        # plt.imshow(tensor.permute(1, 2, 0).cpu().detach())
+        plt.imshow(image_to_display)
         plt.axis('off')
         plt.show()
 
         cycle_tensor = self.cycle_img[0]
-        plt.imshow(cycle_tensor.permute(1, 2, 0).cpu().detach())
+        denorm = cycle_tensor.clone().cpu().detach()
+        for t, m, s in zip(denorm, mean, std):
+            t.mul_(s).add_(m)
+        image_to_display = denorm.numpy().transpose(1, 2, 0)
+        image_to_display = np.clip(image_to_display, 0, 1)
+        # plt.imshow(cycle_tensor.permute(1, 2, 0).cpu().detach())
+        plt.imshow(image_to_display)
         plt.axis('off')
         plt.show()
 
