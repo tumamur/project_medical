@@ -12,7 +12,7 @@ from .environment_settings import env_settings
 
 
 class DataHandler:
-    def __init__(self, opt, mode="fit")-> None :
+    def __init__(self, opt, mode="train")-> None :
         self.opt = opt
         self.mode = mode
         self.data_imputation = self.opt["data_imputation"]
@@ -27,8 +27,12 @@ class DataHandler:
             images_df, label_df = self.create_paired_dataset()
             print("Created paired dataset.")
         else:
-            images_df, label_df = self.create_unpaired_dataset()
-            print("Created unpaired dataset.")
+            if self.mode != "train":
+                images_df, label_df = self.create_paired_dataset()
+                print("Created paired dataset for inference")
+            else:
+                images_df, label_df = self.create_unpaired_dataset()
+                print("Created unpaired dataset.")
 
         labels = self.get_labels(label_df)
         images = self.get_images(images_df)
@@ -45,12 +49,17 @@ class DataHandler:
                 "label" : labels[i],
                 "split" : splits[i]
             }
-            if self.mode == "fit":
+            if self.mode == "train":
                 if splits[i] == "train" or splits[i] == "val":
                     records.append(record)
-            else:
+            elif self.mode == "inference_on_val":
+                if splits[i] == "val":
+                    records.append(record)
+            elif self.mode == "inference":
                 if splits[i] == "test":
                     records.append(record)
+            else:
+                raise NotImplementedError
 
         return records
 
