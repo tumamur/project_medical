@@ -12,8 +12,9 @@ from .environment_settings import env_settings
 
 
 class DataHandler:
-    def __init__(self, opt)-> None :
+    def __init__(self, opt, mode="fit")-> None :
         self.opt = opt
+        self.mode = mode
         self.data_imputation = self.opt["data_imputation"]
         self.master_df = pd.read_csv(env_settings.MASTER_LIST[self.data_imputation])
         self.paired = self.opt["paired"]
@@ -31,6 +32,7 @@ class DataHandler:
 
         labels = self.get_labels(label_df)
         images = self.get_images(images_df)
+        splits = self.get_split(images_df)
 
         
         for i in range(len(images)):
@@ -40,9 +42,16 @@ class DataHandler:
             
             record = {
                 "img" : image_path,
-                "label" : labels[i]
+                "label" : labels[i],
+                "split" : splits[i]
             }
-            records.append(record)
+            if self.mode == "fit":
+                if splits[i] == "train" or splits[i] == "val":
+                    records.append(record)
+            else:
+                if splits[i] == "test":
+                    records.append(record)
+
         return records
 
     def create_unpaired_dataset(self):
@@ -50,7 +59,7 @@ class DataHandler:
         unpaired_samples = {}
 
         label_df = self.master_df[self.opt["chexpert_labels"]]
-        images_df = self.master_df[["jpg"]]
+        images_df = self.master_df[["jpg", "split"]]
 
         # TODO :now create unpaired records:
         # Shuffle one of the df to break the pairing
@@ -62,19 +71,20 @@ class DataHandler:
     def create_paired_dataset(self):
 
         label_df = self.master_df[self.opt["chexpert_labels"]]
-        images_df = self.master_df[["jpg"]]
+        images_df = self.master_df[["jpg", "split"]]
 
         return images_df, label_df
 
     def get_images(self, images_df: pd.DataFrame):
         return images_df["jpg"].values.tolist()
-
     
+    def get_split(self, images_df: pd.DataFrame):
+        return images_df["split"].values.tolist()
+
     def load_image(self, img_path: str):
         image = Image.open(img_path).convert('RGB')
         return image
         
-
 
     def get_labels(self, label_df: pd.DataFrame):
         return [self.label_to_vector(label_row) for index, label_row in label_df.iterrows()]

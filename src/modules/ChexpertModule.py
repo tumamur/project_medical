@@ -21,22 +21,24 @@ class ChexpertDataModule(pl.LightningDataModule):
         # Assign train/val datasets for use in dataloaders
         # Called on every process in DDP
         self.records = self.processor.records
-        # randomly split the records into train, val, test
-
-        self.train_size = int(self.opt["train_size"] * len(self.records))
-        self.test_size = int(self.opt["test_size"] * len(self.records))
-        self.val_size = int(len(self.records) - self.train_size - self.test_size)
-
-        train_records, val_records, test_records = random_split(
-            self.records, [self.train_size, self.val_size, self.test_size]
-        )
+        # create train val and test records based on the split key value of each record
 
         if stage in {"fit", None}:
+            train_records = []
+            val_records = []
+            for record in self.records:
+                if record["split"] == "train":
+                    train_records.append(record)
+                elif record["split"] == "val":
+                    val_records.append(record)
+                else:
+                    raise Exception("Invalid split in training : " + record["split"])
+                
             self.train_records = Chexpert(self.opt, self.processor, train_records, training=True)
             self.val_records = Chexpert(self.opt, self.processor, val_records, training=False)
 
         elif stage in {"test", None}:
-            self.test_records = Chexpert(self.opt, self.processor, test_records, training=False)
+            self.test_records = Chexpert(self.opt, self.processor, self.records, training=False)
 
         else:
             raise ValueError(f"Stage {stage} not recognized")
