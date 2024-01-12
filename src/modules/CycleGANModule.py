@@ -10,7 +10,7 @@ from models.Discriminator import ImageDiscriminator
 from models.cGAN import cGAN, cGANconv
 from losses.Test_loss import ClassificationLoss
 from losses.Perceptual_loss import PerceptualLoss
-from losses.Perceptual_xray import PerceptualLossXray
+from losses.Perceptual_xrays import Perceptual_xray
 from utils.environment_settings import env_settings
 cuda = True if torch.cuda.is_available() else False
 Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
@@ -70,8 +70,8 @@ class CycleGAN(pl.LightningModule):
         self.buffer_images = ImageBuffer(self.buffer_size)
 
         # Define loss functions
-        self.img_consistency_loss = PerceptualLoss()
-        # self.img_consistency_loss = PerceptualLossXray()
+        # self.img_consistency_loss = PerceptualLoss()
+        self.img_consistency_loss = Perceptual_xray()
         self.img_adversarial_loss = nn.MSELoss()
         self.report_consistency_loss = nn.BCEWithLogitsLoss()
 
@@ -167,7 +167,7 @@ class CycleGAN(pl.LightningModule):
         # print(f'cycle_loss_IRI:{cycle_loss_IRI}')
         cycle_loss_RIR = self.report_consistency_criterion(self.cycle_report, self.real_report)
         # print(f'cycle_loss_RIR:{cycle_loss_RIR}')
-        total_cycle_loss = self.lambda_cycle * (cycle_loss_IRI + cycle_loss_RIR) + 10 * cycle_loss_IRI_MSE
+        total_cycle_loss = self.lambda_cycle * (cycle_loss_IRI + cycle_loss_RIR) + 1 * cycle_loss_IRI_MSE
 
         ############################################################################################
 

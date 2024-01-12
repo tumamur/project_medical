@@ -40,6 +40,7 @@ class PerceptualLossXray(nn.Module):
     def __init__(self):
         super(PerceptualLossXray, self).__init__()
         arkmodel = ArkPerceptualLoss()
+        print(arkmodel)
         self.modified_model = ModifiedSwinTransformer(arkmodel)
 
     def forward(self, images_real, images_cycle):
