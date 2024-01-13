@@ -3,77 +3,94 @@ import timm
 import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
-from models.BioViL import BioViL
-from models.ARK import ARKModel
-from models.buffer import ReportBuffer, ImageBuffer
-from models.Discriminator import ImageDiscriminator, ReportDiscriminator
-from models.cGAN import cGAN, cGANconv
-from losses.Test_loss import ClassificationLoss
-from losses.Perceptual_loss import PerceptualLoss
-from utils.environment_settings import env_settings
-cuda = True if torch.cuda.is_available() else False
-Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
 from torch.autograd import Variable
 import numpy as np
 import deepspeed as ds
 import torchvision.transforms as transforms
-from PIL import Image
 from torchvision.transforms.functional import to_tensor
-import io
-torch.autograd.set_detect_anomaly(True)
 import matplotlib.pyplot as plt
+from PIL import Image
+
+from models.BioViL import BioViL
+from models.ARK import ARKModel
+from utils.buffer import ReportBuffer, ImageBuffer
+from models.Discriminator import ImageDiscriminator, ReportDiscriminator
+from models.cGAN import cGAN, cGANconv
+from utils.environment_settings import env_settings
+from losses.Losses import *
+from losses.Metrics import *
+
+cuda = True if torch.cuda.is_available() else False
+Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
+torch.autograd.set_detect_anomaly(True)
 
 class CycleGAN(pl.LightningModule):
-
     """
-    Generator for image-to-report translation (report_generator).
-    Generator for report-to-image translation (image_generator).
-    Discriminator for Generated Reports (report_dicriminator). --> Currenlty using ClassificationLoss (Cosine Similarity)
-    Discriminator for Generated Images (image_generator).
-        
+    CycleGAN class for image-to-report translation and vice versa.
+    This class contains both generators and discriminators for image and report generation.
     """
 
     def __init__(self, opt, val_dataloader):
         super(CycleGAN, self).__init__()
         self.opt = opt
         self.save_hyperparameters(opt)
+        self.initialize_components()
+        self.define_loss_functions()
 
-        self.data_imputation = opt['dataset']['data_imputation']
-        self.input_size = opt["dataset"]["input_size"]
-        self.num_classes = opt['trainer']['num_classes']
-        self.n_epochs = opt['trainer']['n_epoch']
-        self.buffer_size = opt['trainer']["buffer_size"]
-        self.lambda_cycle = opt['trainer']['lambda_cycle_loss']
-        self.val_dataloader = val_dataloader
-        self.batch_size = opt["dataset"]["batch_size"]
-        self.z_size = opt["image_generator"]["z_size"]
-        self.log_images_steps = opt["trainer"]["log_images_steps"]
-        self.MSE = nn.MSELoss()
-        
+    def initialize_components(self):
+        """
+        Initialize generators, discriminators, and buffers.
+        """
+        # Extract options
+        self.data_imputation = self.opt['dataset']['data_imputation']
+        self.input_size = self.opt["dataset"]["input_size"]
+        self.num_classes = self.opt['trainer']['num_classes']
+        self.buffer_size = self.opt['trainer']["buffer_size"]
+        self.z_size = self.opt["image_generator"]["z_size"]
+        self.lambda_cycle = self.opt['trainer']['lambda_cycle_loss']
+        self.batch_size = self.opt["dataset"]["batch_size"]
+        self.log_images_steps = self.opt["trainer"]["log_images_steps"]
+        self.perceptual_loss_type = self.opt["image_generator"]["perceptual_loss"]
+        self.report_discriminator_type = self.opt["report_discriminator"]["base"]
 
-        # Initialize optimizers
+        # Initialize optimizer dictionary
         optimizer_dict = {
             'Adam': ds.ops.adam.FusedAdam, 
             'AdamW': torch.optim.AdamW,
         }
-        self.image_gen_optimizer = optimizer_dict[opt["image_generator"]["optimizer"]]
-        self.image_disc_optimizer = optimizer_dict[opt["image_discriminator"]["optimizer"]]
-        self.report_gen_optimizer = optimizer_dict[opt["report_generator"]["optimizer"]]
-        self.report_disc_optimizer = optimizer_dict[opt["report_discriminator"]["optimizer"]]
 
-        # Define components of the GAN
+        # Initialize components
         self.report_generator = self._get_report_generator()
-        self.report_discriminator = self._get_report_discriminator()
-        self.buffer_reports = ReportBuffer(self.buffer_size)
         self.image_generator = self._get_image_generator()
+        self.report_discriminator = self._get_report_discriminator()
         self.image_discriminator = self._get_image_discriminator()
+        self.buffer_reports = ReportBuffer(self.buffer_size)
         self.buffer_images = ImageBuffer(self.buffer_size)
 
-        # Define loss functions
-        self.img_consistency_loss = PerceptualLoss()
+        # Optimizers
+        self.image_gen_optimizer = optimizer_dict[self.opt["image_generator"]["optimizer"]]
+        self.report_gen_optimizer = optimizer_dict[self.opt["report_generator"]["optimizer"]]
+        self.image_disc_optimizer = optimizer_dict[self.opt["image_discriminator"]["optimizer"]]
+        if self.report_discriminator_type == "discriminator_network":
+            self.report_disc_optimizer = optimizer_dict[self.opt["report_discriminator"]["optimizer"]]
+
+
+    def define_loss_functions(self):
+        """
+        Define and initialize loss functions.
+        """
+        # Initialize loss functions
+        if self.perceptual_loss_type == 'ark':
+            self.img_consistency_loss = Loss(self.perceptual_loss_type, ark_pretrained_path=env_settings.PRETRAINED_PATH['ARK'])
+        else:
+            self.img_consistency_loss = Loss(self.perceptual_loss_type)
         self.img_adversarial_loss = nn.MSELoss()
+
         self.report_consistency_loss = nn.BCEWithLogitsLoss()
-        self.report_adversarial_loss = nn.MSELoss()
+        if self.report_discriminator_type == "discriminator_network":
+            self.report_adversarial_loss = nn.MSELoss()
+
+        self.MSE = nn.MSELoss()
     
     def forward(self, img):
         # will be used in predict step for evaluation
@@ -118,6 +135,16 @@ class CycleGAN(pl.LightningModule):
         )
         report_generator_scheduler = self.get_lr_scheduler(report_generator_optimizer, self.opt["report_generator"]["decay_epochs"])
 
+        if self.report_discriminator_type == "discriminator_network":
+            report_disc_opt_config = {
+                     "lr" : self.opt["report_discriminator"]["learning_rate"],
+                     "betas" : (self.opt["report_discriminator"]["beta1"], self.opt["report_discriminator"]["beta2"])
+                 }
+            report_discriminator_optimizer = self.report_disc_optimizer(
+                     list(self.report_discriminator.parameters()),
+                     **report_disc_opt_config,
+                 )
+            report_discriminator_scheduler = self.get_lr_scheduler(report_discriminator_optimizer, self.opt["report_discriminator"]["decay_epochs"])
 
         image_disc_opt_config = {
             "lr" : self.opt["image_discriminator"]["learning_rate"],
@@ -129,21 +156,13 @@ class CycleGAN(pl.LightningModule):
         )
         image_discriminator_scheduler = self.get_lr_scheduler(image_discriminator_optimizer, self.opt["image_discriminator"]["decay_epochs"])
 
-        report_disc_opt_config = {
-                 "lr" : self.opt["report_discriminator"]["learning_rate"],
-                 "betas" : (self.opt["report_discriminator"]["beta1"], self.opt["report_discriminator"]["beta2"])
-             }
-        report_discriminator_optimizer = self.report_disc_optimizer(
-                 list(self.report_discriminator.parameters()),
-                 **report_disc_opt_config,
-             )
-        report_discriminator_scheduler = self.get_lr_scheduler(report_discriminator_optimizer, self.opt["report_discriminator"]["decay_epochs"])
+        optimizers = [image_generator_optimizer, report_generator_optimizer, image_discriminator_optimizer]
+        schedulers = [image_generator_scheduler, report_generator_scheduler, image_discriminator_scheduler]
 
-        optimizers = [image_generator_optimizer, report_generator_optimizer, image_discriminator_optimizer,
-                      report_discriminator_optimizer]
-        # optimizers = [image_generator_optimizer, report_generator_optimizer, image_discriminator_optimizer]
-        schedulers = [image_generator_scheduler, report_generator_scheduler, image_discriminator_scheduler,
-                      report_discriminator_scheduler]
+        if self.report_discriminator_type == "discriminator_network":
+            optimizers.append(report_discriminator_optimizer)
+            schedulers.append(report_discriminator_scheduler)
+
         return optimizers, schedulers
 
 
@@ -158,19 +177,22 @@ class CycleGAN(pl.LightningModule):
     def report_consistency_criterion(self, real_report, cycle_report):
         # reconstruction loss
         return self.report_consistency_loss(real_report, cycle_report)
-
+    
     def report_adv_criterion(self, fake_report, real_report):
         # adversarial loss
         # additional discriminator network for reports (if needed)
         return self.report_adversarial_loss(fake_report, real_report)
-
+    
+    
     def generator_step(self, valid_img, valid_report):
         # calculate loss for generator
 
         # adversarial loss
-        # adv_loss_IR = self.report_discriminator(self.fake_report) # return cosine similarity between fake report and entire dataset
-
-        adv_loss_IR = self.report_adv_criterion(self.report_discriminator(self.fake_report), valid_report)
+        if self.report_discriminator_type == "discriminator_network":
+            adv_loss_IR = self.report_adv_criterion(self.report_discriminator(self.fake_report), valid_report)
+        elif self.report_discriminator_type == "cosine_similarity":
+            adv_loss_IR = self.report_discriminator(self.fake_report) # return cosine similarity between fake report and entire dataset
+        
         adv_loss_RI = self.img_adv_criterion(self.image_discriminator(self.fake_img), valid_img)
         # TODO : Should we really divide by 2?
         total_adv_loss = adv_loss_IR + adv_loss_RI
@@ -183,7 +205,7 @@ class CycleGAN(pl.LightningModule):
         # print(f'cycle_loss_IRI:{cycle_loss_IRI}')
         cycle_loss_RIR = self.report_consistency_criterion(self.cycle_report, self.real_report)
         # print(f'cycle_loss_RIR:{cycle_loss_RIR}')
-        total_cycle_loss = self.lambda_cycle * (cycle_loss_IRI + cycle_loss_RIR) + cycle_loss_IRI_MSE
+        total_cycle_loss = self.lambda_cycle * (cycle_loss_IRI + cycle_loss_RIR) + 1 * cycle_loss_IRI_MSE
 
         ############################################################################################
 
@@ -200,19 +222,18 @@ class CycleGAN(pl.LightningModule):
             "gen_adv_loss_RI": adv_loss_RI,
             "gen_cycle_loss_IRI": cycle_loss_IRI,
             "gen_cycle_loss_RIR": cycle_loss_RIR,
-            "gen_cycle_loss_MSE": cycle_loss_IRI_MSE,
+            "gen_cycle_loss_IR_MSE": cycle_loss_IRI_MSE,
         }
         self.log_dict(metrics, on_step=True, on_epoch=True, prog_bar=True)
         return total_gen_loss
-    
-    def report_discriminator_step(self, valid, fake):
-        # fake_report = self.buffer_reports(self.fake_report)
 
+
+    def report_discriminator_step(self, valid, fake):
+        fake_report = self.buffer_reports(self.fake_report)
         # calculate loss for discriminator
         real_report_adv_loss = self.report_adv_criterion(self.report_discriminator(self.real_report), valid)
         # calculate on fake data
-        fake_report_adv_loss = self.report_adv_criterion(self.report_discriminator(self.fake_report), fake)
-
+        fake_report_adv_loss = self.report_adv_criterion(self.report_discriminator(fake_report.detach()), fake)
         total_report_disc_loss = (real_report_adv_loss + fake_report_adv_loss) / 2
 
         metrics = {
@@ -224,20 +245,20 @@ class CycleGAN(pl.LightningModule):
         self.log_dict(metrics, on_step=True, on_epoch=True, prog_bar=True)
         return total_report_disc_loss
 
-    def img_discriminator_step(self, valid, fake):
-        # fake_report = self.buffer_reports(self.fake_report)
+
+    def image_discriminator_step(self, valid, fake):
         fake_img = self.buffer_images(self.fake_img)
         # calculate loss for discriminator
         ###########################################################################################
         # calculate on real data
         real_img_adv_loss = self.img_adv_criterion(self.image_discriminator(self.real_img), valid)
         # calculate on fake data
-        fake_img_adv_loss = self.img_adv_criterion(self.image_discriminator(fake_img), fake)
+        fake_img_adv_loss = self.img_adv_criterion(self.image_discriminator(fake_img.detach()), fake)
         ###########################################################################################
         # print(f'disc_real_adv:{real_img_adv_loss}')
         # print(f'disc_fake_adv:{fake_img_adv_loss}')
         
-        total_img_disc_loss = (real_img_adv_loss + fake_img_adv_loss) / 2
+        total_img_disc_loss = (real_img_adv_loss + fake_img_adv_loss) / 2 * 0.1
         # print(f'disc_total:{total_img_disc_loss}')
         
         metrics = {
@@ -257,37 +278,42 @@ class CycleGAN(pl.LightningModule):
         z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)
         
         # generate valid and fake labels
-        valid_img = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
-        fake_img = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape)))
+        valid_img_sample = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
+        fake_img_sample = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape))) # we are not using this ? 
 
-        # generate valid and fake labels for report discriminator
-        valid_report = torch.ones(self.real_report.size(0), 1, device=self.device, requires_grad=True)
-        fake_report = torch.zeros(self.real_report.size(0), 1, device=self.device, requires_grad=True)
-        # valid_report = Tensor(np.ones((self.real_report.size(0), *self.report_discriminator.output_shape))).to(self.device)
-        # fake_report = Tensor(np.zeros((self.real_report.size(0), *self.report_discriminator.output_shape))).to(self.device)
+        
+        valid_report_sample = Tensor(np.ones((self.real_report.size(0), *self.report_discriminator.output_shape)))
+        fake_report_sample = Tensor(np.zeros((self.real_report.size(0), *self.report_discriminator.output_shape)))
+
 
         # generate fake reports and images
         self.fake_report = self.report_generator(self.real_img)
         self.fake_img = self.image_generator(z, self.real_report)
 
+        fake_reports = torch.sigmoid(self.fake_report)
+        fake_reports = torch.where(fake_reports < 0.5, 0, fake_reports)
+        fake_reports = torch.where(fake_reports >= 0.5, 1, fake_reports)
         # reconstruct reports and images
         self.cycle_report = self.report_generator(self.fake_img)
-        self.cycle_img = self.image_generator(z, self.fake_report)
-
-        if optimizer_idx == 0 or optimizer_idx == 1:
-            gen_loss = self.generator_step(valid_img, valid_report)
-            return {"loss": gen_loss}
-        
-        elif optimizer_idx == 2 or optimizer_idx == 3:
-            img_disc_loss = self.img_discriminator_step(valid_img, fake_img)
-            report_disc_loss = self.report_discriminator_step(valid_report, fake_report)
-            # Combine the losses in a dictionary
-            return {"loss": img_disc_loss, "report_disc_loss": report_disc_loss}
+        self.cycle_img = self.image_generator(z, fake_reports)
 
         if (batch_idx % self.log_images_steps) == 0 and optimizer_idx == 0:
             self.log_images_on_cycle(batch_idx)
             self.log_reports_on_cycle(batch_idx)
             self.visualize_images(batch_idx)
+
+        if optimizer_idx == 0 or optimizer_idx == 1:
+            gen_loss = self.generator_step(valid_img=valid_img_sample, valid_report=valid_report_sample)
+            return {"loss": gen_loss}
+        
+        elif optimizer_idx == 2 or optimizer_idx == 3:
+            img_disc_loss = self.image_discriminator_step(valid_img_sample, fake_img_sample)
+            if self.report_discriminator_type == "discriminator_network":
+                report_disc_loss = self.report_discriminator_step(valid_report_sample, fake_report_sample)
+                return {"loss": img_disc_loss, "report_disc_loss": report_disc_loss}
+            else:
+                return {"loss": img_disc_loss}
+        
 
     def validation_step(self, batch, batch_idx):
         pass
@@ -378,12 +404,27 @@ class CycleGAN(pl.LightningModule):
 
     def visualize_images(self, batch_idx):
         tensor = self.real_img[0]
-        plt.imshow(tensor.permute(1, 2, 0).cpu().detach())
+        mean = [0.485, 0.456, 0.406]
+        std = [0.229, 0.224, 0.225]
+        denorm = tensor.clone().cpu().detach()
+        for t, m, s in zip(denorm, mean, std):
+            t.mul_(s).add_(m)
+
+        image_to_display = denorm.numpy().transpose(1, 2, 0)
+        image_to_display = np.clip(image_to_display, 0, 1)
+        # plt.imshow(tensor.permute(1, 2, 0).cpu().detach())
+        plt.imshow(image_to_display)
         plt.axis('off')
         plt.show()
 
         cycle_tensor = self.cycle_img[0]
-        plt.imshow(cycle_tensor.permute(1, 2, 0).cpu().detach())
+        denorm = cycle_tensor.clone().cpu().detach()
+        for t, m, s in zip(denorm, mean, std):
+            t.mul_(s).add_(m)
+        image_to_display = denorm.numpy().transpose(1, 2, 0)
+        image_to_display = np.clip(image_to_display, 0, 1)
+        # plt.imshow(cycle_tensor.permute(1, 2, 0).cpu().detach())
+        plt.imshow(image_to_display)
         plt.axis('off')
         plt.show()
 
@@ -404,13 +445,17 @@ class CycleGAN(pl.LightningModule):
         
 
     def _get_report_discriminator(self):
-        #return ClassificationLoss(env_settings.MASTER_LIST[self.data_imputation])
-        return ReportDiscriminator(input_dim=self.num_classes)
+        if self.report_discriminator_type == "discriminator_network":
+            return ReportDiscriminator(input_dim=self.num_classes)
+        elif self.report_discriminator_type == "cosine_similarity":
+            return Loss("classification", env_settings.MASTER_LIST[self.data_imputation])
+        else:
+            raise NotImplementedError(f"Model {self.report_discriminator_type} not implemented for report discriminator.")
+    
     def _get_image_generator(self):
-        # return cGAN(generator_layer_size=self.opt["image_generator"]["generator_layer_size"],
-          #          z_size=self.z_size,
-           #         img_size=self.input_size,
-            #        class_num=self.num_classes)
+        # return cGAN(generator_layer_size=self.opt["image_generator"]["generator_layer_size"], z_size=self.z_size,
+        #               img_size=self.input_size, class_num=self.num_classes)
+
         return cGANconv(z_size=self.z_size, img_size=self.input_size, class_num=self.num_classes,
                            img_channels=self.opt["image_discriminator"]["channels"])
         

@@ -34,7 +34,7 @@ image_generator:
   decay_epochs : 5
   beta1: 0.9
   beta2: 0.999
-  monitor: 'val_loss'
+  perceptual_loss : "biovil_t"
 
 
 image_discriminator:
@@ -45,7 +45,6 @@ image_discriminator:
   decay_epochs : 5
   beta1: 0.9
   beta2: 0.999
-  monitor: 'val_loss'
   channels: 3
   img_height: 224
   img_width: 224
@@ -59,7 +58,6 @@ report_generator:
   decay_epochs : 5
   beta1: 0.9
   beta2: 0.999
-  monitor: 'val_loss'
   image_encoder_model: "BioVil"
   classification_head_hidden1: 512
   classification_head_hidden2: 256
@@ -68,6 +66,7 @@ report_generator:
 
 
 report_discriminator:
+  base : 'cosine_similarity' # 'discriminator_network'
   learning_rate: 0.001
   optimizer: 'Adam' # AdamW
   scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
@@ -75,6 +74,7 @@ report_discriminator:
   decay_epochs : 5
   beta1: 0.9
   beta2: 0.999
+
 
 
 trainer :
