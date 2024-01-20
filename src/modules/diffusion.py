@@ -29,6 +29,7 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 import numpy as np
 import pytorch_lightning as pl
 
+
 class ResidualConvBlock(nn.Module):
     def __init__(
         self, in_channels: int, out_channels: int, is_res: bool = False
@@ -360,11 +361,13 @@ class DDPM(pl.LightningModule):
                         x_real[k+(j*n_classes)] = x[idx]
 
                 x_real = (x_real - x_real.min()) / (x_real.max() - x_real.min())
+                save_image(x_real, save_dir + f"image_ep{ep}_real.png", normalize=True)
+                save_image(x_gen, save_dir + f"image_ep{ep}_gen.png", normalize=True)
 
                 x_all = torch.cat([x_gen, x_real])
-                grid = make_grid(x_all*-1 + 1, nrow=3)
-                # save_image(grid, save_dir + f"image_ep{ep}_w{w}.png")
-                plt.imsave(save_dir + f"image_ep{ep}_w{w}.png", grid.permute(1,2,0).cpu().numpy())
+                grid = make_grid(x_all, nrow=3)
+                save_image(grid, save_dir + f"image_ep{ep}_w{w}.png", normalize=True)
+                # plt.imsave(save_dir + f"image_ep{ep}_w{w}.png", grid.cpu().numpy(), cmap='gray')
                 # print('saved image at ' + save_dir + f"image_ep{ep}_w{w}.png")
 
                 # create gif of images evolving over time, based on x_gen_store
