@@ -33,6 +33,7 @@ from accelerate import Accelerator, DistributedType, DistributedDataParallelKwar
 from fsspec.core import url_to_fs
 from fsspec.implementations.local import LocalFileSystem
 
+import pytorch_lightning as pl
 # helper functions
 
 def exists(val):
@@ -258,6 +259,8 @@ class ImagenTrainer(nn.Module):
         super().__init__()
         assert not ImagenTrainer.locked, 'ImagenTrainer can only be initialized once per process - for the sake of distributed training, you will now have to create a separate script to train each unet (or a script that accepts unet number as an argument)'
         assert exists(imagen) ^ exists(imagen_checkpoint_path), 'either imagen instance is passed into the trainer, or a checkpoint path that contains the imagen config'
+
+        self.use_cycle = True
 
         # determine filesystem, using fsspec, for saving to local filesystem or cloud
 
@@ -626,7 +629,9 @@ class ImagenTrainer(nn.Module):
         return loss
 
     def step_with_dl_iter(self, dl_iter, **kwargs):
-        dl_tuple_output = cast_tuple(next(dl_iter))
+        if self.use_cycle:
+            dl_iter = cycle(dl_iter)
+        dl_tuple_output = cast_tuple(dl_iter)
         model_input = dict(list(zip(self.dl_tuple_output_keywords_names, dl_tuple_output)))
         loss = self.forward(**{**kwargs, **model_input})
         return loss
@@ -990,3 +995,80 @@ class ImagenTrainer(nn.Module):
                 self.accelerator.backward(loss)
 
         return total_loss
+
+
+# implement ImagenTrainer based on pytorch lightning module
+
+class ImagenTrainerLightning(pl.LightningModule):
+    def __init__(self, imagen_trainer, unet_number = None):
+        super().__init__()
+        self.imagen_trainer = imagen_trainer
+        self.imagen_trainer.use_cycle = False
+        self.automatic_optimization = False
+        self.unet_number = unet_number
+        
+
+    # def forward(self, *args, **kwargs):
+    #     return self.imagen_trainer.forward(*args, **kwargs)
+
+    def training_step(self, batch, batch_idx):
+        kwargs = {'unet_number': self.unet_number}
+        loss = self.imagen_trainer.step_with_dl_iter(batch, **kwargs)
+        self.imagen_trainer.update(unet_number = self.unet_number)
+        # return loss
+
+    def validation_step(self, batch, batch_idx):
+        kwargs = {'unet_number': self.unet_number}
+        context = self.use_ema_unets if kwargs.pop('use_ema_unets', False) else nullcontext
+        with context():
+            loss = self.imagen_trainer.step_with_dl_iter(batch, **kwargs)
+        return loss
+
+    def configure_optimizers(self):
+        optimizers = []
+
+        for ind in range(0, 1):
+            optimizer = getattr(self.imagen_trainer, f'optim{ind}')
+            optimizers.append(optimizer)
+
+        return optimizers
+
+    # def on_train_start(self):
+    #     self.imagen_trainer.print_unet_devices()
+
+    # def on_train_epoch_start(self):
+    #     self.imagen_trainer.reset_ema_unets_all_one_device()
+
+    # def on_train_epoch_end(self, outputs):
+    #     self.imagen_trainer.save_to_checkpoint_folder()
+
+    # def on_validation_epoch_start(self):
+    #     self.imagen_trainer.reset_ema_unets_all_one_device()
+
+    # def on_validation_epoch_end(self):
+    #     self.imagen_trainer.save_to_checkpoint_folder()
+
+    # def sample(self, *args, **kwargs):
+    #     return self.imagen_trainer.sample(*args, **kwargs)
+
+    # def encode_text(self, *args, **kwargs):
+    #     return self.imagen_trainer.encode_text(*args, **kwargs)
+
+    # def load(self, *args, **kwargs):
+    #     return self.imagen_trainer.load(*args, **kwargs)
+
+    # def save(self, *args, **kwargs):
+    #     return self.imagen_trainer.save(*args, **kwargs)
+
+    # def load_from_checkpoint_folder(self, *args, **kwargs):
+    #     return self.imagen_trainer.load_from_checkpoint_folder(*args, **kwargs)
+
+    # def print_untrained_unets(self, *args, **kwargs):
+    #     return self.imagen_trainer.print_untrained_unets(*args, **kwargs)
+
+    # def print_unet_devices(self, *args, **kwargs):
+    #     return self.imagen_trainer.print_unet_devices(*args, **kwargs)
+
+    # def num_steps_taken(self, *args, **kwargs):
+    #     return self.imagen_trainer.num_steps_taken(*args, **kwargs)
+

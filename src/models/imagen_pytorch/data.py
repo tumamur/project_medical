@@ -20,6 +20,8 @@ import xml.etree.ElementTree as ET
 import os
 import json
 
+import pytorch_lightning as pl
+
 USER_AGENT = get_datasets_user_agent()
 
 # helpers functions
@@ -157,7 +159,7 @@ class NLMCXRDataset(Dataset):
         img, report = self.pairs[index]
         img = Image.open(self.image_path / f'{img}.png').convert('L')
         text_embed, text_mask = self.encode_text([report])
-        return self.transform(img), text_embed[0], text_mask[0]
+        return self.transform(img), text_embed[0]
 
 def get_images_dataloader(
     folder,
@@ -174,3 +176,65 @@ def get_images_dataloader(
     if cycle_dl:
         dl = cycle(dl)
     return dl
+
+
+# pytorch lightning datamodule
+class NLMCXRDataModule(pl.LightningDataModule):
+    def __init__(
+        self,
+        image_path,
+        text_path,
+        image_size,
+        batch_size,
+        num_workers,
+    ):
+        super().__init__()
+        self.image_path = image_path
+        self.text_path = text_path
+        self.image_size = image_size
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+
+    def setup(self, stage = None):
+        self.train_dataset = NLMCXRDataset(
+            self.image_path,
+            self.text_path,
+            self.image_size,
+            mode = 'train',
+        )
+        self.val_dataset = NLMCXRDataset(
+            self.image_path,
+            self.text_path,
+            self.image_size,
+            mode = 'val',
+        )
+        self.test_dataset = NLMCXRDataset(
+            self.image_path,
+            self.text_path,
+            self.image_size,
+            mode = 'test',
+        )
+
+    def train_dataloader(self):
+        return DataLoader(
+            self.train_dataset,
+            batch_size = self.batch_size,
+            num_workers = self.num_workers,
+            shuffle = True,
+        )
+
+    def val_dataloader(self):
+        return DataLoader(
+            self.val_dataset,
+            batch_size = self.batch_size,
+            num_workers = self.num_workers,
+            shuffle = False,
+        )
+
+    def test_dataloader(self):
+        return DataLoader(
+            self.test_dataset,
+            batch_size = self.batch_size,
+            num_workers = self.num_workers,
+            shuffle = False,
+        )

@@ -127,3 +127,5 @@ dmypy.json
 experiments/
 
 exp
+/data
+tb_logs
