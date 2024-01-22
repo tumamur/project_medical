@@ -24,6 +24,7 @@ dataset:
 
 
 image_generator:
+  model : "ddpm" # cGANCov
   learning_rate: 0.001
   optimizer: 'Adam' # AdamW
   scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
@@ -34,6 +35,11 @@ image_generator:
   decay_epochs : 5
   beta1: 0.9
   beta2: 0.999
+  ddpm_beta1 : 1e-4
+  ddpm_beta2 : 0.02
+  ddpm_drop_prob : 0.1
+  n_feat : 128
+  n_T : 400
   perceptual_loss : "biovil_t"
 
 

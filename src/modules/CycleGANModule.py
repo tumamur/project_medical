@@ -16,6 +16,7 @@ from models.ARK import ARKModel
 from utils.buffer import ReportBuffer, ImageBuffer
 from models.Discriminator import ImageDiscriminator, ReportDiscriminator
 from models.cGAN import cGAN, cGANconv
+from models.DDPM import ContextUnet, DDPM
 from utils.environment_settings import env_settings
 from losses.Losses import *
 from losses.Metrics import *
@@ -52,6 +53,9 @@ class CycleGAN(pl.LightningModule):
         self.log_images_steps = self.opt["trainer"]["log_images_steps"]
         self.perceptual_loss_type = self.opt["image_generator"]["perceptual_loss"]
         self.report_discriminator_type = self.opt["report_discriminator"]["base"]
+        self.n_feat = self.opt["image_generator"]["n_feat"]
+        self.n_T = self.opt["image_generator"]["n_T"]
+
 
         # Initialize optimizer dictionary
         optimizer_dict = {
@@ -285,17 +289,30 @@ class CycleGAN(pl.LightningModule):
         valid_report_sample = Tensor(np.ones((self.real_report.size(0), *self.report_discriminator.output_shape)))
         fake_report_sample = Tensor(np.zeros((self.real_report.size(0), *self.report_discriminator.output_shape)))
 
-
+        # TODO : Update ddpm class input params ( x  and c )
         # generate fake reports and images
         self.fake_report = self.report_generator(self.real_img)
-        self.fake_img = self.image_generator(z, self.real_report)
+
+        if self.opt['image_generator']['model'] == 'ddpm':
+            _, self.fake_img = self.image_generator(z, self.real_report)
+        else:
+            self.fake_img = self.image_generator(z, self.real_report)
+
 
         fake_reports = torch.sigmoid(self.fake_report)
         fake_reports = torch.where(fake_reports < 0.5, 0, fake_reports)
         fake_reports = torch.where(fake_reports >= 0.5, 1, fake_reports)
+
+
         # reconstruct reports and images
         self.cycle_report = self.report_generator(self.fake_img)
-        self.cycle_img = self.image_generator(z, fake_reports)
+
+        # TODO : Update ddpm class input params ( x  and c )
+        if self.opt['image_generator']['model'] == 'ddpm':
+            _, self.cycle_img = self.image_generator(z, fake_reports)
+        else:
+            self.cycle_img = self.image_generator(z, fake_reports)
+        
 
         if (batch_idx % self.log_images_steps) == 0 and optimizer_idx == 0:
             self.log_images_on_cycle(batch_idx)
@@ -456,8 +473,17 @@ class CycleGAN(pl.LightningModule):
         # return cGAN(generator_layer_size=self.opt["image_generator"]["generator_layer_size"], z_size=self.z_size,
         #               img_size=self.input_size, class_num=self.num_classes)
 
-        return cGANconv(z_size=self.z_size, img_size=self.input_size, class_num=self.num_classes,
-                           img_channels=self.opt["image_discriminator"]["channels"])
+        
+        models = {
+            'cgan' : cGANconv(z_size=self.z_size, img_size=self.input_size, class_num=self.num_classes,
+                    img_channels=self.opt["image_discriminator"]["channels"]) ,
+
+            'ddpm' : DDPM(nn_model=ContextUnet(in_channels=1, n_feat=self.n_feat, n_classes=self.num_classes), 
+                          betas=(self.opt['image_generator'['ddpm_beta1'], self.opt['image_generator']['ddpm_beta2']]),
+                          n_T=self.n_T, drop_prob=self.opt['image_generator']['ddpm_drop_prob'])
+        }
+
+        return models[self.opt["image_generator"]["model"]]
         
     def _get_image_discriminator(self):
         return ImageDiscriminator(input_shape=(self.opt['image_discriminator']['channels'], 
