@@ -280,7 +280,9 @@ class CycleGAN(pl.LightningModule):
         batch_nmb = self.real_img.shape[0]
 
         z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)
-        
+        _ts = torch.randint(1, self.n_T+1, (self.real_img.shape[0], )).to(self.device)
+        noise = torch.randn_like(self.real_img).to(self.device)
+
         # generate valid and fake labels
         valid_img_sample = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
         fake_img_sample = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape))) # we are not using this ? 
@@ -294,7 +296,10 @@ class CycleGAN(pl.LightningModule):
         self.fake_report = self.report_generator(self.real_img)
 
         if self.opt['image_generator']['model'] == 'ddpm':
-            _, self.fake_img = self.image_generator(z, self.real_report)
+            noises = (_ts, noise, self.real_img)
+            self.fake_img = self.image_generator(noises, self.real_report)
+            print("ddpm loss : ", self.img_adversarial_loss(noise, self.fake_img))
+                  
         else:
             self.fake_img = self.image_generator(z, self.real_report)
 
@@ -309,7 +314,7 @@ class CycleGAN(pl.LightningModule):
 
         # TODO : Update ddpm class input params ( x  and c )
         if self.opt['image_generator']['model'] == 'ddpm':
-            _, self.cycle_img = self.image_generator(z, fake_reports)
+            self.cycle_img = self.image_generator(noises, fake_reports)
         else:
             self.cycle_img = self.image_generator(z, fake_reports)
         
