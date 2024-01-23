@@ -36,6 +36,12 @@ image_generator:
   beta2: 0.999
   monitor: 'val_loss'
 
+image_generator_diffusion:
+  leraning_rate: 0.001
+  n_T: 400
+  n_feat: 128
+  image_size: 64
+
 
 image_discriminator:
   learning_rate: 0.001
@@ -89,8 +95,11 @@ trainer :
   metrics : "KLDivergence"
   log_images_steps: 100
 
-
-
+trainer_diffusion:
+  num_classes: 3
+  seed: 42
+  n_epoch: 50
+  batch_size: 32
 
 
 
