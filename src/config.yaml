@@ -35,6 +35,11 @@ image_generator:
   beta1: 0.9
   beta2: 0.999
   monitor: 'val_loss'
+  ddpm_beta1 : 1e-4
+  ddpm_beta2 : 0.02
+  ddpm_drop_prob : 0.1
+  n_feat : 128
+  n_T : 400
 
 
 image_discriminator:

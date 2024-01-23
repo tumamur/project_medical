@@ -10,6 +10,7 @@ from models.Discriminator import ImageDiscriminator
 from models.cGAN import cGAN, cGANconv
 from losses.Test_loss import ClassificationLoss
 from losses.Perceptual_loss import PerceptualLoss
+from models.DDPM import ContextUnet, DDPM
 from losses.Perceptual_xrays import Perceptual_xray
 from utils.environment_settings import env_settings
 cuda = True if torch.cuda.is_available() else False
@@ -220,13 +221,20 @@ class CycleGAN(pl.LightningModule):
         batch_nmb = self.real_img.shape[0]
 
         z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)
+        _ts = torch.randint(1, self.n_T+1, (self.real_img.shape[0], )).to(self.device)
+        noise = torch.randn_like(self.real_img).to(self.device)
         
         # generate valid and fake labels
         valid = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
         fake = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape)))
         # generate fake reports and images
         self.fake_report = self.report_generator(self.real_img)
-        self.fake_img = self.image_generator(z, self.real_report)
+        
+        #self.fake_img = self.image_generator(z, self.real_report)
+        noises = (_ts, noise, self.real_img)
+        self.fake_img = self.image_generator(noises, self.real_report)
+        print("ddpm loss : ", self.img_adversarial_loss(noise, self.fake_img))
+        
 
         fake_reports = torch.sigmoid(self.fake_report)
         fake_reports = torch.where(fake_reports < 0.5, 0, fake_reports)
@@ -391,9 +399,11 @@ class CycleGAN(pl.LightningModule):
           #          z_size=self.z_size,
            #         img_size=self.input_size,
             #        class_num=self.num_classes)
-        return cGANconv(z_size=self.z_size, img_size=self.input_size, class_num=self.num_classes,
-                           img_channels=self.opt["image_discriminator"]["channels"])
-        
+        #return cGANconv(z_size=self.z_size, img_size=self.input_size, class_num=self.num_classes,
+        #                   img_channels=self.opt["image_discriminator"]["channels"])
+        DDPM(nn_model=ContextUnet(in_channels=1, n_feat=self.n_feat, n_classes=self.num_classes), 
+                          betas=(float(self.opt['image_generator']['ddpm_beta1']), float(self.opt['image_generator']['ddpm_beta2'])),
+                          n_T=self.n_T, drop_prob=self.opt['image_generator']['ddpm_drop_prob'])
     def _get_image_discriminator(self):
         return ImageDiscriminator(input_shape=(self.opt['image_discriminator']['channels'], 
                                                self.opt['image_discriminator']['img_height'],
