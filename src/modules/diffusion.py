@@ -161,11 +161,6 @@ class ContextUnet(nn.Module):
     def forward(self, x, c, t, context_mask):
         # x is (noisy) image, c is context label, t is timestep, 
         # context_mask says which samples to block the context on
-        device = next(self.parameters()).device  # Gets the device of the model
-        x = x.to(device)
-        c = c.to(device)
-        t = t.to(device)
-        context_mask = context_mask.to(device)
         
         x = self.init_conv(x)
         down1 = self.down1(x)
@@ -228,7 +223,7 @@ def ddpm_schedules(beta1, beta2, T):
 
 
 class DDPM(pl.LightningModule):
-    def __init__(self, nn_model, betas, n_T, device, drop_prob=0.1, epochs=200, image_size=64):
+    def __init__(self, nn_model, betas, n_T, device, drop_prob=0.1, epochs=200, image_size=64, n_classes=3):
         super(DDPM, self).__init__()
         self.nn_model = nn_model
 
@@ -242,14 +237,15 @@ class DDPM(pl.LightningModule):
         self.loss_mse = nn.MSELoss()
         self.n_epoch = epochs
         self.image_size = image_size
+        self.n_classes = n_classes
 
     def forward(self, x, c):
         """
         this method is used in training, so samples t and noise randomly
         """
 
-        _ts = torch.randint(1, self.n_T+1, (x.shape[0],))  # t ~ Uniform(0, n_T)
-        noise = torch.randn_like(x)  # eps ~ N(0, 1)
+        _ts = torch.randint(1, self.n_T+1, (x.shape[0],), device=self.device)  # t ~ Uniform(0, n_T)
+        noise = torch.randn_like(x, device=self.device)  # eps ~ N(0, 1)
 
         x_t = (
             self.sqrtab[_ts, None, None, None] * x
@@ -263,19 +259,18 @@ class DDPM(pl.LightningModule):
         # return MSE between added noise, and our predicted noise
         return self.loss_mse(noise, self.nn_model(x_t, c, _ts / self.n_T, context_mask))
 
-    def sample(self, n_sample, size, device, guide_w = 0.0):
+    def sample_val(self, n_sample, size, guide_w = 0.0):
         # we follow the guidance sampling scheme described in 'Classifier-Free Diffusion Guidance'
         # to make the fwd passes efficient, we concat two versions of the dataset,
         # one with context_mask=0 and the other context_mask=1
         # we then mix the outputs with the guidance scale, w
         # where w>0 means more guidance
-
-        x_i = torch.randn(n_sample, *size).to('cuda:0')  # x_T ~ N(0, 1), sample initial noise
-        c_i = torch.arange(0,3).to('cuda:0') # context for us just cycles throught the mnist labels
-        c_i = c_i.repeat(int(n_sample/c_i.shape[0])).to('cuda:0')
+        x_i = torch.randn(n_sample, *size, device=self.device)  # x_T ~ N(0, 1), sample initial noise
+        c_i = torch.arange(1, self.n_classes, device=self.device)# context for us just cycles throught the mnist labels
+        c_i = c_i.repeat(int(n_sample/c_i.shape[0]))
 
         # don't drop context at test time
-        context_mask = torch.zeros_like(c_i).to('cuda:0')
+        context_mask = torch.zeros_like(c_i, device=self.device)
 
         # double the batch
         c_i = c_i.repeat(2)
@@ -285,14 +280,14 @@ class DDPM(pl.LightningModule):
         x_i_store = [] # keep track of generated steps in case want to plot something 
         for i in range(self.n_T, 0, -1):
             # print(f'sampling timestep {i}',end='\r')
-            t_is = torch.tensor([i / self.n_T])
+            t_is = torch.tensor([i / self.n_T], device=self.device)
             t_is = t_is.repeat(n_sample,1,1,1)
 
             # double batch
             x_i = x_i.repeat(2,1,1,1)
             t_is = t_is.repeat(2,1,1,1)
 
-            z = torch.randn(n_sample, *size).to('cuda:0') if i > 1 else 0
+            z = torch.randn(n_sample, *size, device=self.device) if i > 1 else 0
 
             # split predictions and compute weighting
             eps = self.nn_model(x_i, c_i, t_is, context_mask)
@@ -309,6 +304,42 @@ class DDPM(pl.LightningModule):
         
         x_i_store = np.array(x_i_store)
         return x_i, x_i_store
+    
+    def sample(self, n_sample, size, c, guide_w = 0.0):
+        x_i = torch.randn(n_sample, *size, device=self.device)  # x_T ~ N(0, 1), sample initial noise
+        c_i = torch.tensor([c], device=self.device)
+        c_i = c_i.repeat(int(n_sample/c_i.shape[0]))
+            # don't drop context at test time
+        context_mask = torch.zeros_like(c_i, device=self.device)
+
+        # double the batch
+        c_i = c_i.repeat(2)
+        context_mask = context_mask.repeat(2)
+        context_mask[n_sample:] = 1. # makes second half of batch context free
+
+        for i in range(self.n_T, 0, -1):
+            # print(f'sampling timestep {i}',end='\r')
+            t_is = torch.tensor([i / self.n_T], device=self.device)
+            t_is = t_is.repeat(n_sample,1,1,1)
+
+            # double batch
+            x_i = x_i.repeat(2,1,1,1)
+            t_is = t_is.repeat(2,1,1,1)
+
+            z = torch.randn(n_sample, *size, device=self.device) if i > 1 else 0
+
+            # split predictions and compute weighting
+            eps = self.nn_model(x_i, c_i, t_is, context_mask)
+            eps1 = eps[:n_sample]
+            eps2 = eps[n_sample:]
+            eps = (1+guide_w)*eps1 - guide_w*eps2
+            x_i = x_i[:n_sample]
+            x_i = (
+                self.oneover_sqrta[i] * (x_i - eps * self.mab_over_sqrtmab[i])
+                + self.sqrt_beta_t[i] * z
+            )
+
+        return x_i
     
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-4)
@@ -336,29 +367,28 @@ class DDPM(pl.LightningModule):
         if ep%10!=0:
             return
 
-        device = "cuda:0"
-        n_classes = 3
+        device = self.device
         save_dir = '../data/diffusion_outputs10/'
         ws_test = [0.0, 0.5, 2.0] # strength of generative guidance
 
         x, c = batch
         with torch.no_grad():
-            n_sample = 4*n_classes
+            n_sample = 4*self.n_classes
             for w_i, w in enumerate(ws_test):
-                x_gen, x_gen_store = self.sample(n_sample, (1, self.image_size, self.image_size), device, guide_w=w)
+                x_gen, x_gen_store = self.sample_val(n_sample, (1, self.image_size, self.image_size), guide_w=w)
                 # scale to [0,1]
                 
                 x_gen = (x_gen - x_gen.min()) / (x_gen.max() - x_gen.min())
 
                 # append some real images at bottom, order by class also
                 x_real = torch.Tensor(x_gen.shape).to(device)
-                for k in range(n_classes):
-                    for j in range(int(n_sample/n_classes)):
+                for k in range(self.n_classes):
+                    for j in range(int(n_sample/self.n_classes)):
                         try: 
                             idx = torch.squeeze((c == k).nonzero())[j]
                         except:
                             idx = 0
-                        x_real[k+(j*n_classes)] = x[idx]
+                        x_real[k+(j*self.n_classes)] = x[idx]
 
                 x_real = (x_real - x_real.min()) / (x_real.max() - x_real.min())
                 save_image(x_real, save_dir + f"image_ep{ep}_real.png", normalize=True)
@@ -371,17 +401,17 @@ class DDPM(pl.LightningModule):
                 # print('saved image at ' + save_dir + f"image_ep{ep}_w{w}.png")
 
                 # create gif of images evolving over time, based on x_gen_store
-                fig, axs = plt.subplots(nrows=int(n_sample/n_classes), ncols=n_classes,sharex=True,sharey=True,figsize=(8,3))
+                fig, axs = plt.subplots(nrows=int(n_sample/self.n_classes), ncols=self.n_classes,sharex=True,sharey=True,figsize=(8,3))
                 def animate_diff(i, x_gen_store):
                     # print(f'gif animating frame {i} of {x_gen_store.shape[0]}', end='\r')
                     plots = []
-                    for row in range(int(n_sample/n_classes)):
-                        for col in range(n_classes):
+                    for row in range(int(n_sample/self.n_classes)):
+                        for col in range(self.n_classes):
                             axs[row, col].clear()
                             axs[row, col].set_xticks([])
                             axs[row, col].set_yticks([])
                             # plots.append(axs[row, col].imshow(x_gen_store[i,(row*n_classes)+col,0],cmap='gray'))
-                            plots.append(axs[row, col].imshow(-x_gen_store[i,(row*n_classes)+col,0],cmap='gray',vmin=(-x_gen_store[i]).min(), vmax=(-x_gen_store[i]).max()))
+                            plots.append(axs[row, col].imshow(-x_gen_store[i,(row*self.n_classes)+col,0],cmap='gray',vmin=(-x_gen_store[i]).min(), vmax=(-x_gen_store[i]).max()))
                     return plots
                 ani = FuncAnimation(fig, animate_diff, fargs=[x_gen_store],  interval=200, blit=False, repeat=True, frames=x_gen_store.shape[0])    
                 ani.save(save_dir + f"gif_ep{ep}_w{w}.gif", dpi=100, writer=PillowWriter(fps=5))
@@ -390,25 +420,8 @@ class DDPM(pl.LightningModule):
         torch.save(self.state_dict(), save_dir + f"model_{ep}.pth")
         print('saved model at ' + save_dir + f"model_{ep}.pth")
 
-if __name__ == "__main__":
-    n_epoch = 100
-    n_T = 400 # 500
-    device = "cuda:0"
-    n_classes = 3
-    n_feat = 128 # 128 ok, 256 better (but slower)
-    image_size = 64
-    lrate = 1e-4
-    save_model = False
-    save_dir = './data/diffusion_outputs10/'
-    ws_test = [0.0, 0.5, 2.0] # strength of generative guidance
-    pl.seed_everything(42)
-    tf = transforms.Compose([transforms.ToTensor(), transforms.Resize((image_size, image_size)), transforms.Grayscale()])
-    dataset_train = ImageFolder('./data/xray_train', transform=tf)
-    dataset_val = ImageFolder('./data/xray_val', transform=tf)
+        c = 1
+        x_i = self.sample(1, (1, self.image_size, self.image_size), c=c, guide_w=0.0)
+        x_i = (x_i - x_i.min()) / (x_i.max() - x_i.min())
+        save_image(x_i, save_dir + f"image_ep{ep}_sample_class{c}.png", normalize=True)
 
-    dataloader_train = DataLoader(dataset_train, batch_size=8, shuffle=True, num_workers=5)
-    dataloader_val = DataLoader(dataset_val, batch_size=300, shuffle=False, num_workers=5)
-
-    model = DDPM(nn_model=ContextUnet(in_channels=1, n_feat=n_feat, n_classes=n_classes), betas=(1e-4, 0.02), n_T=n_T, device=device, drop_prob=0.1, epochs=n_epoch, image_size=image_size)
-    trainer = pl.Trainer(gpus=1, max_epochs=n_epoch, num_sanity_val_steps=0)
-    trainer.fit(model, dataloader_train, dataloader_val)
