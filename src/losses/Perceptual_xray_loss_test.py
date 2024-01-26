@@ -1,11 +1,14 @@
 from Perceptual_xray import PerceptualLossXray
-from Perceptual_xrays import Perceptual_xray
+from Perceptual_ark import PerceptualLossXray
+#from Perceptual_xrays import Perceptual_xray
+from Perceptual_biovil import Perceptual_xray
 from PIL import Image
 import pandas as pd
 from torchvision import transforms
 from src.utils.environment_settings import env_settings
 from src.utils.utils import read_config
 import os
+
 
 params = read_config(env_settings.CONFIG)
 
@@ -53,7 +56,6 @@ print(f'gt_vs_gt: {loss_0}')
 print(f'gt_vs_test: {loss_1}')
 print(f'test_vs_test: {loss_2}')
 
-perceptual = Perceptual_xray()
 total_loss = 0
 count = 0
 image_base = '/home/max/Desktop/MLMI/data/'
@@ -78,6 +80,7 @@ for index, row in filter_df_no_findings.iterrows():
                 print(f'No finding and other: {loss}')
             # Add the loss to total_loss and increment count
             total_loss += loss.item()
+            #loss += loss
             count += 1
 
     # Calculate mean loss
