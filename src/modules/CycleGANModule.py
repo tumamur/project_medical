@@ -55,6 +55,7 @@ class CycleGAN(pl.LightningModule):
         self.report_discriminator_type = self.opt["report_discriminator"]["base"]
         self.n_feat = self.opt["image_generator"]["n_feat"]
         self.n_T = self.opt["image_generator"]["n_T"]
+        self.n_epochs = self.opt['trainer']['n_epoch']
 
 
         # Initialize optimizer dictionary
@@ -286,24 +287,25 @@ class CycleGAN(pl.LightningModule):
         self.real_report = batch['report'].float()
         batch_nmb = self.real_img.shape[0]
 
-        # create noise variables
         z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)
+        _ts = torch.randint(1, self.n_T+1, (self.real_img.shape[0], )).to(self.device)
         noise = torch.randn_like(self.real_img).to(self.device)
+        noises = (_ts, noise, self.real_img)
 
         # generate valid and fake labels
         valid_img_sample = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
         fake_img_sample = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape))) 
 
-        
-        valid_report_sample = Tensor(np.ones((self.real_report.size(0), *self.report_discriminator.output_shape)))
-        fake_report_sample = Tensor(np.zeros((self.real_report.size(0), *self.report_discriminator.output_shape)))
+        if self.report_discriminator_type == "discriminator_network":    
+            valid_report_sample = Tensor(np.ones((self.real_report.size(0), *self.report_discriminator.output_shape)))
+            fake_report_sample = Tensor(np.zeros((self.real_report.size(0), *self.report_discriminator.output_shape)))
 
 
         self.fake_report = self.report_generator(self.real_img)
 
 
         if self.opt['image_generator']['model'] == 'ddpm':
-            self.fake_predicted_error = self.image_generator(self.real_img, noise, self.real_report)
+            self.fake_predicted_error = self.image_generator(noises, self.real_report)
             self.fake_img = self.image_generator.generate_image(batch_size=batch_nmb, condition=self.real_report)
 
         elif self.opt['image_generator']['model'] == 'cgan':
@@ -320,7 +322,7 @@ class CycleGAN(pl.LightningModule):
 
         # TODO : Update ddpm class input params ( x  and c )
         if self.opt['image_generator']['model'] == 'ddpm':
-            self.cycle_predicted_error = self.image_generator(self.real_img, noise, self.fake_reports)
+            self.cycle_predicted_error = self.image_generator(noises, self.real_report)
             self.cycle_img = self.image_generator.generate_image(batch_size=batch_nmb, condition=self.fake_reports)
         else:
             self.cycle_img = self.image_generator(z, fake_reports)
@@ -356,33 +358,37 @@ class CycleGAN(pl.LightningModule):
         return report, image
     
 
-    def on_validation_epoch_end(self):
-        # Select a small number of validation samples
-        num_samples = min(5, self.batch_size)
-        val_samples = next(iter(self.val_dataloader))
+    # def on_validation_epoch_end(self):
+    #     # Select a small number of validation samples
+    #     num_samples = min(5, self.batch_size)
+
+    #     # Call the val_dataloader method to get the DataLoader object
+    #     val_loader = self.val_dataloader()
+        
+    #     val_samples = next(iter(self.val_dataloader))
     
-        # Generate reports and images for these samples
-        generated_reports, generated_images = self(val_samples['target'])
+    #     # Generate reports and images for these samples
+    #     generated_reports, generated_images = self(val_samples['target'])
     
-        # Log the generated reports and images
-        for i in range(num_samples):
-            # Convert the tensor to a suitable image format (e.g., PIL Image)
-            generated_image = generated_images[i].cpu().detach()
-            img_pil = transforms.ToPILImage()(generated_image.squeeze()).convert("RGB")
+    #     # Log the generated reports and images
+    #     for i in range(num_samples):
+    #         # Convert the tensor to a suitable image format (e.g., PIL Image)
+    #         generated_image = generated_images[i].cpu().detach()
+    #         img_pil = transforms.ToPILImage()(generated_image.squeeze()).convert("RGB")
     
-            # Convert PIL Image back to tensor
-            img_tensor = to_tensor(img_pil)
+    #         # Convert PIL Image back to tensor
+    #         img_tensor = to_tensor(img_pil)
     
-            # Process the generated report
-            generated_report = generated_reports[i].cpu().detach()
-            generated_report = torch.sigmoid(generated_report)
-            generated_report = (generated_report > 0.5).int()
-            report_text_labels = [self.opt['dataset']['chexpert_labels'][idx] for idx, val in enumerate(generated_report) if val == 1]
-            report_text = ', '.join(report_text_labels)
+    #         # Process the generated report
+    #         generated_report = generated_reports[i].cpu().detach()
+    #         generated_report = torch.sigmoid(generated_report)
+    #         generated_report = (generated_report > 0.5).int()
+    #         report_text_labels = [self.opt['dataset']['chexpert_labels'][idx] for idx, val in enumerate(generated_report) if val == 1]
+    #         report_text = ', '.join(report_text_labels)
     
-            # Log the image and the report text
-            self.logger.experiment.add_image(f"Generated Image {i}", img_tensor, self.current_epoch, dataformats='CHW')
-            self.logger.experiment.add_text(f"Generated Report {i}", report_text, self.current_epoch)
+    #         # Log the image and the report text
+    #         self.logger.experiment.add_image(f"Generated Image {i}", img_tensor, self.current_epoch, dataformats='CHW')
+    #         self.logger.experiment.add_text(f"Generated Report {i}", report_text, self.current_epoch)
 
 
     def log_images_on_cycle(self, batch_idx):
@@ -477,7 +483,7 @@ class CycleGAN(pl.LightningModule):
         if self.report_discriminator_type == "discriminator_network":
             return ReportDiscriminator(input_dim=self.num_classes)
         elif self.report_discriminator_type == "cosine_similarity":
-            return Loss("classification", env_settings.MASTER_LIST[self.data_imputation])
+            return Loss("classification", reference_path=env_settings.MASTER_LIST[self.data_imputation])
         else:
             raise NotImplementedError(f"Model {self.report_discriminator_type} not implemented for report discriminator.")
     
@@ -492,7 +498,7 @@ class CycleGAN(pl.LightningModule):
 
             'ddpm' : DDPM(nn_model=ContextUnet(in_channels=3, n_feat=self.n_feat, n_classes=self.num_classes), 
                           image_size=(self.input_size, self.input_size),
-                          betas=(self.opt['image_generator'['ddpm_beta1'], self.opt['image_generator']['ddpm_beta2']]),
+                          betas=(float(self.opt['image_generator']['ddpm_beta1']), float(self.opt['image_generator']['ddpm_beta2'])),
                           n_T=self.n_T,
                           drop_prob=self.opt['image_generator']['ddpm_drop_prob'])
         }

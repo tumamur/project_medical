@@ -6,7 +6,7 @@ import numpy as np
 import torchvision.transforms as transforms
 import torchvision.models as models
 from health_multimodal.image.model.pretrained import get_biovil_t_image_encoder, get_biovil_image_encoder
-from src.models.ARK import ARKModel
+from models.ARK import ARKModel
 
 
 ##########################################################################################

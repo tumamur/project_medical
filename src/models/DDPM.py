@@ -187,6 +187,12 @@ class ContextUnet(nn.Module):
 
         up1 = self.up0(hiddenvec)
         # up2 = self.up1(up1, down2) # if want to avoid add and multiply embeddings
+        print(cemb1.shape)
+        print(up1.shape)
+        print(temb1.shape)
+        
+        print((cemb1*up1+ temb1).shape)
+        print(down2.shape)
         up2 = self.up1(cemb1*up1+ temb1, down2)  # add and multiply embeddings
         up3 = self.up2(cemb2*up2+ temb2, down1)
         out = self.out(torch.cat((up3, x), 1))
@@ -227,7 +233,7 @@ class DDPM(nn.Module):
         super(DDPM, self).__init__()
         self.nn_model = nn_model
         self.device = device
-        self.mse =  nn.MSELoss()
+        self.loss_mse =  nn.MSELoss()
         self.image_size = image_size
 
         # register_buffer allows accessing dictionary produced by ddpm_schedules
@@ -238,12 +244,13 @@ class DDPM(nn.Module):
         self.n_T = n_T
         self.drop_prob = drop_prob
 
-    def forward(self, x, noise, c):
+    def forward(self, noises, c):
         """
         this method is used in training, so samples t and noise randomly
         """
 
-        _ts = torch.randint(1, self.n_T+1, (x.shape[0],), device=self.device)  # t ~ Uniform(0, n_T)
+        _ts, noise, x = noises
+
         x_t = (
             self.sqrtab[_ts, None, None, None] * x
             + self.sqrtmab[_ts, None, None, None] * noise
@@ -252,10 +259,12 @@ class DDPM(nn.Module):
 
         # dropout context with some probability
         context_mask = torch.bernoulli(torch.zeros_like(c)+self.drop_prob)
+        print(x_t.shape)
+        print(c.shape)
+        print(_ts.shape)
+        print(context_mask.shape)
         
-        # return noise and predicted noise at time t for x_t
-        return self.mse(noise, self.nn_model(x_t, c, _ts / self.n_T, context_mask))
-    
+        return self.loss_mse(noise, self.nn_model(x_t, c, _ts / self.n_T, context_mask))
 
     def sample(self, n_sample, size, c, guide_w = 0.0):
         x_i = torch.randn(n_sample, *size, device=self.device)  # x_T ~ N(0, 1), sample initial noise
