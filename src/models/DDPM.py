@@ -167,11 +167,12 @@ class ContextUnet(nn.Module):
         hiddenvec = self.to_vec(down2)
 
         # convert context to one hot embedding
-        c = nn.functional.one_hot(c, num_classes=self.n_classes).type(torch.float)
-        
+        #c = nn.functional.one_hot(c, num_classes=self.n_classes).type(torch.float)
         # mask out context if context_mask == 1
+
+
         context_mask = context_mask[:, None]
-        context_mask = context_mask.repeat(1,self.n_classes)
+        #context_mask = context_mask.repeat(1,1,self.n_classes)
         context_mask = (-1*(1-context_mask)) # need to flip 0 <-> 1
         c = c * context_mask
         
@@ -234,13 +235,12 @@ class DDPM(nn.Module):
         self.n_T = n_T
         self.drop_prob = drop_prob
 
-    def forward(self, x, c):
+    def forward(self, noises, c):
         """
         this method is used in training, so samples t and noise randomly
         """
 
-        _ts = torch.randint(1, self.n_T+1, (x.shape[0],))  # t ~ Uniform(0, n_T)
-        noise = torch.randn_like(x)  # eps ~ N(0, 1)
+        _ts, noise, x = noises
 
         x_t = (
             self.sqrtab[_ts, None, None, None] * x
@@ -251,4 +251,4 @@ class DDPM(nn.Module):
         # dropout context with some probability
         context_mask = torch.bernoulli(torch.zeros_like(c)+self.drop_prob)
         
-        return noise, self.nn_model(x_t, c, _ts / self.n_T, context_mask)
+        return self.nn_model(x_t, c, _ts / self.n_T, context_mask)
