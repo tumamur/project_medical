@@ -103,7 +103,12 @@ class CycleGAN(pl.LightningModule):
 
         z = Variable(torch.randn(self.batch_size, self.z_size)).float().to(self.device)
 
-        generated_img = self.image_generator(z, report)
+        if self.opt['image_generator']['model'] == 'ddpm':
+            generated_img = self.image_generator.generated_images(img.size(0), report)
+
+        elif self.opt['image_generator']['model'] == 'cgan':
+            generated_img = self.image_generator(z, report)
+            
         return report, generated_img
         #return img, None
 
@@ -219,11 +224,13 @@ class CycleGAN(pl.LightningModule):
 
         # Log losses
         metrics = {
+            "gen_predicted_noise_error" : self.fake_predicted_error,
             "gen_loss": total_gen_loss,
             "gen_adv_loss": total_adv_loss,
             "gen_cycle_loss": total_cycle_loss,
             "gen_adv_loss_IR": adv_loss_IR,
             "gen_adv_loss_RI": adv_loss_RI,
+            "gen_cycle_predicted_noise_error" : self.cycle_predicted_error,
             "gen_cycle_loss_IRI": cycle_loss_IRI,
             "gen_cycle_loss_RIR": cycle_loss_RIR,
             "gen_cycle_loss_IR_MSE": cycle_loss_IRI_MSE,
@@ -279,28 +286,27 @@ class CycleGAN(pl.LightningModule):
         self.real_report = batch['report'].float()
         batch_nmb = self.real_img.shape[0]
 
+        # create noise variables
         z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)
-        _ts = torch.randint(1, self.n_T+1, (self.real_img.shape[0], )).to(self.device)
         noise = torch.randn_like(self.real_img).to(self.device)
 
         # generate valid and fake labels
         valid_img_sample = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
-        fake_img_sample = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape))) # we are not using this ? 
+        fake_img_sample = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape))) 
 
         
         valid_report_sample = Tensor(np.ones((self.real_report.size(0), *self.report_discriminator.output_shape)))
         fake_report_sample = Tensor(np.zeros((self.real_report.size(0), *self.report_discriminator.output_shape)))
 
-        # TODO : Update ddpm class input params ( x  and c )
-        # generate fake reports and images
+
         self.fake_report = self.report_generator(self.real_img)
 
+
         if self.opt['image_generator']['model'] == 'ddpm':
-            noises = (_ts, noise, self.real_img)
-            self.fake_img = self.image_generator(noises, self.real_report)
-            print("ddpm loss : ", self.img_adversarial_loss(noise, self.fake_img))
-                  
-        else:
+            self.fake_predicted_error = self.image_generator(self.real_img, noise, self.real_report)
+            self.fake_img = self.image_generator.generate_image(batch_size=batch_nmb, condition=self.real_report)
+
+        elif self.opt['image_generator']['model'] == 'cgan':
             self.fake_img = self.image_generator(z, self.real_report)
 
 
@@ -314,7 +320,8 @@ class CycleGAN(pl.LightningModule):
 
         # TODO : Update ddpm class input params ( x  and c )
         if self.opt['image_generator']['model'] == 'ddpm':
-            self.cycle_img = self.image_generator(noises, fake_reports)
+            self.cycle_predicted_error = self.image_generator(self.real_img, noise, self.fake_reports)
+            self.cycle_img = self.image_generator.generate_image(batch_size=batch_nmb, condition=self.fake_reports)
         else:
             self.cycle_img = self.image_generator(z, fake_reports)
         
@@ -483,9 +490,11 @@ class CycleGAN(pl.LightningModule):
             'cgan' : cGANconv(z_size=self.z_size, img_size=self.input_size, class_num=self.num_classes,
                     img_channels=self.opt["image_discriminator"]["channels"]) ,
 
-            'ddpm' : DDPM(nn_model=ContextUnet(in_channels=1, n_feat=self.n_feat, n_classes=self.num_classes), 
+            'ddpm' : DDPM(nn_model=ContextUnet(in_channels=3, n_feat=self.n_feat, n_classes=self.num_classes), 
+                          image_size=(self.input_size, self.input_size),
                           betas=(self.opt['image_generator'['ddpm_beta1'], self.opt['image_generator']['ddpm_beta2']]),
-                          n_T=self.n_T, drop_prob=self.opt['image_generator']['ddpm_drop_prob'])
+                          n_T=self.n_T,
+                          drop_prob=self.opt['image_generator']['ddpm_drop_prob'])
         }
 
         return models[self.opt["image_generator"]["model"]]

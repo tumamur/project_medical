@@ -167,11 +167,12 @@ class ContextUnet(nn.Module):
         hiddenvec = self.to_vec(down2)
 
         # convert context to one hot embedding
-        c = nn.functional.one_hot(c, num_classes=self.n_classes).type(torch.float)
-        
+        #c = nn.functional.one_hot(c, num_classes=self.n_classes).type(torch.float)
         # mask out context if context_mask == 1
+
+
         context_mask = context_mask[:, None]
-        context_mask = context_mask.repeat(1,self.n_classes)
+        #context_mask = context_mask.repeat(1,1,self.n_classes)
         context_mask = (-1*(1-context_mask)) # need to flip 0 <-> 1
         c = c * context_mask
         
@@ -221,10 +222,13 @@ def ddpm_schedules(beta1, beta2, T):
     }
 
 
-class DDPM(pl.LightningModule):
-    def __init__(self, nn_model, betas, n_T, drop_prob=0.1):
+class DDPM(nn.Module):
+    def __init__(self, nn_model, image_size, betas, n_T, drop_prob=0.1, device='cuda'):
         super(DDPM, self).__init__()
         self.nn_model = nn_model
+        self.device = device
+        self.mse =  nn.MSELoss()
+        self.image_size = image_size
 
         # register_buffer allows accessing dictionary produced by ddpm_schedules
         # e.g. can access self.sqrtab later
@@ -234,14 +238,12 @@ class DDPM(pl.LightningModule):
         self.n_T = n_T
         self.drop_prob = drop_prob
 
-    def forward(self, x, c):
+    def forward(self, x, noise, c):
         """
         this method is used in training, so samples t and noise randomly
         """
 
-        _ts = torch.randint(1, self.n_T+1, (x.shape[0],))  # t ~ Uniform(0, n_T)
-        noise = torch.randn_like(x)  # eps ~ N(0, 1)
-
+        _ts = torch.randint(1, self.n_T+1, (x.shape[0],), device=self.device)  # t ~ Uniform(0, n_T)
         x_t = (
             self.sqrtab[_ts, None, None, None] * x
             + self.sqrtmab[_ts, None, None, None] * noise
@@ -251,4 +253,70 @@ class DDPM(pl.LightningModule):
         # dropout context with some probability
         context_mask = torch.bernoulli(torch.zeros_like(c)+self.drop_prob)
         
-        return noise, self.nn_model(x_t, c, _ts / self.n_T, context_mask)
+        # return noise and predicted noise at time t for x_t
+        return self.mse(noise, self.nn_model(x_t, c, _ts / self.n_T, context_mask))
+    
+
+    def sample(self, n_sample, size, c, guide_w = 0.0):
+        x_i = torch.randn(n_sample, *size, device=self.device)  # x_T ~ N(0, 1), sample initial noise
+        c_i = torch.tensor([c], device=self.device)
+        c_i = c_i.repeat(int(n_sample/c_i.shape[0]))
+            # don't drop context at test time
+        context_mask = torch.zeros_like(c_i, device=self.device)
+
+        # double the batch
+        c_i = c_i.repeat(2)
+        context_mask = context_mask.repeat(2)
+        context_mask[n_sample:] = 1. # makes second half of batch context free
+
+        for i in range(self.n_T, 0, -1):
+            # print(f'sampling timestep {i}',end='\r')
+            t_is = torch.tensor([i / self.n_T], device=self.device)
+            t_is = t_is.repeat(n_sample,1,1,1)
+
+            # double batch
+            x_i = x_i.repeat(2,1,1,1)
+            t_is = t_is.repeat(2,1,1,1)
+
+            z = torch.randn(n_sample, *size, device=self.device) if i > 1 else 0
+
+            # split predictions and compute weighting
+            eps = self.nn_model(x_i, c_i, t_is, context_mask)
+            eps1 = eps[:n_sample]
+            eps2 = eps[n_sample:]
+            eps = (1+guide_w)*eps1 - guide_w*eps2
+            x_i = x_i[:n_sample]
+            x_i = (
+                self.oneover_sqrta[i] * (x_i - eps * self.mab_over_sqrtmab[i])
+                + self.sqrt_beta_t[i] * z
+            )
+
+        return x_i
+    
+
+    def generate_image(self, batch_size, condition):
+        """
+        Generate images by iteratively applying reverse diffusion steps.
+        This method should be used during training for differentiable image generation.
+        """
+        # Initialize random noise
+        generated_images = torch.randn(batch_size, *self.image_size, device=self.device)
+
+        # Iterate over timesteps in reverse order
+        for i in reversed(range(1, self.n_T + 1)):
+            timestep = i / self.n_T
+            t_is = torch.full((batch_size,), timestep, device=self.device)
+
+            # Apply reverse diffusion step
+            # Note: This step might need to be adapted based on your specific DDPM implementation
+            noise_pred = self.nn_model(generated_images, condition, t_is)
+            alpha_t = self.sqrtab[i - 1]
+            beta_t = self.sqrtmab[i - 1]
+            generated_images = (generated_images - beta_t * noise_pred) / alpha_t
+
+            # Optionally, add Gaussian noise during earlier timesteps
+            if i > 1:
+                z = torch.randn_like(generated_images, device=self.device)
+                generated_images += self.sqrt_beta_t[i - 1] * z
+
+        return generated_images
