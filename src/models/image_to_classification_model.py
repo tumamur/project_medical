@@ -9,7 +9,7 @@ from health_multimodal.image.model.pretrained import get_biovil_t_image_encoder,
 
 
 class ArkModel(pl.LightningModule):
-    def __init__(self, num_classes, learning_rate, criterion, ark_pretrained_path):
+    def __init__(self, num_classes, learning_rate, criterion, ark_pretrained_path, params):
         super(ArkModel, self).__init__()
         self.model = timm.create_model('swin_base_patch4_window7_224', num_classes=num_classes, pretrained=False)
 
@@ -20,8 +20,11 @@ class ArkModel(pl.LightningModule):
                 del self.state_dict[k]
 
         self.model.load_state_dict(self.state_dict, strict=False)
+
         self.lr = learning_rate
         self.criterion = criterion
+        self.beta1 = params["report_generator"]["beta1"]
+        self.beta2 = params["report_generator"]["beta2"]
 
     def forward(self, x):
         # Pass the input through the underlying model
