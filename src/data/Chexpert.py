@@ -53,7 +53,7 @@ class Chexpert(Dataset):
         return transforms.Compose([
             transforms.Resize(self.resize),  # Resize images
             transforms.ToTensor(),  # Convert images to tensor
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
+            #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
         ])
     
     def get_test_transformations(self):
@@ -61,7 +61,7 @@ class Chexpert(Dataset):
         return transforms.Compose([
             transforms.Resize(self.resize),  # Resize images
             transforms.ToTensor(),  # Convert images to tensor
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
+            #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
         ])
     
     

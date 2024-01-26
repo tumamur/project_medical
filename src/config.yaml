@@ -14,7 +14,7 @@ dataset:
     'Pneumonia',
     'Pneumothorax'
   ]
-  batch_size : 16
+  batch_size : 1
   input_size : 224
   data_imputation : "zeros"
   val_size : 0.1
@@ -27,7 +27,7 @@ image_generator:
   learning_rate: 0.001
   optimizer: 'Adam' # AdamW
   scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
-  report_encoder_model : "cGAN"
+  report_encoder_model : "ddpm"
   generator_layer_size : [256, 512, 1024]
   z_size : 100
   weight_decay: 0.0001
@@ -35,6 +35,11 @@ image_generator:
   beta1: 0.9
   beta2: 0.999
   monitor: 'val_loss'
+  ddpm_beta1 : 1e-4
+  ddpm_beta2 : 0.02
+  ddpm_drop_prob : 0.1
+  n_feat : 128
+  n_T : 400
 
 
 image_discriminator:
