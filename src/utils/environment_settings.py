@@ -2,6 +2,7 @@ from easydict import EasyDict as edict
 
 env_settings = edict()
 
+env_settings.DEBUG = "/home/data/DIVA/mimic"
 env_settings.ROOT = "/home/data/DIVA/mimic/mimic-cxr-jpg/2.0.0"
 env_settings.DATA = "/home/data/DIVA/mimic/mimic-cxr-jpg/2.0.0/files"
 env_settings.EXPERIMENTS = "/home/guests/usr_mlmi/arda/Unsupervised-Structured-Reporting-via-Cycle-Consistency/experiments/"
