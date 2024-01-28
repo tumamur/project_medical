@@ -63,6 +63,36 @@ class CA_Net(nn.Module):
         c_code = self.reparametrize(mu, logvar)
         return c_code, mu, logvar
 
+class D_GET_LOGITS(nn.Module):
+    def __init__(self, ndf, nef, bcondition=True):
+        super(D_GET_LOGITS, self).__init__()
+        self.df_dim = ndf
+        self.ef_dim = nef
+        self.bcondition = bcondition
+        if bcondition:
+            self.outlogits = nn.Sequential(
+                conv3x3(ndf * 8 + nef, ndf * 8),
+                nn.BatchNorm2d(ndf * 8),
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Conv2d(ndf * 8, 1, kernel_size=4, stride=4),
+                nn.Sigmoid())
+        else:
+            self.outlogits = nn.Sequential(
+                nn.Conv2d(ndf * 8, 1, kernel_size=4, stride=4),
+                nn.Sigmoid())
+
+    def forward(self, h_code, c_code=None):
+        # conditioning output
+        if self.bcondition and c_code is not None:
+            c_code = c_code.view(-1, self.ef_dim, 1, 1)
+            c_code = c_code.repeat(1, 1, 4, 4)
+            # state size (ngf+egf) x 4 x 4
+            h_c_code = torch.cat((h_code, c_code), 1)
+        else:
+            h_c_code = h_code
+        output = self.outlogits(h_c_code)
+        return output.view(-1)
+
 
 class StackGANGen1(nn.Module):
     def __init__(self, z_dim, condition_dim, gf_dim, num_classes):
@@ -203,6 +233,9 @@ class StackGANDisc1(nn.Module):
             nn.LeakyReLU(0.2, inplace=True)
         )
 
+        self.get_cond_logits = D_GET_LOGITS(self.df_dim, self.ef_dim)
+        self.get_uncond_logits = None
+
     def forward(self, image):
         img_embedding = self.encode_img(image)
 
@@ -240,6 +273,9 @@ class StackGANDisc2(nn.Module):
             nn.BatchNorm2d(self.df_dim * 8),
             nn.LeakyReLU(0.2, inplace=True)  # 4 * 4 * ndf * 8
         )
+
+        self.get_cond_logits = D_GET_LOGITS(self.df_dim, self.ef_dim, bcondition=True)
+        self.get_uncond_logits = D_GET_LOGITS(self.df_dim, self.ef_dim, bcondition=False)
 
     def forward(self, image):
         img_embedding = self.encode_img(image)

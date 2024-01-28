@@ -41,9 +41,9 @@ class StackGAN(pl.LightningModule):
         batch_nmb = real_img.shape[0]
         z = Variable(torch.FloatTensor(batch_nmb, self.z_dim)).to(self.device)
 
-        _, fake_img_stage1, _, _ = self.Gen1(z, real_report)
-        valid = torch.ones(batch_nmb, 1, device=self.device)
-        fake = torch.zeros(batch_nmb, 1, device=self.device)
+        _, fake_img_stage1, mu, logvar = self.Gen1(z, real_report)
+        valid = torch.ones(batch_nmb, device=self.device)
+        fake = torch.zeros(batch_nmb, device=self.device)
 
         # Train Generators
         if optimizer_idx < 2:
@@ -51,8 +51,8 @@ class StackGAN(pl.LightningModule):
             if optimizer_idx == 0:
                 # Pass to Discriminator 1
                 # pred_fake = self.Disc1(fake_img_stage1, real_report)
-                pred_fake = self.Disc1(fake_img_stage1)
-                print(pred_fake.shape)
+                pred_fake_features = self.Disc1(fake_img_stage1)
+                pred_fake = self.Disc1.get_cond_logits(pred_fake_features, mu)
                 # Generator 1 loss
                 g_loss_1 = self.criterion(pred_fake, valid)
                 self.log('g_loss_1', g_loss_1, on_step=True, on_epoch=True, prog_bar=True, logger=True)
@@ -60,11 +60,13 @@ class StackGAN(pl.LightningModule):
             # Stage 2 Generator
             elif optimizer_idx == 1:
                 # Generate high-resolution images
-                img_stage_1, fake_img_stage2, _, _ = self.Gen2(fake_img_stage1.detach(), real_report)
+                _, fake_img_stage2, mu, logvar = self.Gen2(z, real_report)
                 # Pass to Discriminator 2
                 # pred_fake = self.Disc2(fake_img_stage2, real_report)
-                pred_fake = self.Disc2(fake_img_stage2)
+                pred_fake_features = self.Disc2(fake_img_stage2)
+                pred_fake = self.Disc2.get_cond_logits(pred_fake_features, mu)
                 # Generator 2 loss
+                print(f'pred_fake stage 2: {pred_fake}')
                 g_loss_2 = self.criterion(pred_fake, valid)
                 self.log('g_loss_2', g_loss_2, on_step=True, on_epoch=True, prog_bar=True, logger=True)
                 return g_loss_2
@@ -74,12 +76,14 @@ class StackGAN(pl.LightningModule):
             if optimizer_idx == 2:
                 # Real images loss
                 # pred_real = self.Disc1(real_img_low, real_report)
-                pred_real = self.Disc1(real_img_low)
+                pred_real_features = self.Disc1(real_img_low)
+                pred_real = self.Disc1.get_cond_logits(pred_real_features, mu)
                 d_loss_real = self.criterion(pred_real, valid)
 
                 # Fake images loss
                 # pred_fake = self.Disc1(fake_img_stage1.detach(), real_report)
-                pred_fake = self.Disc1(fake_img_stage1.detach())
+                pred_fake_features = self.Disc1(fake_img_stage1)
+                pred_fake = self.Disc1.get_cond_logits(pred_fake_features, mu)
                 d_loss_fake = self.criterion(pred_fake, fake)
 
                 # Total loss
@@ -91,14 +95,16 @@ class StackGAN(pl.LightningModule):
             elif optimizer_idx == 3:
                 # Real images loss
                 # Generate high-resolution images
-                img_stage_1, fake_img_stage2, _, _ = self.Gen2(fake_img_stage1.detach(), real_report)
+                img_stage_1, fake_img_stage2, mu, logvar = self.Gen2(z, real_report)
                 # pred_real = self.Disc2(real_img, real_report)
-                pred_real = self.Disc2(real_img)
+                pred_real_features = self.Disc2(real_img)
+                pred_real = self.Disc2.get_cond_logits(pred_real_features, mu)
                 d_loss_real = self.criterion(pred_real, valid)
 
                 # Fake images loss
                 # pred_fake = self.Disc2(fake_img_stage2.detach(), real_report)
-                pred_fake = self.Disc2(fake_img_stage2.detach())
+                pred_fake_features = self.Disc2(fake_img_stage2)
+                pred_fake = self.Disc2.get_cond_logits(pred_fake_features, mu)
                 d_loss_fake = self.criterion(pred_fake, fake)
 
                 # Total loss
