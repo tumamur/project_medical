@@ -24,8 +24,8 @@ def main(params):
     processor = DataHandler(opt=params["dataset"])
     chexpert_data_module = ChexpertDataModule(opt=params['dataset'], processor=processor)
     chexpert_data_module.setup()
-    val_dataloader = chexpert_data_module.val_dataloader()
-    CycleGAN_module = CycleGAN(opt=params, val_dataloader=val_dataloader)
+    train_dataloader = chexpert_data_module.val_dataloader()
+    StackGANmodule = StackGAN(condition_dim=128, num_classes=13, z_dim=100, gf_dim=192, df_dim=96, r_num=4)
 
     experiment = (env_settings.EXPERIMENTS + params['image_generator']['report_encoder_model']
                   + "_" + params["report_generator"]["image_encoder_model"])
@@ -55,7 +55,7 @@ def main(params):
 
     # Start training
     torch.autograd.set_detect_anomaly(True)
-    trainer.fit(StackGAN, chexpert_data_module)
+    trainer.fit(StackGANmodule, chexpert_data_module)
 
 
 if __name__ == '__main__':

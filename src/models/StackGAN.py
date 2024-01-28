@@ -43,13 +43,13 @@ class CA_Net(nn.Module):
         super(CA_Net, self).__init__()
         self.label_dim = num_classes
         self.condition_dim = condition_dim
-        self.fc = nn.Linear(self.label_dim, self.c_dim * 2, bias=True)
+        self.fc = nn.Linear(self.label_dim, self.condition_dim * 2, bias=True)
         self.relu = nn.ReLU()
 
     def encode(self, labels):
         x = self.relu(self.fc(labels))
-        mu = x[:, :self.c_dim]
-        logvar = x[:, self.c_dim:]
+        mu = x[:, :self.condition_dim]
+        logvar = x[:, self.condition_dim:]
         return mu, logvar
 
     def reparametrize(self, mu, logvar):
@@ -98,10 +98,10 @@ class StackGANGen1(nn.Module):
         x = self.fc(z_c_code)
 
         x = x.view(-1, self.gf_dim, 4, 4)
-        x = x.upsample1(x)
-        x = x.upsample2(x)
-        x = x.upsample3(x)
-        x = x.upsample4(x)
+        x = self.upsample1(x)
+        x = self.upsample2(x)
+        x = self.upsample3(x)
+        x = self.upsample4(x)
 
         fake_img = self.img(x)
 
@@ -109,11 +109,12 @@ class StackGANGen1(nn.Module):
 
 
 class StackGANGen2(nn.Module):
-    def __init__(self, z_dim, condition_dim, gf_dim, num_classes):
+    def __init__(self, z_dim, condition_dim, gf_dim, num_classes, r_num):
         super(StackGANGen2, self).__init__()
         self.z_dim = z_dim
         self.gf_dim = gf_dim
         self.ef_dim = condition_dim
+        self.r_num = r_num
         self.stage1 = StackGANGen1(z_dim, condition_dim, gf_dim, num_classes)
 
         for param in self.stage1.parameters():
@@ -152,7 +153,7 @@ class StackGANGen2(nn.Module):
 
     def _make_layer(self, block, channel_num):
         layers = []
-        for i in range(cfg.GAN.R_NUM):
+        for i in range(self.r_num):
             layers.append(block(channel_num))
         return nn.Sequential(*layers)
 
@@ -197,7 +198,7 @@ class StackGANDisc1(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
             # state size (df_dim*4) x 8 x 8
             nn.Conv2d(self.df_dim * 4, self.df_dim * 8, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(self.z_dim * 8),
+            nn.BatchNorm2d(self.df_dim * 8),
             # state size (df_dim * 8) x 4 x 4)
             nn.LeakyReLU(0.2, inplace=True)
         )
