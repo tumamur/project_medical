@@ -93,6 +93,11 @@ trainer :
   accumulated_batches : 5 # number of batches to accumulate before optimizing (decide number of batches to calculate loss)
   metrics : "KLDivergence"
   log_images_steps: 100
+  gen_training_threshold: 0.25
+  disc_training_threshold: 0.25
+  visualize: True
+  save_images: True
+
 
 
 

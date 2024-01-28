@@ -24,6 +24,10 @@ from torchvision.transforms.functional import to_tensor
 import io
 torch.autograd.set_detect_anomaly(True)
 import matplotlib.pyplot as plt
+from torchmetrics import Accuracy, Precision, Recall, F1Score
+import os
+from utils.environment_settings import env_settings
+
 
 class CycleGAN(pl.LightningModule):
 
@@ -53,7 +57,11 @@ class CycleGAN(pl.LightningModule):
         self.MSE = nn.MSELoss()
         self.n_feat = self.opt["image_generator"]["n_feat"]
         self.n_T = self.opt["image_generator"]["n_T"]
-
+        self.save_images = opt["trainer"]["save_images"]
+        if self.save_images:
+            self.save_path = env_settings.SAVE_IMAGES_PATH
+            print(f'Saving images to {self.save_path}')
+        self.visualize = opt["trainer"]["visualize"]
         # Initialize optimizers
         optimizer_dict = {
             'Adam': ds.ops.adam.FusedAdam, 
@@ -70,6 +78,8 @@ class CycleGAN(pl.LightningModule):
         self.image_generator = self._get_image_generator()
         self.image_discriminator = self._get_image_discriminator()
         self.buffer_images = ImageBuffer(self.buffer_size)
+        self.gen_threshold = opt["trainer"]["gen_training_threshold"]
+        self.disc_threshold = opt["trainer"]["disc_training_threshold"]
 
         # Define loss functions
         # self.img_consistency_loss = PerceptualLoss()
@@ -77,7 +87,12 @@ class CycleGAN(pl.LightningModule):
         self.img_adversarial_loss = nn.MSELoss()
         self.report_consistency_loss = nn.BCEWithLogitsLoss()
 
-    
+        # Metrics
+        self.val_accuracy = Accuracy(task="multiclass", average="micro", num_classes=self.num_classes)
+        self.val_precision = Precision(task="multiclass", average="micro", num_classes=self.num_classes)
+        self.val_recall = Recall(task="multiclass", average="micro", num_classes=self.num_classes)
+        self.val_f1 = F1Score(task="multiclass", average="micro", num_classes=self.num_classes)
+
     def forward(self, img):
        
         # will be used in predict step for evaluation
@@ -99,7 +114,6 @@ class CycleGAN(pl.LightningModule):
             return max(0.0, val)
         
         return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
-    
 
     def configure_optimizers(self):
         image_gen_opt_config = {
@@ -151,8 +165,7 @@ class CycleGAN(pl.LightningModule):
     def report_consistency_criterion(self, real_report, cycle_report):
         # reconstruction loss
         return self.report_consistency_loss(real_report, cycle_report)
-    
-    
+
     def generator_step(self, valid):
         # calculate loss for generator
 
@@ -257,16 +270,41 @@ class CycleGAN(pl.LightningModule):
            # self.visualize_images(batch_idx)
 
         if optimizer_idx == 0 or optimizer_idx == 1:
-            gen_loss = self.generator_step(valid)
-            return gen_loss
+            gen_test_loss = self.generator_step(valid)
+            if gen_test_loss > self.gen_threshold:
+                gen_loss = gen_test_loss
+                return gen_loss
         
         elif optimizer_idx == 2 or optimizer_idx == 3:
-            disc_loss = self.discriminator_step(valid, fake)
-            return disc_loss
-        
+            disc_test_loss = self.discriminator_step(valid, fake)
+            if disc_test_loss > self.disc_threshold:
+                disc_loss = disc_test_loss
+                return disc_loss
 
     def validation_step(self, batch, batch_idx):
-        pass
+        self.real_img = batch['target'].float()
+        self.real_report = batch['report'].float()
+
+        self.fake_report = self.report_generator(self.real_img)
+        self.fake_report = torch.sigmoid(self.fake_report)
+        # self.fake_report = torch.where(self.fake_report > 0.5, 1, 0)
+
+        self.val_accuracy.update(self.fake_report, self.real_report)
+        self.val_precision.update(self.fake_report, self.real_report)
+        self.val_recall.update(self.fake_report, self.real_report)
+        self.val_f1.update(self.fake_report, self.real_report)
+
+        val_loss = self.report_consistency_loss(self.fake_report, self.real_report)
+
+        val_metrics = {
+            "val_accuracy": self.val_accuracy,
+            "val_precision": self.val_precision,
+            "val_recall": self.val_recall,
+            "val_f1": self.val_f1,
+            "val_loss": val_loss,
+        }
+
+        self.log_dict(val_metrics, on_step=True, on_epoch=True, prog_bar=True)
 
     def test_step(self, batch, batch_idx):
         pass
@@ -303,7 +341,6 @@ class CycleGAN(pl.LightningModule):
     #         # Log the image and the report text
     #         self.logger.experiment.add_image(f"Generated Image {i}", img_tensor, self.current_epoch, dataformats='CHW')
     #         self.logger.experiment.add_text(f"Generated Report {i}", report_text, self.current_epoch)
-
 
     def log_images_on_cycle(self, batch_idx):
 
@@ -352,33 +389,59 @@ class CycleGAN(pl.LightningModule):
         self.logger.experiment.add_text(f"On step real report", report_text_cycle, step)
 
     def visualize_images(self, batch_idx):
-        tensor = self.real_img[0]
+        #tensor = self.real_img[0]
+
+        #mean = [0.485, 0.456, 0.406]
+        #std = [0.229, 0.224, 0.225]
+        #denorm = tensor.clone().cpu().detach()
+        #for t, m, s in zip(denorm, mean, std):
+         #   t.mul_(s).add_(m)
+
+        #image_to_display = denorm.numpy().transpose(1, 2, 0)
+        #image_to_display = np.clip(image_to_display, 0, 1)
+        # plt.imshow(tensor.permute(1, 2, 0).cpu().detach())
+        real_img = self.convert_tensor_to_image(self.real_img[0])
+        plt.imshow(real_img)
+        plt.axis('off')
+        plt.show()
+
+        #cycle_tensor = self.cycle_img[0]
+        #denorm = cycle_tensor.clone().cpu().detach()
+        #for t, m, s in zip(denorm, mean, std):
+         #   t.mul_(s).add_(m)
+        #image_to_display = denorm.numpy().transpose(1, 2, 0)
+        #image_to_display = np.clip(image_to_display, 0, 1)
+        # plt.imshow(cycle_tensor.permute(1, 2, 0).cpu().detach())
+        cycle_img = self.convert_tensor_to_image(self.cycle_img[0])
+        plt.imshow(cycle_img)
+        plt.axis('off')
+        plt.show()
+
+    def save_images(self, batch_idx):
+        # Create the folder if it does not exist
+        if not os.path.exists(self.save_folder):
+            os.makedirs(self.save_folder)
+
+        # Process and save the real image
+        real_image = self.convert_tensor_to_image(self.real_img[0])
+        real_image_path = os.path.join(self.save_folder, f'real_image_{batch_idx}.png')
+        real_image.save(real_image_path)
+
+        # Process and save the cycle image
+        cycle_image = self.convert_tensor_to_image(self.cycle_img[0])
+        cycle_image_path = os.path.join(self.save_folder, f'cycle_image_{batch_idx}.png')
+        cycle_image.save(cycle_image_path)
+
+    def convert_tensor_to_image(self, tensor):
+        # Denormalize and convert to PIL Image
         mean = [0.485, 0.456, 0.406]
         std = [0.229, 0.224, 0.225]
         denorm = tensor.clone().cpu().detach()
         for t, m, s in zip(denorm, mean, std):
             t.mul_(s).add_(m)
-
-        image_to_display = denorm.numpy().transpose(1, 2, 0)
-        image_to_display = np.clip(image_to_display, 0, 1)
-        # plt.imshow(tensor.permute(1, 2, 0).cpu().detach())
-        plt.imshow(image_to_display)
-        plt.axis('off')
-        plt.show()
-
-        cycle_tensor = self.cycle_img[0]
-        denorm = cycle_tensor.clone().cpu().detach()
-        for t, m, s in zip(denorm, mean, std):
-            t.mul_(s).add_(m)
-        image_to_display = denorm.numpy().transpose(1, 2, 0)
-        image_to_display = np.clip(image_to_display, 0, 1)
-        # plt.imshow(cycle_tensor.permute(1, 2, 0).cpu().detach())
-        plt.imshow(image_to_display)
-        plt.axis('off')
-        plt.show()
-
-
-
+        denorm = denorm.numpy().transpose(1, 2, 0)
+        denorm = np.clip(denorm, 0, 1)
+        return Image.fromarray((denorm * 255).astype('uint8'))
     
     def _get_report_generator(self):
         model_name = self.opt["report_generator"]["image_encoder_model"]
@@ -394,7 +457,6 @@ class CycleGAN(pl.LightningModule):
                           dropout_rate=self.opt["report_generator"]["dropout_prob"])
         else:
             raise NotImplementedError(f"Model {model_name} not implemented for report generation.")
-        
 
     def _get_report_discriminator(self):
         return ClassificationLoss(env_settings.MASTER_LIST[self.data_imputation])
@@ -405,8 +467,8 @@ class CycleGAN(pl.LightningModule):
            #         img_size=self.input_size,
             #        class_num=self.num_classes)
         #return cGANconv(z_size=self.z_size, img_size=self.input_size, class_num=self.num_classes,
-        #                   img_channels=self.opt["image_discriminator"]["channels"])
-        return DDPM(nn_model=ContextUnet(in_channels=3, n_feat=self.n_feat, n_classes=self.num_classes), 
+         #                  img_channels=self.opt["image_discriminator"]["channels"])
+        return DDPM(nn_model=ContextUnet(in_channels=3, n_feat=self.n_feat, n_classes=self.num_classes),
                           betas=(float(self.opt['image_generator']['ddpm_beta1']), float(self.opt['image_generator']['ddpm_beta2'])),
                           n_T=self.n_T, drop_prob=self.opt['image_generator']['ddpm_drop_prob'])
         
