@@ -5,6 +5,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 from modules.ChexpertModule import ChexpertDataModule
 from modules.CycleGANModule import CycleGAN
+from modules.CycleGANModuleDiffusion import CycleGAN
 from tensorboard import program
 from utils._prepare_data import DataHandler
 from utils.environment_settings import env_settings
@@ -25,6 +26,7 @@ def main(params):
     chexpert_data_module = ChexpertDataModule(opt=params['dataset'], processor=processor)
     chexpert_data_module.setup()
     val_dataloader = chexpert_data_module.val_dataloader()
+    # CycleGAN_module = CycleGAN(opt=params, val_dataloader=val_dataloader)
     CycleGAN_module = CycleGAN(opt=params, val_dataloader=val_dataloader)
 
     experiment = (env_settings.EXPERIMENTS + params['image_generator']['report_encoder_model']

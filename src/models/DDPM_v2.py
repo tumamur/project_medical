@@ -98,6 +98,8 @@ class UnetUp(nn.Module):
         pad_left = pad_size // 2
         pad_right = pad_size - pad_left
         x = F.pad(x, (pad_left, pad_right, pad_left, pad_right))
+        print(x.shape)
+        print(skip.shape)
         x = torch.cat((x, skip), 1)
         x = self.model(x)
         return x
@@ -172,10 +174,11 @@ class ContextUnet(nn.Module):
 
         # mask out context if context_mask == 1
         context_mask = context_mask[:, None]
-        context_mask = context_mask.repeat(1, self.n_classes)
+        context_mask = context_mask.repeat(1, self.n_classes, 1)  # Updated
         context_mask = (-1 * (1 - context_mask))  # need to flip 0 <-> 1
         c = c * context_mask
 
+        t = t.cuda()  # Updated
         # embed context, time step
         cemb1 = self.contextembed1(c).view(-1, self.n_feat * 2, 1, 1)
         temb1 = self.timeembed1(t).view(-1, self.n_feat * 2, 1, 1)
@@ -186,9 +189,10 @@ class ContextUnet(nn.Module):
         # hiddenvec = torch.cat((hiddenvec, temb1, cemb1), 1)
 
         up1 = self.up0(hiddenvec)
-        # up2 = self.up1(up1, down2) # if want to avoid add and multiply embeddings
-        up2 = self.up1(cemb1 * up1 + temb1, down2)  # add and multiply embeddings
-        up3 = self.up2(cemb2 * up2 + temb2, down1)
+        up2 = self.up1(up1, down2) # if want to avoid add and multiply embeddings
+        # up2 = self.up1(cemb1 * up1 + temb1, down2)  # add and multiply embeddings
+        up3 = self.up2(up2, down1)
+        # up3 = self.up2(cemb2 * up2 + temb2, down1)
         out = self.out(torch.cat((up3, x), 1))
         return out
 
@@ -223,7 +227,7 @@ def ddpm_schedules(beta1, beta2, T):
 
 
 class DDPM(nn.Module):
-    def __init__(self, nn_model, betas, n_T, device, drop_prob=0.1, image_size=224, n_classes=13):
+    def __init__(self, nn_model, betas, n_T, drop_prob=0.1, image_size=224, n_classes=13):
         super(DDPM, self).__init__()
         self.nn_model = nn_model
 
@@ -242,9 +246,8 @@ class DDPM(nn.Module):
         """
         this method is used in training, so samples t and noise randomly
         """
-
-        _ts = torch.randint(1, self.n_T + 1, (x.shape[0],), device=self.device)  # t ~ Uniform(0, n_T)
-        noise = torch.randn_like(x, device=self.device)  # eps ~ N(0, 1)
+        _ts = torch.randint(1, self.n_T + 1, (x.shape[0],))  # t ~ Uniform(0, n_T)
+        noise = torch.randn_like(x)  # eps ~ N(0, 1)
 
         x_t = (
                 self.sqrtab[_ts, None, None, None] * x
@@ -264,13 +267,13 @@ class DDPM(nn.Module):
         # one with context_mask=0 and the other context_mask=1
         # we then mix the outputs with the guidance scale, w
         # where w>0 means more guidance
-        x_i = torch.randn(n_sample, *size, device=self.device)  # x_T ~ N(0, 1), sample initial noise
-        c_i = torch.arange(1, self.n_classes,
-                           device=self.device)  # context for us just cycles throught the mnist labels
+        x_i = torch.randn(n_sample, *size)  # x_T ~ N(0, 1), sample initial noise
+        c_i = torch.arange(1, self.n_classes
+                           )  # context for us just cycles throught the mnist labels
         c_i = c_i.repeat(int(n_sample / c_i.shape[0]))
 
         # don't drop context at test time
-        context_mask = torch.zeros_like(c_i, device=self.device)
+        context_mask = torch.zeros_like(c_i)
 
         # double the batch
         c_i = c_i.repeat(2)
@@ -280,14 +283,14 @@ class DDPM(nn.Module):
         x_i_store = []  # keep track of generated steps in case want to plot something
         for i in range(self.n_T, 0, -1):
             # print(f'sampling timestep {i}',end='\r')
-            t_is = torch.tensor([i / self.n_T], device=self.device)
+            t_is = torch.tensor([i / self.n_T])
             t_is = t_is.repeat(n_sample, 1, 1, 1)
 
             # double batch
             x_i = x_i.repeat(2, 1, 1, 1)
             t_is = t_is.repeat(2, 1, 1, 1)
 
-            z = torch.randn(n_sample, *size, device=self.device) if i > 1 else 0
+            z = torch.randn(n_sample, *size) if i > 1 else 0
 
             # split predictions and compute weighting
             eps = self.nn_model(x_i, c_i, t_is, context_mask)
@@ -306,11 +309,11 @@ class DDPM(nn.Module):
         return x_i, x_i_store
 
     def sample(self, n_sample, size, c, guide_w=0.0):
-        x_i = torch.randn(n_sample, *size, device=self.device)  # x_T ~ N(0, 1), sample initial noise
-        c_i = torch.tensor([c], device=self.device)
+        x_i = torch.randn(n_sample, *size)  # x_T ~ N(0, 1), sample initial noise
+        c_i = torch.tensor([c])
         c_i = c_i.repeat(int(n_sample / c_i.shape[0]))
         # don't drop context at test time
-        context_mask = torch.zeros_like(c_i, device=self.device)
+        context_mask = torch.zeros_like(c_i)
 
         # double the batch
         c_i = c_i.repeat(2)
@@ -319,14 +322,14 @@ class DDPM(nn.Module):
 
         for i in range(self.n_T, 0, -1):
             # print(f'sampling timestep {i}',end='\r')
-            t_is = torch.tensor([i / self.n_T], device=self.device)
+            t_is = torch.tensor([i / self.n_T])
             t_is = t_is.repeat(n_sample, 1, 1, 1)
 
             # double batch
             x_i = x_i.repeat(2, 1, 1, 1)
             t_is = t_is.repeat(2, 1, 1, 1)
 
-            z = torch.randn(n_sample, *size, device=self.device) if i > 1 else 0
+            z = torch.randn(n_sample, *size) if i > 1 else 0
 
             # split predictions and compute weighting
             eps = self.nn_model(x_i, c_i, t_is, context_mask)
