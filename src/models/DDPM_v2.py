@@ -98,8 +98,8 @@ class UnetUp(nn.Module):
         pad_left = pad_size // 2
         pad_right = pad_size - pad_left
         x = F.pad(x, (pad_left, pad_right, pad_left, pad_right))
-        print(x.shape)
-        print(skip.shape)
+        # print(x.shape)
+        # print(skip.shape)
         x = torch.cat((x, skip), 1)
         x = self.model(x)
         return x
@@ -170,11 +170,11 @@ class ContextUnet(nn.Module):
         hiddenvec = self.to_vec(down2)
 
         # convert context to one hot embedding
-        c = nn.functional.one_hot(c, num_classes=self.n_classes).type(torch.float)
+        # c = nn.functional.one_hot(c, num_classes=self.n_classes).type(torch.float)
 
         # mask out context if context_mask == 1
         context_mask = context_mask[:, None]
-        context_mask = context_mask.repeat(1, self.n_classes, 1)  # Updated
+        # context_mask = context_mask.repeat(1, self.n_classes, 1)  # Updated
         context_mask = (-1 * (1 - context_mask))  # need to flip 0 <-> 1
         c = c * context_mask
 
@@ -310,26 +310,31 @@ class DDPM(nn.Module):
 
     def sample(self, n_sample, size, c, guide_w=0.0):
         x_i = torch.randn(n_sample, *size)  # x_T ~ N(0, 1), sample initial noise
-        c_i = torch.tensor([c])
-        c_i = c_i.repeat(int(n_sample / c_i.shape[0]))
+        x_i = x_i.cuda()
+        c_i = c  # Updated
+        # c_i = torch.tensor([c])  # Updated
+        # print(c_i.shape)
+        # print(c_i.shape[0])
+        # c_i = c_i.repeat(int(n_sample / c_i.shape[0])) # Updated
         # don't drop context at test time
         context_mask = torch.zeros_like(c_i)
 
         # double the batch
-        c_i = c_i.repeat(2)
-        context_mask = context_mask.repeat(2)
+        c_i = c_i.repeat(2, 1) # Updated
+        context_mask = context_mask.repeat(2, 1) # Updated
         context_mask[n_sample:] = 1.  # makes second half of batch context free
 
         for i in range(self.n_T, 0, -1):
             # print(f'sampling timestep {i}',end='\r')
             t_is = torch.tensor([i / self.n_T])
+            t_is = t_is.cuda()
             t_is = t_is.repeat(n_sample, 1, 1, 1)
 
             # double batch
             x_i = x_i.repeat(2, 1, 1, 1)
             t_is = t_is.repeat(2, 1, 1, 1)
 
-            z = torch.randn(n_sample, *size) if i > 1 else 0
+            z = torch.randn(n_sample, *size, device='cuda') if i > 1 else 0
 
             # split predictions and compute weighting
             eps = self.nn_model(x_i, c_i, t_is, context_mask)
