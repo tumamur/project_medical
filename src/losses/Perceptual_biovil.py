@@ -47,6 +47,9 @@ class Perceptual_xray(nn.Module):
         print(original_model)
         self.feature_extractor = ModifiedMultiImageEncoder(original_model)
 
+        for param in self.feature_extractor.parameters():
+            param.requires_grad = False
+
     def forward(self, y_true, y_pred):
         true_features = self.feature_extractor(y_true)
         pred_features = self.feature_extractor(y_pred)

@@ -48,6 +48,9 @@ class PerceptualLossXray(nn.Module):
         print(arkmodel)
         self.modified_model = ModifiedSwinTransformer(arkmodel.model)  # Pass the Swin Transformer model
 
+        for param in self.modified_model.parameters():
+            param.requires_grad = False
+
     def forward(self, images_real, images_cycle):
         features_orig = self.modified_model(images_real)
         features_gen = self.modified_model(images_cycle)
