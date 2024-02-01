@@ -14,18 +14,20 @@ dataset:
     'Pneumonia',
     'Pneumothorax'
   ]
-  batch_size : 1
-  input_size : 224 #256
+  batch_size : 32
+  input_size : 64 #256 #224 #256 #224
   data_imputation : "zeros"
   val_size : 0.1
   test_size : 0.1
   num_workers : 4
-  paired: False
+  paired: True
   channels: 3
+  use_all_images: False
+  num_images: 10000
 
 
 image_generator:
-  learning_rate: 0.001
+  learning_rate: 0.0001
   optimizer: 'Adam' # AdamW
   scheduler: 'ReduceLROnPlateau' # cosine, exponential, polynomial
   report_encoder_model : "ddpm"
@@ -39,7 +41,7 @@ image_generator:
   ddpm_beta1 : 1e-4
   ddpm_beta2 : 0.02
   ddpm_drop_prob : 0.1
-  n_feat : 128
+  n_feat : 256
   n_T : 400
 
 
@@ -89,15 +91,16 @@ trainer :
   seed : 42
   buffer_size : 300
   check_val_every_n_epochs: 1
-  n_epoch: 5
+  n_epoch: 10000
   threshold : 0.5
   accumulated_batches : 5 # number of batches to accumulate before optimizing (decide number of batches to calculate loss)
   metrics : "KLDivergence"
   log_images_steps: 100
   gen_training_threshold: 0.25
-  disc_training_threshold: 0.25
+  disc_training_threshold: 0.20
   visualize: True
   save_images: True
+
 
 
 
