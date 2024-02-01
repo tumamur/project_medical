@@ -38,7 +38,7 @@ class ResBlock(nn.Module):
         return out
 
 
-class CA_Net(nn.Module):
+'''class CA_Net(nn.Module):
     def __init__(self, num_classes, condition_dim):
         super(CA_Net, self).__init__()
         self.label_dim = num_classes
@@ -59,9 +59,27 @@ class CA_Net(nn.Module):
         return eps.mul(std).add_(mu)
 
     def forward(self, labels):
+        # print(f'labels: {torch.isnan(labels).sum()}')
         mu, logvar = self.encode(labels)
+        # print(f'mu: {torch.isnan(mu).sum()}, logvar: {torch.isnan(logvar).sum()}')
         c_code = self.reparametrize(mu, logvar)
-        return c_code, mu, logvar
+        # print(f'c_code: {torch.isnan(c_code).sum()}')
+        return c_code, mu, logvar '''
+
+class CA_Net(nn.Module):
+    def __init__(self, num_classes, condition_dim):
+        super(CA_Net, self).__init__()
+        self.condition_dim = condition_dim
+        self.label_dim = num_classes
+        self.fc1 = nn.Linear(self.label_dim, self.condition_dim * 2, bias=True)
+        self.relu = nn.ReLU()
+
+    def forward(self, labels):
+        x = self.fc1(labels)
+        x = self.relu(x)
+        # Split the output to get a more diverse representation
+        c_code = x[:, :self.condition_dim]
+        return c_code
 
 class D_GET_LOGITS(nn.Module):
     def __init__(self, ndf, nef, bcondition=True):
@@ -123,8 +141,12 @@ class StackGANGen1(nn.Module):
             nn.Tanh())
 
     def forward(self, z, labels):
-        c_code, mu, logvar = self.ca_net(labels)
+        # c_code, mu, logvar = self.ca_net(labels)
+        c_code = self.ca_net(labels)
+        # print(f'c_code: {torch.isnan(c_code).sum()}')
+        # print(f'z: {torch.isnan(z).sum()}')
         z_c_code = torch.cat((z, c_code), dim=1)
+        # print(f'z_c_code: {torch.isnan(z_c_code).sum()}')
         x = self.fc(z_c_code)
 
         x = x.view(-1, self.gf_dim, 4, 4)
@@ -135,7 +157,8 @@ class StackGANGen1(nn.Module):
 
         fake_img = self.img(x)
 
-        return None, fake_img, mu, logvar
+        # return None, fake_img, mu, logvar
+        return None, fake_img, c_code
 
 
 class StackGANGen2(nn.Module):
@@ -188,11 +211,13 @@ class StackGANGen2(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, z, labels):
-        _, img_stage_1, _, _ = self.stage1(z, labels)
+        # _, img_stage_1, _, _ = self.stage1(z, labels)
+        _, img_stage_1, c_code = self.stage1(z, labels)
         img_stage_1 = img_stage_1.detach()
         encoded_img = self.encoder(img_stage_1)
 
-        c_code, mu, logvar = self.ca_net(labels)
+        # c_code, mu, logvar = self.ca_net(labels)
+        c_code = self.ca_net(labels)
         c_code = c_code.view(-1, self.ef_dim, 1, 1)
         c_code = c_code.repeat(1, 1, 16, 16)
         i_c_code = torch.cat((encoded_img, c_code), 1)
@@ -206,7 +231,8 @@ class StackGANGen2(nn.Module):
 
         fake_img = self.img(x)
 
-        return img_stage_1, fake_img, mu, logvar
+        # return img_stage_1, fake_img, mu, logvar
+        return img_stage_1, fake_img, c_code
 
 
 class StackGANDisc1(nn.Module):
@@ -234,7 +260,7 @@ class StackGANDisc1(nn.Module):
         )
 
         self.get_cond_logits = D_GET_LOGITS(self.df_dim, self.ef_dim)
-        self.get_uncond_logits = None
+        self.get_uncond_logits = D_GET_LOGITS(self.df_dim, self.ef_dim, bcondition=False)
 
     def forward(self, image):
         img_embedding = self.encode_img(image)

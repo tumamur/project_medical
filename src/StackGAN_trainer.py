@@ -54,7 +54,7 @@ def main(params):
         print(f"Could not start tensor board, got error {e}")
 
     # Start training
-    torch.autograd.set_detect_anomaly(True)
+    torch.autograd.set_detect_anomaly(True)  # Deactivate once it runs as it slows down training
     trainer.fit(StackGANmodule, chexpert_data_module)
 
 
