@@ -15,6 +15,7 @@ class DataHandler:
     def __init__(self, opt, mode="train")-> None :
         self.opt = opt
         self.mode = mode
+        self.sample_size = self.opt['sample_size']
         self.data_imputation = self.opt["data_imputation"]
         self.master_df = pd.read_csv(env_settings.MASTER_LIST[self.data_imputation])
         self.paired = self.opt["paired"]
@@ -39,7 +40,7 @@ class DataHandler:
         splits = self.get_split(images_df)
 
         
-        for i in range(len(images)):
+        for i in range(self.sample_size):
 
             image_path = images[i].split("files")[-1]
             image_path = env_settings.DATA + image_path 

@@ -108,10 +108,10 @@ class ModifiedMultiImageEncoder(nn.Module):
 class PerceptualLoss_BioVil(nn.Module):
     def __init__(self, base_model, return_all=False):
         super(PerceptualLoss_BioVil, self).__init__()
+        self.return_all = return_all
         self.original_model = biovil_model_dict[base_model]().encoder
         self.original_model = self.original_model.cuda()
         self.feature_extractor = ModifiedMultiImageEncoder(self.original_model)
-        self.return_all = return_all
         # self.normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
     def forward(self, y_true, y_pred):
@@ -131,10 +131,8 @@ class PerceptualLoss_BioVil(nn.Module):
 
         # Combine the losses from ResNet and ViT features
         total_loss = resnet_loss + vit_loss
-
         if self.return_all:
             return total_loss, resnet_loss, vit_loss
-        
         else:
             return total_loss
         
@@ -298,6 +296,12 @@ class Loss:
             return PerceptualLoss_VGG(**kwargs)
         elif loss_type == "style_vgg":
             return StyleLoss_VGG(**kwargs)
+        elif loss_type == 'MSE' :
+            return nn.MSELoss()
+        elif loss_type == 'BCE':
+            return nn.BCEWithLogitsLoss()
+        elif loss_type == 'L1':
+            return nn.L1Loss()
         else:
             raise ValueError(f"Unknown loss type: {loss_type}")
 

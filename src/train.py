@@ -1,5 +1,6 @@
 import os
 import torch
+import argparse
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
@@ -27,8 +28,7 @@ def main(params):
     val_dataloader = chexpert_data_module.val_dataloader()
     CycleGAN_module = CycleGAN(opt=params, val_dataloader=val_dataloader)
 
-    experiment = (env_settings.EXPERIMENTS + params['image_generator']['report_encoder_model']
-                  + "_" + params["report_generator"]["image_encoder_model"])
+    experiment = (env_settings.EXPERIMENTS + 'exp_1')
 
     logger = TensorBoardLogger(experiment, default_hp_metric=False)
 
@@ -59,5 +59,14 @@ def main(params):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Training settings')
+    parser.add_argument('--image_generator', default='cgan')
+    parser.add_argument('--n_epochs', type=int, default=5)
+    parser.add_argument('--dataset_size', type=int, default=-1) # -1 : all
+    arguments = parser.parse_args()
+    
     params = read_config(env_settings.CONFIG)
+    params['dataset']['sample_size'] = arguments.dataset_size
+    params['image_generator']['model'] = arguments.image_generator
+    params['trainer']['n_epoch'] = arguments.n_epochs
     main(params)

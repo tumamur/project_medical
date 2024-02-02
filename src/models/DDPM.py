@@ -175,16 +175,12 @@ class ContextUnet(nn.Module):
         #context_mask = context_mask.repeat(1,1,self.n_classes)
         context_mask = (-1*(1-context_mask)) # need to flip 0 <-> 1
         c = c * context_mask
-        print('c_unet:' , c.shape)
-        print('context_mask:' , context_mask.shape)
         
         # embed context, time step
         cemb1 = self.contextembed1(c).view(-1, self.n_feat * 2, 1, 1)
         temb1 = self.timeembed1(t).view(-1, self.n_feat * 2, 1, 1)
         cemb2 = self.contextembed2(c).view(-1, self.n_feat, 1, 1)
         temb2 = self.timeembed2(t).view(-1, self.n_feat, 1, 1)
-
-        print('cemb1:' , cemb1.shape)
 
         # could concatenate the context embedding here instead of adaGN
         # hiddenvec = torch.cat((hiddenvec, temb1, cemb1), 1)
@@ -258,12 +254,7 @@ class DDPM(nn.Module):
         # dropout context with some probability
         context_mask = torch.bernoulli(torch.zeros_like(c)+self.drop_prob)
         
-        print('x_t:', x_t.shape)
-        print('c_m:', context_mask.shape)
-        print('c_i:', c.shape)
-        print('x_it:',  (_ts / self.n_T).shape)
-        
-        return self.nn_model(x_t, c, _ts / self.n_T, context_mask)
+        return loss(nois, self.nn_model(x_t, c, _ts / self.n_T, context_mask))
     
     def sample(self, x_i, n_sample, size, c, guide_w = 0.0):
         # x_i = torch.randn(n_sample, *size)  # x_T ~ N(0, 1), sample initial noise
