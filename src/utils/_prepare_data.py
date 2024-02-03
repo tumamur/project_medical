@@ -47,7 +47,7 @@ class DataHandler:
         splits = self.get_split(images_df)
 
         
-        for i in range(self.sample_size):
+        for i in range(len(images)):
 
             image_path = images[i].split("files")[-1]
             image_path = env_settings.DATA + image_path 

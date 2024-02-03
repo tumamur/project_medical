@@ -34,7 +34,7 @@ image_generator:
   z_size : 100
   weight_decay: 0.001
   decay_epochs : 5
-  beta: 0.9
+  beta: 0.5
   ddpm_beta1 : 1e-4
   ddpm_beta2 : 0.02
   ddpm_drop_prob : 0.1
@@ -48,7 +48,7 @@ image_discriminator:
   optimizer: 'Adam' # AdamW
   weight_decay: 0.0001
   decay_epochs : 5
-  beta: 0.9
+  beta: 0.5
   channels: 3
   img_height: 224
   img_width: 224
@@ -61,7 +61,7 @@ report_generator:
   optimizer: 'Adam' # AdamW
   weight_decay: 0.0001
   decay_epochs : 5
-  beta: 0.9
+  beta: 0.5
   classification_head_hidden1: 512
   classification_head_hidden2: 256
   dropout_prob: 0.5
@@ -75,7 +75,7 @@ report_discriminator:
   optimizer: 'Adam' # AdamW
   weight_decay: 0.0001
   decay_epochs : 5
-  beta: 0.9
+  beta: 0.5
   adversarial_loss : 'MSE'
 
 
@@ -86,6 +86,8 @@ trainer :
   seed : 42
   save_images : False
   buffer_size : 300
+  scheduler_interval : 'step'
+  scheduler_iter : 300
   check_val_every_n_epochs: 1
   n_epoch: 5
   update_freq : 1000
@@ -94,6 +96,7 @@ trainer :
   disc_threshold : 0.20
   log_images_steps: 100
   log_metrics_step : 10
+  lr_scheduler : 'step_lr'
   log_val_metrics_step : False
 
 

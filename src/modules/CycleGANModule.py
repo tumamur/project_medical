@@ -97,11 +97,11 @@ class CycleGAN(pl.LightningModule):
 
     def define_metrics(self):
         self.val_metrics = {
-            'accuracy' : Accuracy(task="multilabel", average="micro", num_labels=self.num_classes),
-            'precision' : Precision(task="multilabel", average="micro", num_labels=self.num_classes),
+            'accuracy' : Accuracy(task="multilabel", average="micro", num_labels=self.num_classes).to(self.device),
+            'precision' : Precision(task="multilabel", average="micro", num_labels=self.num_classes).to(self.device),
             'overall_precision' : [],
-            'recall' : Recall(task="multilabel", average="micro", num_labels=self.num_classes),
-            'f1' : F1Score(task="multilabel", average="micro", num_labels=self.num_classes),
+            'recall' : Recall(task="multilabel", average="micro", num_labels=self.num_classes).to(self.device),
+            'f1' : F1Score(task="multilabel", average="micro", num_labels=self.num_classes).to(self.device),
         }
 
 
@@ -140,7 +140,6 @@ class CycleGAN(pl.LightningModule):
         lr_scheduler_dict = {
             "cosine_lr": torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.n_epochs, eta_min=1e-7),
             "step_lr": torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=self.opt['trainer']['scheduler_iter'], gamma=0.95),
-            "polynomial_lr": torch.optim.lr_scheduler.PolynomialLR(optimizer, total_iters=self.opt['trainer']['scheduler_iter'], power=0.9),
             'lambda': None
         }
         return lr_scheduler_dict[self.opt['trainer']['lr_scheduler']]
@@ -163,20 +162,8 @@ class CycleGAN(pl.LightningModule):
                                                         lr = self.opt['report_discriminator']['learning_rate'], 
                                                         betas=(self.opt['report_discriminator']['beta'], 0.999))
 
-        lr_scheduler_config = {
-            'scheduler': self.configure_lr_schedulers(optimizer_img_gen),
-            'interval': self.opt['trainer']['scheduler_interval'], # or 'step' to update the scheduler each training step
-            'frequency': 1, # how often the scheduler is updated
-            'reduce_on_plateau': False,
-        }
-
-        return [
-            {'optimizer': optimizer_img_gen, 'lr_scheduler': lr_scheduler_config},
-            {'optimizer': optimizer_report_gen, 'lr_scheduler': lr_scheduler_config},
-            {'optimizer': optimizer_img_disc, 'lr_scheduler': lr_scheduler_config},
-            {'optimizer': optimizer_report_disc, 'lr_scheduler': lr_scheduler_config}
-        ]
-
+        
+        return [optimizer_img_gen, optimizer_report_gen, optimizer_img_disc, optimizer_report_disc]
 
 
     def log_gen_loss(self,loss):
@@ -200,7 +187,7 @@ class CycleGAN(pl.LightningModule):
 
                                                            
     
-    def generator_step(self, valid_img, valid_report, phase):
+    def generator_step(self, valid_img, valid_report):
         # adversarial_losses = GAN Loss
         loss_IR = self.report_adversarial_loss(self.report_discriminator(self.fake_report), valid_report)
         loss_RI = self.img_adversarial_loss(self.image_discriminator(self.fake_img), valid_img)
@@ -285,7 +272,7 @@ class CycleGAN(pl.LightningModule):
 
             if optimizer_idx == 0 or optimizer_idx == 1:
                 gen_loss = self.generator_step(valid_img=valid_img_sample, valid_report=valid_report_sample)
-                if self.opt['trainer']['adaptive_threshold'] and gen_loss > self.opt['gen_threshold']:
+                if self.opt['trainer']['adaptive_threshold'] and gen_loss > self.opt['trainer']['gen_threshold']:
                     return {"loss": gen_loss}
                 else:
                     return {"loss": gen_loss}
@@ -294,7 +281,7 @@ class CycleGAN(pl.LightningModule):
                 img_disc_loss = self.img_discriminator_step(valid_img_sample, fake_img_sample)
                 report_disc_loss = self.report_discriminator_step(valid_report_sample, fake_report_sample)
                 disc_loss = img_disc_loss + report_disc_loss         
-                if self.opt['trainer']['adaptive_threshold'] and disc_loss > self.opt['disc_threshold']:
+                if self.opt['trainer']['adaptive_threshold'] and disc_loss > self.opt['trainer']['disc_threshold']:
                     return {"loss": disc_loss}
                 else :
                     return {"loss": disc_loss}
@@ -306,89 +293,93 @@ class CycleGAN(pl.LightningModule):
         precision = true_positives / batch_nmb
         return precision
 
-    def validation_step(self, batch, batch_idx):
+    # def validation_step(self, batch, batch_idx):
 
-        self.phase = 'val'
+    #     self.phase = 'val'
 
-        self.real_img = batch['target'].float()
-        self.real_report = batch['report'].float()
-        batch_nmb = self.real_img.shape[0]
+    #     self.real_img = batch['target'].float()
+    #     self.real_report = batch['report'].float()
+    #     batch_nmb = self.real_img.shape[0]
 
-        self.fake_report = self.report_generator(self.real_img)
-        self.fake_report = torch.sigmoid(self.fake_report)
-        self.fake_report_0_1 = torch.where(self.fake_report > 0.5, 1.0, 0.0)
+    #     self.fake_report = self.report_generator(self.real_img)
+    #     self.fake_report = torch.sigmoid(self.fake_report)
+    #     self.fake_report_0_1 = torch.where(self.fake_report < 0.5, torch.tensor(0.0, device=self.fake_report.device), self.fake_report)
+    #     self.fake_report_0_1 = torch.where(self.fake_report_0_1 >= 0.5, torch.tensor(1.0, device=self.fake_report.device), self.fake_report_0_1)
 
-        # update the metrics
-        self.metrics['accuracy'].update(self.fake_report_0_1, self.real_report)
-        self.metrics['precision'].update(self.fake_report_0_1, self.real_report)
-        self.metrics['recall'].update(self.fake_report_0_1, self.real_report)
-        self.metrics['f1'].update(self.fake_report_0_1, self.real_report)
+    #     print(self.real_report.device)
+    #     print(self.fake_report_0_1.device)
         
-        # calculate the overall precision
-        overall_precision = self.calculate_overall_precision(self.fake_report_0_1, self.real_report, batch_nmb)
-        self.val_metrics['overall_precision'].append(overall_precision)
+    #     # update the metrics
+    #     self.val_metrics['accuracy'].update(self.fake_report_0_1, self.real_report)
+    #     self.val_metrics['precision'].update(self.fake_report_0_1, self.real_report)
+    #     self.val_metrics['recall'].update(self.fake_report_0_1, self.real_report)
+    #     self.val_metrics['f1'].update(self.fake_report_0_1, self.real_report)
         
-        # calculate the report cocnsistency loss
-        val_loss_float = self.report_consistency_loss(self.fake_report, self.real_report)
-        val_loss_0_1 = self.report_consistency_loss(self.fake_report_0_1, self.real_report)
-
-        ##################################################
-        # shuffle the val dataset since we need unpaired samples for below
-        indices = torch.randperm(batch_nmb)
-        self.real_report = self.real_report[indices]
+    #     # calculate the overall precision
+    #     overall_precision = self.calculate_overall_precision(self.fake_report_0_1, self.real_report, batch_nmb)
+    #     self.val_metrics['overall_precision'].append(overall_precision)
         
-        z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)
+    #     # calculate the report cocnsistency loss
+    #     val_loss_float = self.report_consistency_loss(self.fake_report, self.real_report)
+    #     val_loss_0_1 = self.report_consistency_loss(self.fake_report_0_1, self.real_report)
 
-        # generate valid and fake labels
-        valid_img_sample = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
-        fake_img_sample = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape)))
-
-        valid_report_sample = Tensor(np.ones((self.real_report.size(0), *self.report_discriminator.output_shape)))
-        fake_report_sample = Tensor(np.zeros((self.real_report.size(0), *self.report_discriminator.output_shape)))
-
-        # generate image
-        self.fake_img = self.image_generator(z, self.real_report)
-        # reconstruct reports and images
-        self.cycle_report = self.report_generator(self.fake_img)
-        self.cycle_img = self.image_generator(z, self.fake_report_0_1)
+    #     ##################################################
+    #     # shuffle the val dataset since we need unpaired samples for below
+    #     indices = torch.randperm(batch_nmb)
+    #     self.real_report = self.real_report[indices]
         
-        ############ Log Loss for each step ##############
-        gen_loss = self.generator_step(valid_img=valid_img_sample, valid_report=valid_report_sample)
-        img_disc_loss = self.img_discriminator_step(valid_img_sample, fake_img_sample)
-        report_disc_loss = self.report_discriminator_step(valid_report_sample, fake_report_sample)
-        # also log the val_loss_float and val_loss_0_1
-        self.log('val_loss_float', val_loss_float, on_step=True)
-        self.log('val_loss_0_1', val_loss_0_1, on_step=True)
-        ##################################################
-        # Optional to log metrics on validation step
-        if self.opt['trainer']['log_val_metrics']:
-            val_log_metrics = {
-                'accuracy' : self.metrics['accuracy'].compute(),
-                'precision' : self.metrics['precision'].compute(),
-                'recall' : self.metrics['recall'].compute(),
-                'f1' : self.metrics['f1'].compute(),
-                'overall_precision' : torch.mean(torch.tensor(self.val_metrics['overall_precision']))
-            }
-            self.log_val_metrics(val_log_metrics)
-        ###################################################
+    #     z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)
+
+    #     # generate valid and fake labels
+    #     valid_img_sample = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
+    #     fake_img_sample = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape)))
+
+    #     valid_report_sample = Tensor(np.ones((self.real_report.size(0), *self.report_discriminator.output_shape)))
+    #     fake_report_sample = Tensor(np.zeros((self.real_report.size(0), *self.report_discriminator.output_shape)))
+
+    #     # generate image
+    #     self.fake_img = self.image_generator(z, self.real_report)
+    #     # reconstruct reports and images
+    #     self.cycle_report = self.report_generator(self.fake_img)
+    #     self.cycle_img = self.image_generator(z, self.fake_report_0_1)
+        
+    #     ############ Log Loss for each step ##############
+    #     gen_loss = self.generator_step(valid_img=valid_img_sample, valid_report=valid_report_sample)
+    #     img_disc_loss = self.img_discriminator_step(valid_img_sample, fake_img_sample)
+    #     report_disc_loss = self.report_discriminator_step(valid_report_sample, fake_report_sample)
+    #     # also log the val_loss_float and val_loss_0_1
+    #     self.log('val_loss_float', val_loss_float, on_step=True)
+    #     self.log('val_loss_0_1', val_loss_0_1, on_step=True)
+    #     ##################################################
+    #     # Optional to log metrics on validation step
+    #     if self.opt['trainer']['log_val_metrics']:
+    #         val_log_metrics = {
+    #             'accuracy' : self.val_metrics['accuracy'].compute(),
+    #             'precision' : self.val_metrics['precision'].compute(),
+    #             'recall' : self.val_metrics['recall'].compute(),
+    #             'f1' : self.val_metrics['f1'].compute(),
+    #             'overall_precision' : torch.mean(torch.tensor(self.val_metrics['overall_precision']))
+    #         }
+    #         self.log_val_metrics(val_log_metrics)
+    #     ###################################################
        
         
-    def on_validation_epoch_end(self):
-        # log the metrics
-        val_log_metrics = {
-            'accuracy' : self.metrics['accuracy'].compute(),
-            'precision' : self.metrics['precision'].compute(),
-            'recall' : self.metrics['recall'].compute(),
-            'f1' : self.metrics['f1'].compute(),
-            'overall_precision' : torch.mean(torch.tensor(self.val_metrics['overall_precision']))
-        }
-        self.log_val_metrics(val_log_metrics)
-        # reset the metrics
-        self.metrics['accuracy'].reset()
-        self.metrics['precision'].reset()
-        self.metrics['recall'].reset()
-        self.metrics['f1'].reset()
-        self.val_metrics['overall_precision'] = []
+    # def on_validation_epoch_end(self):
+    #     # log the metrics
+    #     val_log_metrics = {
+    #         'accuracy' : self.val_metrics['accuracy'].compute(),
+    #         'precision' : self.val_metrics['precision'].compute(),
+    #         'recall' : self.val_metrics['recall'].compute(),
+    #         'f1' : self.metrval_metricsics['f1'].compute(),
+    #         'overall_precision' : torch.mean(torch.tensor(self.val_metrics['overall_precision']))
+    #     }
+    #     self.log_val_metrics(val_log_metrics)
+    #     # reset the metrics
+    #     self.val_metrics['accuracy'].reset()
+    #     self.val_metrics['precision'].reset()
+    #     self.val_metrics['recall'].reset()
+    #     self.val_metrics['f1'].reset()
+    #     self.val_metrics['overall_precision'] = []
 
 
     def test_step(self, batch, batch_idx):

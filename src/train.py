@@ -24,10 +24,7 @@ def main(params):
     torch.manual_seed(params["trainer"]["seed"])
     processor = DataHandler(opt=params["dataset"])
     chexpert_data_module = ChexpertDataModule(opt=params['dataset'], processor=processor)
-    chexpert_data_module.setup()
-    val_dataloader = chexpert_data_module.val_dataloader()
-    CycleGAN_module = CycleGAN(opt=params, val_dataloader=val_dataloader)
-
+    CycleGAN_module = CycleGAN(opt=params)
     experiment = (env_settings.EXPERIMENTS + params['image_generator']['model']
                   + "_" + params["report_generator"]["model"])
 
