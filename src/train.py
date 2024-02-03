@@ -28,9 +28,17 @@ def main(params):
     val_dataloader = chexpert_data_module.val_dataloader()
     CycleGAN_module = CycleGAN(opt=params, val_dataloader=val_dataloader)
 
-    experiment = (env_settings.EXPERIMENTS + 'exp_1')
+    experiment = (env_settings.EXPERIMENTS + params['image_generator']['model']
+                  + "_" + params["report_generator"]["model"])
+
 
     logger = TensorBoardLogger(experiment, default_hp_metric=False)
+
+    if params['trainer']['save_images']:
+        save_images_path = f'{experiment}/images/version_{logger.version}'
+        os.makedirs(save_images_path, exist_ok=True)
+        params['trainer']['save_images_path'] = save_images_path
+        print(f"Images will be saved to {save_images_path}")
 
     file_name = "cycle_gan" + "_{epoch:02d}"
     checkpoint_callback = ModelCheckpoint(

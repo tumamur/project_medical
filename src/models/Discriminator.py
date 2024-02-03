@@ -14,7 +14,9 @@ class ReportDiscriminator(nn.Module):
         )
 
     def forward(self, x):
-        return self.model(x)
+        x = self.model(x)
+        x = torch.sigmoid(x)
+        return x
 
 
 
@@ -48,4 +50,6 @@ class ImageDiscriminator(nn.Module):
         )
 
     def forward(self, img):
-        return self.model(img)
+        x = self.model(img)
+        x = torch.sigmoid(x)
+        return x

@@ -22,11 +22,13 @@ dataset:
   test_size : 0.1
   num_workers : 4
   paired: False
+  use_all_images: False
+  num_images: 10000
 
 
 image_generator:
-  model : "ddpm"
-  learning_rate: 0.001
+  model : "cgan"
+  learning_rate: 0.0001
   optimizer: 'Adam' # AdamW
   generator_layer_size : [256, 512, 1024]
   z_size : 100
@@ -82,14 +84,17 @@ trainer :
   num_classes : 13
   lambda_cycle_loss: 10
   seed : 42
+  save_images : False
   buffer_size : 300
   check_val_every_n_epochs: 1
   n_epoch: 5
-  threshold : 0.5
-  accumulated_batches : 5 # number of batches to accumulate before optimizing (decide number of batches to calculate loss)
-  metrics : "KLDivergence"
+  update_freq : 1000
+  adaptive_threshold : True
+  gen_threshold : 0.25
+  disc_threshold : 0.20
   log_images_steps: 100
   log_metrics_step : 10
+  log_val_metrics_step : False
 
 
 

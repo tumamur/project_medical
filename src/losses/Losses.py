@@ -114,6 +114,9 @@ class PerceptualLoss_BioVil(nn.Module):
         self.feature_extractor = ModifiedMultiImageEncoder(self.original_model)
         # self.normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
+        for param in self.feature_extractor.parameters():
+            param.requires_grad = False
+
     def forward(self, y_true, y_pred):
         true_resnet_features, true_vit_features = self.feature_extractor(y_true)
         pred_resnet_features, pred_vit_features = self.feature_extractor(y_pred)

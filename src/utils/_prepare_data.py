@@ -12,15 +12,22 @@ from .environment_settings import env_settings
 
 
 class DataHandler:
-    def __init__(self, opt, mode="train")-> None :
+    def __init__(self, opt, mode="train")-> None:
         self.opt = opt
         self.mode = mode
         self.sample_size = self.opt['sample_size']
         self.data_imputation = self.opt["data_imputation"]
         self.master_df = pd.read_csv(env_settings.MASTER_LIST[self.data_imputation])
         self.paired = self.opt["paired"]
+
+        if not self.opt["use_all_images"]:
+            self.master_df = self.reduce_data(self.master_df, num_samples=self.opt["num_images"])
+
         self.records = self.create_records()
     
+    def reduce_data(self, df, num_samples=1000):
+        return df.sample(n=num_samples, random_state=42).reset_index(drop=True)
+
     def create_records(self):
 
         records = []
