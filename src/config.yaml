@@ -97,7 +97,7 @@ trainer :
   log_images_steps: 100
   log_metrics_step : 10
   lr_scheduler : 'step_lr'
-  log_val_metrics_step : False
+  log_val_metrics_on_step : False
 
 
 

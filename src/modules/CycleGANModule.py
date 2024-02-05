@@ -97,11 +97,11 @@ class CycleGAN(pl.LightningModule):
 
     def define_metrics(self):
         self.val_metrics = {
-            'accuracy' : Accuracy(task="multilabel", average="micro", num_labels=self.num_classes).to(self.device),
-            'precision' : Precision(task="multilabel", average="micro", num_labels=self.num_classes).to(self.device),
+            'accuracy' : Accuracy(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
+            'precision' : Precision(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
             'overall_precision' : [],
-            'recall' : Recall(task="multilabel", average="micro", num_labels=self.num_classes).to(self.device),
-            'f1' : F1Score(task="multilabel", average="micro", num_labels=self.num_classes).to(self.device),
+            'recall' : Recall(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
+            'f1' : F1Score(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
         }
 
 
@@ -181,9 +181,9 @@ class CycleGAN(pl.LightningModule):
         metrics = {f'{self.phase}_{key}': value for key, value in metrics.items()}
         self.log_dict(metrics, on_step=True, on_epoch=True, prog_bar=True)
 
-    def log_val_metrics(self, metrics):
+    def log_val_metrics(self, metrics, on_step):
         # log the metrics
-        self.log_dict(metrics, on_step=True, on_epoch=True, prog_bar=True)
+        self.log_dict(metrics, on_step=on_step, on_epoch=True, prog_bar=True)
 
                                                            
     
@@ -293,93 +293,93 @@ class CycleGAN(pl.LightningModule):
         precision = true_positives / batch_nmb
         return precision
 
-    # def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch, batch_idx):
 
-    #     self.phase = 'val'
+        self.phase = 'val'
 
-    #     self.real_img = batch['target'].float()
-    #     self.real_report = batch['report'].float()
-    #     batch_nmb = self.real_img.shape[0]
+        self.real_img = batch['target'].float()
+        self.real_report = batch['report'].float()
+        batch_nmb = self.real_img.shape[0]
 
-    #     self.fake_report = self.report_generator(self.real_img)
-    #     self.fake_report = torch.sigmoid(self.fake_report)
-    #     self.fake_report_0_1 = torch.where(self.fake_report < 0.5, torch.tensor(0.0, device=self.fake_report.device), self.fake_report)
-    #     self.fake_report_0_1 = torch.where(self.fake_report_0_1 >= 0.5, torch.tensor(1.0, device=self.fake_report.device), self.fake_report_0_1)
+        self.fake_report = self.report_generator(self.real_img)
+        self.fake_report = torch.sigmoid(self.fake_report)
+        self.fake_report_0_1 = torch.where(self.fake_report < 0.5, torch.tensor(0.0, device=self.fake_report.device), self.fake_report)
+        self.fake_report_0_1 = torch.where(self.fake_report_0_1 >= 0.5, torch.tensor(1.0, device=self.fake_report.device), self.fake_report_0_1)
 
-    #     print(self.real_report.device)
-    #     print(self.fake_report_0_1.device)
+        print(self.real_report.device)
+        print(self.fake_report_0_1.device)
         
-    #     # update the metrics
-    #     self.val_metrics['accuracy'].update(self.fake_report_0_1, self.real_report)
-    #     self.val_metrics['precision'].update(self.fake_report_0_1, self.real_report)
-    #     self.val_metrics['recall'].update(self.fake_report_0_1, self.real_report)
-    #     self.val_metrics['f1'].update(self.fake_report_0_1, self.real_report)
+        # update the metrics
+        self.val_metrics['accuracy'].update(self.fake_report_0_1, self.real_report)
+        self.val_metrics['precision'].update(self.fake_report_0_1, self.real_report)
+        self.val_metrics['recall'].update(self.fake_report_0_1, self.real_report)
+        self.val_metrics['f1'].update(self.fake_report_0_1, self.real_report)
         
-    #     # calculate the overall precision
-    #     overall_precision = self.calculate_overall_precision(self.fake_report_0_1, self.real_report, batch_nmb)
-    #     self.val_metrics['overall_precision'].append(overall_precision)
+        # calculate the overall precision
+        overall_precision = self.calculate_overall_precision(self.fake_report_0_1, self.real_report, batch_nmb)
+        self.val_metrics['overall_precision'].append(overall_precision)
         
-    #     # calculate the report cocnsistency loss
-    #     val_loss_float = self.report_consistency_loss(self.fake_report, self.real_report)
-    #     val_loss_0_1 = self.report_consistency_loss(self.fake_report_0_1, self.real_report)
+        # calculate the report cocnsistency loss
+        val_loss_float = self.report_consistency_loss(self.fake_report, self.real_report)
+        val_loss_0_1 = self.report_consistency_loss(self.fake_report_0_1, self.real_report)
 
-    #     ##################################################
-    #     # shuffle the val dataset since we need unpaired samples for below
-    #     indices = torch.randperm(batch_nmb)
-    #     self.real_report = self.real_report[indices]
+        ##################################################
+        # shuffle the val dataset since we need unpaired samples for below
+        indices = torch.randperm(batch_nmb)
+        self.real_report = self.real_report[indices]
         
-    #     z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)
+        z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)
 
-    #     # generate valid and fake labels
-    #     valid_img_sample = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
-    #     fake_img_sample = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape)))
+        # generate valid and fake labels
+        valid_img_sample = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
+        fake_img_sample = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape)))
 
-    #     valid_report_sample = Tensor(np.ones((self.real_report.size(0), *self.report_discriminator.output_shape)))
-    #     fake_report_sample = Tensor(np.zeros((self.real_report.size(0), *self.report_discriminator.output_shape)))
+        valid_report_sample = Tensor(np.ones((self.real_report.size(0), *self.report_discriminator.output_shape)))
+        fake_report_sample = Tensor(np.zeros((self.real_report.size(0), *self.report_discriminator.output_shape)))
 
-    #     # generate image
-    #     self.fake_img = self.image_generator(z, self.real_report)
-    #     # reconstruct reports and images
-    #     self.cycle_report = self.report_generator(self.fake_img)
-    #     self.cycle_img = self.image_generator(z, self.fake_report_0_1)
+        # generate image
+        self.fake_img = self.image_generator(z, self.real_report)
+        # reconstruct reports and images
+        self.cycle_report = self.report_generator(self.fake_img)
+        self.cycle_img = self.image_generator(z, self.fake_report_0_1)
         
-    #     ############ Log Loss for each step ##############
-    #     gen_loss = self.generator_step(valid_img=valid_img_sample, valid_report=valid_report_sample)
-    #     img_disc_loss = self.img_discriminator_step(valid_img_sample, fake_img_sample)
-    #     report_disc_loss = self.report_discriminator_step(valid_report_sample, fake_report_sample)
-    #     # also log the val_loss_float and val_loss_0_1
-    #     self.log('val_loss_float', val_loss_float, on_step=True)
-    #     self.log('val_loss_0_1', val_loss_0_1, on_step=True)
-    #     ##################################################
-    #     # Optional to log metrics on validation step
-    #     if self.opt['trainer']['log_val_metrics']:
-    #         val_log_metrics = {
-    #             'accuracy' : self.val_metrics['accuracy'].compute(),
-    #             'precision' : self.val_metrics['precision'].compute(),
-    #             'recall' : self.val_metrics['recall'].compute(),
-    #             'f1' : self.val_metrics['f1'].compute(),
-    #             'overall_precision' : torch.mean(torch.tensor(self.val_metrics['overall_precision']))
-    #         }
-    #         self.log_val_metrics(val_log_metrics)
-    #     ###################################################
+        ############ Log Loss for each step ##############
+        gen_loss = self.generator_step(valid_img=valid_img_sample, valid_report=valid_report_sample)
+        img_disc_loss = self.img_discriminator_step(valid_img_sample, fake_img_sample)
+        report_disc_loss = self.report_discriminator_step(valid_report_sample, fake_report_sample)
+        # also log the val_loss_float and val_loss_0_1
+        self.log('val_loss_float', val_loss_float, on_step=True)
+        self.log('val_loss_0_1', val_loss_0_1, on_step=True)
+        ##################################################
+        # Optional to log metrics on validation step
+        if self.opt['trainer']['log_val_metrics_on_step']:
+            val_log_metrics = {
+                'accuracy' : self.val_metrics['accuracy'].compute(),
+                'precision' : self.val_metrics['precision'].compute(),
+                'recall' : self.val_metrics['recall'].compute(),
+                'f1' : self.val_metrics['f1'].compute(),
+                'overall_precision' : torch.mean(torch.tensor(self.val_metrics['overall_precision']))
+            }
+            self.log_val_metrics(val_log_metrics, on_step=True)
+        ###################################################
        
         
-    # def on_validation_epoch_end(self):
-    #     # log the metrics
-    #     val_log_metrics = {
-    #         'accuracy' : self.val_metrics['accuracy'].compute(),
-    #         'precision' : self.val_metrics['precision'].compute(),
-    #         'recall' : self.val_metrics['recall'].compute(),
-    #         'f1' : self.metrval_metricsics['f1'].compute(),
-    #         'overall_precision' : torch.mean(torch.tensor(self.val_metrics['overall_precision']))
-    #     }
-    #     self.log_val_metrics(val_log_metrics)
-    #     # reset the metrics
-    #     self.val_metrics['accuracy'].reset()
-    #     self.val_metrics['precision'].reset()
-    #     self.val_metrics['recall'].reset()
-    #     self.val_metrics['f1'].reset()
-    #     self.val_metrics['overall_precision'] = []
+    def on_validation_epoch_end(self):
+        # log the metrics
+        val_log_metrics = {
+            'accuracy' : self.val_metrics['accuracy'].compute(),
+            'precision' : self.val_metrics['precision'].compute(),
+            'recall' : self.val_metrics['recall'].compute(),
+            'f1' : self.val_metrics['f1'].compute(),
+            'overall_precision' : torch.mean(torch.tensor(self.val_metrics['overall_precision']))
+        }
+        self.log_val_metrics(val_log_metrics, on_step=False)
+        # reset the metrics
+        self.val_metrics['accuracy'].reset()
+        self.val_metrics['precision'].reset()
+        self.val_metrics['recall'].reset()
+        self.val_metrics['f1'].reset()
+        self.val_metrics['overall_precision'] = []
 
 
     def test_step(self, batch, batch_idx):
