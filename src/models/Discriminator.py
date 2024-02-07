@@ -8,14 +8,25 @@ class ReportDiscriminator(nn.Module):
         self.output_shape = (1, )
 
         self.model = nn.Sequential(
-            nn.Linear(input_dim, 128),
-            nn.LeakyReLU(0.2, inplace=False),
-            nn.Linear(128,1),
+            nn.Linear(input_dim, 512),  # Increased size
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Dropout(0.3),  # Added dropout for regularization
+            
+            nn.Linear(512, 256),  # Additional layer
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Dropout(0.3),  # Additional dropout
+            
+            nn.Linear(256, 128),  # Additional layer
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Dropout(0.3),  # Additional dropout
+            
+            nn.Linear(128, 1),  # Output layer
         )
 
     def forward(self, x):
+        # Removed the sigmoid activation before the model as it's not usual to pre-activate inputs
         x = self.model(x)
-        x = torch.sigmoid(x)
+        x = torch.sigmoid(x)  # Sigmoid at the output for binary classification
         return x
 
 

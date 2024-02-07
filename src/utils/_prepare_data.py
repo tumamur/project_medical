@@ -10,21 +10,34 @@ from PIL import Image
 from .environment_settings import env_settings
 
 
-
-class DataHandler:
-    def __init__(self, opt, mode="train")-> None:
+class   DataHandler:
+    def __init__(self, opt, mode="train") -> None:
         self.opt = opt
         self.mode = mode
-        self.sample_size = self.opt['sample_size']
         self.data_imputation = self.opt["data_imputation"]
         self.master_df = pd.read_csv(env_settings.MASTER_LIST[self.data_imputation])
         self.paired = self.opt["paired"]
 
         if not self.opt["use_all_images"]:
-            self.master_df = self.reduce_data(self.master_df, num_samples=self.opt["num_images"])
+            # reduce the number of images
+            # get sample for train split %80 * num_images
+            # get sample for val split %10 * num_images
+            # get sample for test split %10 * num_images
+
+            train_df = self.master_df[self.master_df["split"] == "train"]
+            val_df = self.master_df[self.master_df["split"] == "val"]
+            test_df = self.master_df[self.master_df["split"] == "test"]
+
+            train_df = self.reduce_data(train_df, num_samples=int(self.opt["num_images"] * 0.8))
+            val_df = self.reduce_data(val_df, num_samples=int(self.opt["num_images"] * 0.1))
+            test_df = self.reduce_data(test_df, num_samples=int(self.opt["num_images"] * 0.1))
+
+            self.master_df = pd.concat([train_df, val_df, test_df])
+            # reset the index
+            self.master_df = self.master_df.reset_index(drop=True)
 
         self.records = self.create_records()
-    
+
     def reduce_data(self, df, num_samples=1000):
         return df.sample(n=num_samples, random_state=42).reset_index(drop=True)
 
@@ -45,7 +58,6 @@ class DataHandler:
         labels = self.get_labels(label_df)
         images = self.get_images(images_df)
         splits = self.get_split(images_df)
-
         
         for i in range(len(images)):
 
@@ -73,16 +85,30 @@ class DataHandler:
 
     def create_unpaired_dataset(self):
 
-        unpaired_samples = {}
+        val_master_df = self.master_df[self.master_df["split"] == "val"]
+        train_master_df = self.master_df[self.master_df["split"] == "train"]
 
-        label_df = self.master_df[self.opt["chexpert_labels"]]
-        images_df = self.master_df[["jpg", "split"]]
+        # shuffle the train and val dataframes
+        print('length of train images:', len(train_master_df))
+        print('length of val images:', len(val_master_df))
 
-        # TODO :now create unpaired records:
-        # Shuffle one of the df to break the pairing
+        print('shuffling train images to')
+        train_images_df = train_master_df[['jpg', 'split']]
+        train_labels_df = train_master_df[self.opt["chexpert_labels"]]
 
-        images_df = images_df.sample(frac=1).reset_index(drop=True)
+        train_images_df = train_images_df.sample(frac=1).reset_index(drop=True)
 
+        val_images_df = val_master_df[['jpg', 'split']]
+        val_labels_df = val_master_df[self.opt["chexpert_labels"]]
+
+        # now create new images_df and label_df
+        images_df = pd.concat([train_images_df, val_images_df])
+        label_df = pd.concat([train_labels_df, val_labels_df])
+
+        # reset the index
+        images_df = images_df.reset_index(drop=True)
+        label_df = label_df.reset_index(drop=True)
+        
         return images_df, label_df
 
     def create_paired_dataset(self):

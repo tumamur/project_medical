@@ -65,13 +65,40 @@ def main(params):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Training settings')
-    parser.add_argument('--image_generator', default='cgan')
-    parser.add_argument('--n_epochs', type=int, default=5)
-    parser.add_argument('--dataset_size', type=int, default=-1) # -1 : all
+    parser.add_argument('--n_epochs', type=int, default=10)
+    parser.add_argument('--batch_size', type=int, default=1)
+    parser.add_argument('--update_freq', type=int, default=1000)
+    parser.add_argument('--use_float_reports', action='store_true', default=False)
+    parser.add_argument('--adaptive_threshold_disc', action='store_true', default=False)
+    parser.add_argument('--adaptive_threshold_gen', action='store_true', default=False)
+    
+    parser.add_argument('--img_gen_lr', type=float, default=0.0001)
+    parser.add_argument('--img_gen_beta', type=float, default=0.5)
+    parser.add_argument('--report_gen_lr', type=float, default=0.0001)
+    parser.add_argument('--report_gen_beta', type=float, default=0.5)
+    parser.add_argument('--img_disc_lr', type=float, default=0.0001)
+    parser.add_argument('--img_disc_beta', type=float, default=0.5)
+    parser.add_argument('--report_disc_lr', type=float, default=0.0001)
+    parser.add_argument('--report_disc_beta', type=float, default=0.5)
+
+    parser.add_argument('--lambda_cycle_loss', type=int, default=10)
+    
     arguments = parser.parse_args()
+
     
     params = read_config(env_settings.CONFIG)
-    params['dataset']['sample_size'] = arguments.dataset_size
-    params['image_generator']['model'] = arguments.image_generator
     params['trainer']['n_epoch'] = arguments.n_epochs
+    params['dataset']['batch_size'] = arguments.batch_size
+    params['trainer']['update_freq'] = arguments.update_freq
+    params['trainer']['use_float_reports'] = arguments.use_float_reports
+    params['trainer']['adaptive_threshold_gen'] = arguments.adaptive_threshold_gen
+    params['trainer']['lambda_cycle_loss'] = arguments.lambda_cycle_loss
+    params['image_generator']['learning_rate'] = arguments.img_gen_lr
+    params['image_discriminator']['learning_rate'] = arguments.img_disc_lr
+    params['report_generator']['learning_rate'] = arguments.report_gen_lr
+    params['report_discriminator']['learning_rate'] = arguments.report_disc_lr
+    params['image_generator']['beta'] = arguments.img_gen_beta
+    params['image_discriminator']['beta'] = arguments.img_disc_beta
+    params['report_generator']['beta'] = arguments.report_gen_beta
+    params['report_discriminator']['beta'] = arguments.report_disc_beta
     main(params)

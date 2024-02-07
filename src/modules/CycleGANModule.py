@@ -97,11 +97,15 @@ class CycleGAN(pl.LightningModule):
 
     def define_metrics(self):
         self.val_metrics = {
-            'accuracy' : Accuracy(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
-            'precision' : Precision(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
+            'accuracy_micro' : Accuracy(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
+            'precision_micro' : Precision(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
+            'recall_micro' : Recall(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
+            'f1_micro' : F1Score(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
+            'accuracy_macro' : Accuracy(task="multilabel", average="macro", num_labels=self.num_classes).to('cuda:0'),
+            'precision_macro' : Precision(task="multilabel", average="macro", num_labels=self.num_classes).to('cuda:0'),
+            'recall_macro' : Recall(task="multilabel", average="macro", num_labels=self.num_classes).to('cuda:0'),
+            'f1_macro' : F1Score(task="multilabel", average="macro", num_labels=self.num_classes).to('cuda:0'),
             'overall_precision' : [],
-            'recall' : Recall(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
-            'f1' : F1Score(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
         }
 
 
@@ -134,7 +138,7 @@ class CycleGAN(pl.LightningModule):
         #z = Variable(torch.randn(self.batch_size, self.z_size)).float().to(self.device)
         #generated_img = self.image_generator(z, report)
         #return generated_report, generated_img
-        return None
+        return generated_report
         
     def configure_lr_schedulers(self, optimizer):
         lr_scheduler_dict = {
@@ -223,21 +227,12 @@ class CycleGAN(pl.LightningModule):
         
 
     def training_step(self, batch, batch_idx, optimizer_idx):
-        
         self.phase = 'train'
         self.real_img = batch['target'].float()
         self.real_report = batch['report'].float()
         batch_nmb = self.real_img.shape[0]
 
         z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)
-
-
-        # DDPM 
-        if self.opt['image_generator']['model'] == 'ddpm':
-            _ts = torch.randint(1, self.n_T+1, (self.real_img.shape[0], )).to(self.device)
-            noise = torch.randn_like(self.real_img).to(self.device)
-            z = (_ts, noise, self.real_img)
-
         
         # generate valid and fake labels
         valid_img_sample = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
@@ -249,20 +244,20 @@ class CycleGAN(pl.LightningModule):
 
         # get generated image and reports from the generators
         self.fake_report = self.report_generator(self.real_img)
+
+        
         self.fake_img = self.image_generator(z, self.real_report)
   
         fake_reports = torch.sigmoid(self.fake_report)
-        #fake_reports = torch.where(fake_reports > 0.5, 1, 0)
+        if not self.opt['trainer']['use_float_reports']:
+            fake_reports = torch.where(fake_reports > 0.5, 1, 0)
 
         self.fake_img = self.image_generator(z, self.real_report)
         self.cycle_report = self.report_generator(self.fake_img)
-
-        
         self.cycle_img = self.image_generator(z, fake_reports)
-        
-        # update the network weights for every n-th batch
-        if batch_idx % self.update_freq == 0:
-            
+
+
+        if ((batch_idx+1)*self.batch_size) % self.update_freq == 0:
             # plot the images and reports
             self.log_images_on_cycle(batch_idx)
             self.log_reports_on_cycle(batch_idx)
@@ -270,22 +265,18 @@ class CycleGAN(pl.LightningModule):
             if self.opt['trainer']['save_images']:
                 self.save_images(batch_idx)
 
-            if optimizer_idx == 0 or optimizer_idx == 1:
-                gen_loss = self.generator_step(valid_img=valid_img_sample, valid_report=valid_report_sample)
-                if self.opt['trainer']['adaptive_threshold'] and gen_loss > self.opt['trainer']['gen_threshold']:
-                    return {"loss": gen_loss}
-                else:
-                    return {"loss": gen_loss}
-        
-            if (optimizer_idx == 2 or optimizer_idx == 3):
-                img_disc_loss = self.img_discriminator_step(valid_img_sample, fake_img_sample)
-                report_disc_loss = self.report_discriminator_step(valid_report_sample, fake_report_sample)
-                disc_loss = img_disc_loss + report_disc_loss         
-                if self.opt['trainer']['adaptive_threshold'] and disc_loss > self.opt['trainer']['disc_threshold']:
-                    return {"loss": disc_loss}
-                else :
-                    return {"loss": disc_loss}
-      
+        if optimizer_idx == 0 or optimizer_idx == 1:
+            gen_loss = self.generator_step(valid_img=valid_img_sample, valid_report=valid_report_sample)
+            if gen_loss > self.opt['trainer']['gen_threshold']:
+                return {"loss": gen_loss}
+
+        if (optimizer_idx == 2 or optimizer_idx == 3):
+            img_disc_loss = self.img_discriminator_step(valid_img_sample, fake_img_sample)
+            report_disc_loss = self.report_discriminator_step(valid_report_sample, fake_report_sample)
+            disc_loss = img_disc_loss + report_disc_loss         
+            if disc_loss > self.opt['trainer']['disc_threshold']:
+                return {"loss": disc_loss}
+  
 
     def calculate_overall_precision(self, preds, targets, batch_nmb):
         exact_matches = torch.all(preds == targets, dim=1)
@@ -303,17 +294,20 @@ class CycleGAN(pl.LightningModule):
 
         self.fake_report = self.report_generator(self.real_img)
         self.fake_report = torch.sigmoid(self.fake_report)
+        #self.fake_report_0_1 = torch.where(self.fake_report > 0.5, 1, 0)
         self.fake_report_0_1 = torch.where(self.fake_report < 0.5, torch.tensor(0.0, device=self.fake_report.device), self.fake_report)
         self.fake_report_0_1 = torch.where(self.fake_report_0_1 >= 0.5, torch.tensor(1.0, device=self.fake_report.device), self.fake_report_0_1)
-
-        print(self.real_report.device)
-        print(self.fake_report_0_1.device)
         
         # update the metrics
-        self.val_metrics['accuracy'].update(self.fake_report_0_1, self.real_report)
-        self.val_metrics['precision'].update(self.fake_report_0_1, self.real_report)
-        self.val_metrics['recall'].update(self.fake_report_0_1, self.real_report)
-        self.val_metrics['f1'].update(self.fake_report_0_1, self.real_report)
+        self.val_metrics['accuracy_micro'].update(self.fake_report_0_1, self.real_report)
+        self.val_metrics['precision_micro'].update(self.fake_report_0_1, self.real_report)
+        self.val_metrics['recall_micro'].update(self.fake_report_0_1, self.real_report)
+        self.val_metrics['f1_micro'].update(self.fake_report_0_1, self.real_report)
+
+        self.val_metrics['accuracy_macro'].update(self.fake_report_0_1, self.real_report)
+        self.val_metrics['precision_macro'].update(self.fake_report_0_1, self.real_report)
+        self.val_metrics['recall_macro'].update(self.fake_report_0_1, self.real_report)
+        self.val_metrics['f1_macro'].update(self.fake_report_0_1, self.real_report)
         
         # calculate the overall precision
         overall_precision = self.calculate_overall_precision(self.fake_report_0_1, self.real_report, batch_nmb)
@@ -353,11 +347,20 @@ class CycleGAN(pl.LightningModule):
         ##################################################
         # Optional to log metrics on validation step
         if self.opt['trainer']['log_val_metrics_on_step']:
+
+            self.log_images_on_cycle(batch_idx)
+            self.log_reports_on_cycle(batch_idx)
+            self.visualize_images(batch_idx)
+
             val_log_metrics = {
-                'accuracy' : self.val_metrics['accuracy'].compute(),
-                'precision' : self.val_metrics['precision'].compute(),
-                'recall' : self.val_metrics['recall'].compute(),
-                'f1' : self.val_metrics['f1'].compute(),
+                'accuracy_micro' : self.val_metrics['accuracy_micro'].compute(),
+                'precision_micro' : self.val_metrics['precision_micro'].compute(),
+                'recall_micro' : self.val_metrics['recall_micro'].compute(),
+                'f1_micro' : self.val_metrics['f1_micro'].compute(),
+                'accuracy_macro' : self.val_metrics['accuracy_macro'].compute(),
+                'precision_macro' : self.val_metrics['precision_macro'].compute(),
+                'recall_macro' : self.val_metrics['recall_macro'].compute(),
+                'f1_macro' : self.val_metrics['f1_macro'].compute(),
                 'overall_precision' : torch.mean(torch.tensor(self.val_metrics['overall_precision']))
             }
             self.log_val_metrics(val_log_metrics, on_step=True)
@@ -367,18 +370,26 @@ class CycleGAN(pl.LightningModule):
     def on_validation_epoch_end(self):
         # log the metrics
         val_log_metrics = {
-            'accuracy' : self.val_metrics['accuracy'].compute(),
-            'precision' : self.val_metrics['precision'].compute(),
-            'recall' : self.val_metrics['recall'].compute(),
-            'f1' : self.val_metrics['f1'].compute(),
-            'overall_precision' : torch.mean(torch.tensor(self.val_metrics['overall_precision']))
+                'accuracy_micro' : self.val_metrics['accuracy_micro'].compute(),
+                'precision_micro' : self.val_metrics['precision_micro'].compute(),
+                'recall_micro' : self.val_metrics['recall_micro'].compute(),
+                'f1_micro' : self.val_metrics['f1_micro'].compute(),
+                'accuracy_macro' : self.val_metrics['accuracy_macro'].compute(),
+                'precision_macro' : self.val_metrics['precision_macro'].compute(),
+                'recall_macro' : self.val_metrics['recall_macro'].compute(),
+                'f1_macro' : self.val_metrics['f1_macro'].compute(),
+                'overall_precision' : torch.mean(torch.tensor(self.val_metrics['overall_precision']))
         }
         self.log_val_metrics(val_log_metrics, on_step=False)
         # reset the metrics
-        self.val_metrics['accuracy'].reset()
-        self.val_metrics['precision'].reset()
-        self.val_metrics['recall'].reset()
-        self.val_metrics['f1'].reset()
+        self.val_metrics['accuracy_micro'].reset()
+        self.val_metrics['precision_micro'].reset()
+        self.val_metrics['recall_micro'].reset()
+        self.val_metrics['f1_micro'].reset()
+        self.val_metrics['accuracy_macro'].reset()
+        self.val_metrics['precision_macro'].reset()
+        self.val_metrics['recall_macro'].reset()
+        self.val_metrics['f1_macro'].reset()
         self.val_metrics['overall_precision'] = []
 
 
@@ -402,32 +413,45 @@ class CycleGAN(pl.LightningModule):
 
         step = self.current_epoch * batch_idx + batch_idx
 
-        self.logger.experiment.add_image(f"On step cycle img", cycle_img_tensor, step, dataformats='CHW')
-        self.logger.experiment.add_image(f"On step real img", real_img_tensor, step, dataformats='CHW')
-        self.logger.experiment.add_image(f"On step fake_img", fake_img_tensor, step, dataformats='CHW')
+        self.logger.experiment.add_image(f"On step {self.phase} cycle img", cycle_img_tensor, step, dataformats='CHW')
+        self.logger.experiment.add_image(f"On step {self.phase} real img", real_img_tensor, step, dataformats='CHW')
+        self.logger.experiment.add_image(f"On step {self.phase} fake_img", fake_img_tensor, step, dataformats='CHW')
 
     def log_reports_on_cycle(self, batch_idx):
         real_report = self.real_report[0]
         cycle_report = self.cycle_report[0]
         # Process the generated report
+        
         real_report = real_report.cpu().detach()
+        real_report_raw = real_report.clone()
+        
         real_report = torch.sigmoid(real_report)
         real_report = (real_report > 0.5).int()
         report_text_labels = [self.opt['dataset']['chexpert_labels'][idx] for idx, val in enumerate(real_report) if
                               val == 1]
         report_text_real = ', '.join(report_text_labels)
+        # Convert tensor elements to strings for joining
+        report_text_real_raw = ', '.join([str(item.item()) for item in real_report_raw])
 
+
+        
         generated_report = cycle_report.cpu().detach()
         generated_report = torch.sigmoid(generated_report)
+        generated_report_raw = generated_report.clone()
         generated_report = (generated_report > 0.5).int()
         report_text_labels_cycle = [self.opt['dataset']['chexpert_labels'][idx] for idx, val in enumerate(generated_report) if
                               val == 1]
         report_text_cycle = ', '.join(report_text_labels_cycle)
+        # Convert tensor elements to strings for joining
+        report_text_cycle_raw = ', '.join([str(item.item()) for item in generated_report_raw])
+
 
         step = self.current_epoch * batch_idx + batch_idx
-
-        self.logger.experiment.add_text(f"On step cycle report", report_text_real, step)
-        self.logger.experiment.add_text(f"On step real report", report_text_cycle, step)
+        
+        self.logger.experiment.add_text(f"On step {self.phase} cycle report", report_text_cycle, step)
+        self.logger.experiment.add_text(f"On step {self.phase} real report", report_text_real , step)
+        self.logger.experiment.add_text(f"On step {self.phase} cycle report raw", report_text_cycle_raw, step)
+        self.logger.experiment.add_text(f"On step {self.phase} real report raw", report_text_real_raw, step)
 
     def save_images(self, batch_idx):
         # Process and save the real image
@@ -441,29 +465,10 @@ class CycleGAN(pl.LightningModule):
         cycle_image.save(cycle_image_path)
 
     def visualize_images(self, batch_idx):
-        #tensor = self.real_img[0]
-
-        #mean = [0.485, 0.456, 0.406]
-        #std = [0.229, 0.224, 0.225]
-        #denorm = tensor.clone().cpu().detach()
-        #for t, m, s in zip(denorm, mean, std):
-        #   t.mul_(s).add_(m)
-
-        #image_to_display = denorm.numpy().transpose(1, 2, 0)
-        #image_to_display = np.clip(image_to_display, 0, 1)
-        # plt.imshow(tensor.permute(1, 2, 0).cpu().detach())
         real_img = self.convert_tensor_to_image(self.real_img[0])
         plt.imshow(real_img)
         plt.axis('off')
         plt.show()
-
-        #cycle_tensor = self.cycle_img[0]
-        #denorm = cycle_tensor.clone().cpu().detach()
-        #for t, m, s in zip(denorm, mean, std):
-        #   t.mul_(s).add_(m)
-        #image_to_display = denorm.numpy().transpose(1, 2, 0)
-        #image_to_display = np.clip(image_to_display, 0, 1)
-        # plt.imshow(cycle_tensor.permute(1, 2, 0).cpu().detach())
         cycle_img = self.convert_tensor_to_image(self.cycle_img[0])
         plt.imshow(cycle_img)
         plt.axis('off')

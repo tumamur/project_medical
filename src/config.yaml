@@ -46,7 +46,7 @@ image_generator:
 image_discriminator:
   learning_rate: 0.0001
   optimizer: 'Adam' # AdamW
-  weight_decay: 0.0001
+  weight_decay: 0.00001
   decay_epochs : 5
   beta: 0.5
   channels: 3
@@ -57,9 +57,9 @@ image_discriminator:
 
 report_generator:
   model : 'biovil_t'
-  learning_rate: 0.001
+  learning_rate: 0.0001
   optimizer: 'Adam' # AdamW
-  weight_decay: 0.0001
+  weight_decay: 0.001
   decay_epochs : 5
   beta: 0.5
   classification_head_hidden1: 512
@@ -71,7 +71,7 @@ report_generator:
 
 report_discriminator:
   base : 'discriminator_network'
-  learning_rate: 0.0001
+  learning_rate: 0.00001
   optimizer: 'Adam' # AdamW
   weight_decay: 0.0001
   decay_epochs : 5
@@ -82,22 +82,24 @@ report_discriminator:
 
 trainer :
   num_classes : 13
-  lambda_cycle_loss: 10
+  lambda_cycle_loss: 15
   seed : 42
   save_images : False
-  buffer_size : 300
+  buffer_size : 500
+  use_float_reports : False
   scheduler_interval : 'step'
   scheduler_iter : 300
   check_val_every_n_epochs: 1
   n_epoch: 5
-  update_freq : 1000
-  adaptive_threshold : True
+  update_freq : 80
+  adaptive_threshold_gen : False
+  adaptive_threshold_disc : False
   gen_threshold : 0.25
   disc_threshold : 0.20
   log_images_steps: 100
   log_metrics_step : 10
   lr_scheduler : 'step_lr'
-  log_val_metrics_on_step : False
+  log_val_metrics_on_step : True
 
 
 
