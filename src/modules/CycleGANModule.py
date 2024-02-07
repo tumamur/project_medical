@@ -1,3 +1,5 @@
+from typing import Union, List
+
 import torch
 import timm
 import torch.nn as nn
@@ -12,6 +14,7 @@ from losses.Test_loss import ClassificationLoss
 from losses.Perceptual_loss import PerceptualLoss
 from models.DDPM import ContextUnet, DDPM
 from losses.Perceptual_xrays import Perceptual_xray
+from pytorch_lightning.utilities.types import EPOCH_OUTPUT
 from utils.environment_settings import env_settings
 cuda = True if torch.cuda.is_available() else False
 Tensor = torch.cuda.FloatTensor if cuda else torch.Tensor
@@ -89,10 +92,27 @@ class CycleGAN(pl.LightningModule):
 
         # Metrics
         # Possibly change to average="macro"
-        self.val_accuracy = Accuracy(task="multilabel", average="micro", num_labels=self.num_classes)
-        self.val_precision = Precision(task="multilabel", average="micro", num_labels=self.num_classes)
-        self.val_recall = Recall(task="multilabel", average="micro", num_labels=self.num_classes)
-        self.val_f1 = F1Score(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.val_accuracy_micro = Accuracy(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.val_accuracy_macro = Accuracy(task="multilabel", average="macro", num_labels=self.num_classes)
+        self.val_precision_micro = Precision(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.val_precision_macro = Precision(task="multilabel", average="macro", num_labels=self.num_classes)
+        self.val_recall_micro = Recall(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.val_recall_macro = Recall(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.val_f1_micro = F1Score(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.val_f1_macro = F1Score(task="multilabel", average="macro", num_labels=self.num_classes)
+        self.test_accuracy_cycle_micro = Accuracy(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.test_recall_cycle_micro = Recall(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.test_f1_cycle_micro = F1Score(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.test_precision_cycle_micro = Precision(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.val_accuracy_cycle_micro = Accuracy(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.val_precision_cycle_micro = Precision(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.val_recall_cycle_micro = Recall(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.val_f1_cycle_micro = F1Score(task="multilabel", average="micro", num_labels=self.num_classes)
+        self.val_accuracy_cycle_macro = Accuracy(task="multilabel", average="macro", num_labels=self.num_classes)
+        self.val_precision_cycle_macro = Precision(task="multilabel", average="macro", num_labels=self.num_classes)
+        self.val_recall_cycle_macro = Recall(task="multilabel", average="macro", num_labels=self.num_classes)
+        self.val_f1_cycle_macro = F1Score(task="multilabel", average="macro", num_labels=self.num_classes)
+
 
     def forward(self, img):
        
@@ -275,23 +295,41 @@ class CycleGAN(pl.LightningModule):
         self.cycle_report = self.report_generator(self.fake_img)
         self.cycle_img = self.image_generator(z, fake_reports)
 
+        cycle_reports = torch.sigmoid(self.cycle_report)
+        cycle_reports = torch.where(cycle_reports > 0.5, 1.0, 0.0)
+        self.test_accuracy_cycle_micro.update(cycle_reports, self.real_report)
+        self.test_recall_cycle_micro.update(cycle_reports, self.real_report)
+        self.test_f1_cycle_micro.update(cycle_reports, self.real_report)
+        self.test_precision_cycle_micro.update(cycle_reports, self.real_report)
+        test_precision_overall = self.calculate_metrics_overall(cycle_reports, self.real_report, batch_nmb)
+
+        test_metrics = {
+            "test_accuracy_cycle_micro": self.test_accuracy_cycle_micro,
+            "test_recall_cycle_micro": self.test_recall_cycle_micro,
+            "test_f1_cycle_micro": self.test_f1_cycle_micro,
+            "test_precision_cycle_micro": self.test_precision_cycle_micro,
+            "test_precision_overall_cycle": test_precision_overall,
+        }
+
+        self.log_dict(test_metrics, on_step=True, on_epoch=True, prog_bar=True)
+
         if batch_idx % 1000 == 0:
-            if (batch_idx % self.log_images_steps) == 0 and optimizer_idx == 0:
+            if optimizer_idx == 0:
                 self.log_images_on_cycle(batch_idx)
                 self.log_reports_on_cycle(batch_idx)
                 self.visualize_images(batch_idx)
 
-            if optimizer_idx == 0 or optimizer_idx == 1:
-                gen_test_loss = self.generator_step(valid)
-                if gen_test_loss > self.gen_threshold:
-                    gen_loss = gen_test_loss
-                    return gen_loss
+        if optimizer_idx == 0 or optimizer_idx == 1:
+            gen_test_loss = self.generator_step(valid)
+            if gen_test_loss > self.gen_threshold:
+                gen_loss = gen_test_loss
+                return gen_loss
 
-            elif optimizer_idx == 2 or optimizer_idx == 3:
-                disc_test_loss = self.discriminator_step(valid, fake)
-                if disc_test_loss > self.disc_threshold:
-                    disc_loss = disc_test_loss
-                    return disc_loss
+        elif optimizer_idx == 2 or optimizer_idx == 3:
+            disc_test_loss = self.discriminator_step(valid, fake)
+            if disc_test_loss > self.disc_threshold:
+                disc_loss = disc_test_loss
+                return disc_loss
 
     def validation_step(self, batch, batch_idx):
         self.real_img = batch['target'].float()
@@ -303,10 +341,14 @@ class CycleGAN(pl.LightningModule):
         self.fake_report_0_1 = torch.where(self.fake_report > 0.5, 1.0, 0.0)
 
         # self.val_accuracy.update(self.fake_report_0_1, self.real_report)
-        self.val_accuracy.update(self.fake_report_0_1, self.real_report)
-        self.val_precision.update(self.fake_report_0_1, self.real_report)
-        self.val_recall.update(self.fake_report_0_1, self.real_report)
-        self.val_f1.update(self.fake_report_0_1, self.real_report)
+        self.val_accuracy_micro.update(self.fake_report_0_1, self.real_report)
+        self.val_accuracy_macro.update(self.fake_report_0_1, self.real_report)
+        self.val_precision_micro.update(self.fake_report_0_1, self.real_report)
+        self.val_recall_macro.update(self.fake_report_0_1, self.real_report)
+        self.val_recall_micro.update(self.fake_report_0_1, self.real_report)
+        self.val_recall_macro.update(self.fake_report_0_1, self.real_report)
+        self.val_f1_macro.update(self.fake_report_0_1, self.real_report)
+        self.val_f1_micro.update(self.fake_report_0_1, self.real_report)
         precision_overall = self.calculate_metrics_overall(self.fake_report_0_1, self.real_report, batch_nmb)
 
         val_loss_float = self.report_consistency_loss(self.fake_report, self.real_report)
@@ -329,23 +371,70 @@ class CycleGAN(pl.LightningModule):
         self.cycle_report = self.report_generator(self.fake_img)
         self.cycle_img = self.image_generator(z, self.fake_report_0_1)
 
+        cycle_report = torch.sigmoid(self.cycle_report)
+        cycle_report = torch.where(cycle_report > 0.5, 1.0, 0.0)
+        precision_overall_cycle = self.calculate_metrics_overall(cycle_report, self.real_report, batch_nmb)
+        self.val_accuracy_cycle_micro.update(cycle_report, self.real_report)
+        self.val_accuracy_cycle_macro.update(cycle_report, self.real_report)
+        self.val_precision_cycle_micro.update(cycle_report, self.real_report)
+        self.val_precision_cycle_macro.update(cycle_report, self.real_report)
+        self.val_recall_cycle_micro.update(cycle_report, self.real_report)
+        self.val_recall_cycle_macro.update(cycle_report, self.real_report)
+        self.val_f1_cycle_micro.update(cycle_report, self.real_report)
+        self.val_f1_cycle_macro.update(cycle_report, self.real_report)
+
         val_gen_loss = self.generator_step(valid, "validation")
         val_disc_loss = self.discriminator_step(valid, fake, "validation")
 
         val_metrics = {
-            "val_accuracy": self.val_accuracy,
-            "val_precision": self.val_precision,
+            "val_accuracy_micro": self.val_accuracy_micro,
+            "val_accuracy_macro": self.val_accuracy_macro,
+            "val_precision_micro": self.val_precision_micro,
+            "val_precision_macro": self.val_precision_macro,
             "val_precision_overall": precision_overall,
-            "val_recall": self.val_recall,
-            "val_f1": self.val_f1,
+            "val_precision_overall_cycle": precision_overall_cycle,
+            "val_recall_micro": self.val_recall_micro,
+            "val_recall_macro": self.val_recall_macro,
+            "val_f1_micro": self.val_f1_micro,
+            "val_f1_macro": self.val_f1_macro,
             "val_loss_sigmoid": val_loss_float,
             "val_loss_where": val_loss_0_1,
+            "val_accuracy_cycle_micro": self.val_accuracy_cycle_micro,
+            "val_accuracy_cycle_macro": self.val_accuracy_cycle_macro,
+            "val_precision_cycle_micro": self.val_precision_cycle_micro,
+            "val_precision_cycle_macro": self.val_precision_cycle_macro,
+            "val_recall_cycle_micro": self.val_recall_cycle_micro,
+            "val_recall_cycle_macro": self.val_recall_cycle_macro,
+            "val_f1_cycle_micro": self.val_f1_cycle_micro,
+            "val_f1_cycle_macro": self.val_f1_macro,
         }
 
         self.log_dict(val_metrics, on_step=True, on_epoch=True, prog_bar=True)
 
     def test_step(self, batch, batch_idx):
         pass
+
+    '''def validation_epoch_end(self, validation_step_outputs):
+        self.test_recall_cycle_micro.reset()
+        self.test_f1_cycle_micro.reset()
+        self.test_accuracy_cycle_micro.reset()
+        self.test_precision_cycle_micro.reset()
+        self.val_accuracy_micro.reset()
+        self.val_accuracy_macro.reset()
+        self.val_precision_micro.reset()
+        self.val_precision_macro.reset()
+        self.val_recall_micro.reset()
+        self.val_recall_macro.reset()
+        self.val_f1_micro.reset()
+        self.val_f1_macro.reset()
+        self.val_f1_cycle_micro.reset()
+        self.val_f1_cycle_macro.reset()
+        self.val_accurracy_cycle_micro.reset()
+        self.val_accuracy_cycle_macro.reset()
+        self.val_precision_cycle_micro.reset()
+        self.val_precision_cycle_macro.reset()
+        self.val_recall_cycle_micro.reset()
+        self.val_recall_cycle_macro.reset()'''
 
     def predict_step(self, batch, batch_idx):
         # return generated report and generated image from generated report
@@ -492,9 +581,9 @@ class CycleGAN(pl.LightningModule):
     
     def _get_report_generator(self):
         model_name = self.opt["report_generator"]["image_encoder_model"]
-        if model_name == "Ark":
+        if model_name == "ARK":
             return ARKModel(num_classes=self.num_classes,
-                            ark_pretrained_path=env_settings.PRETRAINED_PATH['ARK'])
+                            ark_pretrained_path=env_settings.PRETRAINED_PATH_ARK)
         
         elif model_name == "BioVil":
             return BioViL(embedding_size=self.opt["report_generator"]["embedding_size"], 
