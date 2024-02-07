@@ -8,6 +8,7 @@ from models.ARK import ARKModel
 from models.buffer import ReportBuffer, ImageBuffer
 from models.Discriminator import ImageDiscriminator
 from models.cGAN import cGAN, cGANconv
+from models.RATGAN import NetG, NetD, CustomLSTM
 from losses.Test_loss import ClassificationLoss
 from losses.Perceptual_loss import PerceptualLoss
 from models.DDPM import ContextUnet, DDPM
@@ -57,6 +58,7 @@ class CycleGAN(pl.LightningModule):
         self.MSE = nn.MSELoss()
         self.n_feat = self.opt["image_generator"]["n_feat"]
         self.n_T = self.opt["image_generator"]["n_T"]
+        self.NF = self.opt['image_generator']['NF']
         self.save_images = opt["trainer"]["save_images"]
         if self.save_images:
             self.save_path = env_settings.SAVE_IMAGES_PATH
@@ -93,6 +95,8 @@ class CycleGAN(pl.LightningModule):
         self.val_precision = Precision(task="multilabel", average="micro", num_labels=self.num_classes)
         self.val_recall = Recall(task="multilabel", average="micro", num_labels=self.num_classes)
         self.val_f1 = F1Score(task="multilabel", average="micro", num_labels=self.num_classes)
+
+        self.netD = NetD(self.NF) 
 
     def forward(self, img):
        
@@ -157,6 +161,8 @@ class CycleGAN(pl.LightningModule):
 
     def img_adv_criterion(self, fake_image, real_image):
         # adversarial loss
+        # print('fake', fake_image.shape)
+        # print('real', real_image.shape)
         return self.img_adversarial_loss(fake_image, real_image)
 
     def img_consistency_criterion(self, real_image, cycle_image):
@@ -173,9 +179,9 @@ class CycleGAN(pl.LightningModule):
         # adversarial loss
         adv_loss_IR = self.report_discriminator(self.fake_report) # return cosine similarity between fake report and entire dataset
         # adv_loss_IR = self.report_adv_criterion(self.report_discriminator(self.fake_report), valid)
-        adv_loss_RI = self.img_adv_criterion(self.image_discriminator(self.fake_img), valid)
+        # adv_loss_RI = self.img_adv_criterion(self.image_discriminator(self.fake_img), valid)
         # TODO : Should we really divide by 2?
-        total_adv_loss = adv_loss_IR + adv_loss_RI
+        total_adv_loss = adv_loss_IR
         # print(f'adv_loss:{total_adv_loss}')
         ############################################################################################
         
@@ -200,7 +206,7 @@ class CycleGAN(pl.LightningModule):
                 "gen_adv_loss": total_adv_loss,
                 "gen_cycle_loss": total_cycle_loss,
                 "gen_adv_loss_IR": adv_loss_IR,
-                "gen_adv_loss_RI": adv_loss_RI,
+                # "gen_adv_loss_RI": adv_loss_RI,
                 "gen_cycle_loss_IRI": cycle_loss_IRI,
                 "gen_cycle_loss_RIR": cycle_loss_RIR,
                 "gen_cycle_loss_IR_MSE": cycle_loss_IRI_MSE,
@@ -256,25 +262,54 @@ class CycleGAN(pl.LightningModule):
     def training_step(self, batch, batch_idx, optimizer_idx):
         self.real_img = batch['target'].float()
         self.real_report = batch['report'].float()
-        batch_nmb = self.real_img.shape[0]
-
-        z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)
+        batch_size = self.real_img.shape[0]
         
         # generate valid and fake labels
         valid = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
         fake = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape)))
 
+        real_features = self.netD(self.real_img)
+        
         # generate fake reports and images
         self.fake_report = self.report_generator(self.real_img)
-        self.fake_img = self.image_generator(z, self.real_report)
+        real_condition = self.real_report.repeat(1, 16)
+        real_condition = nn.functional.pad(real_condition, (0, 48, 0, 0))
+        
+        output = self.netD.COND_DNET(real_features,real_condition)
+        errD_real = torch.nn.ReLU()(1.0 - output).mean()
 
+        output = self.netD.COND_DNET(real_features[:(batch_size - 1)], real_condition[1:batch_size])
+        errD_mismatch = torch.nn.ReLU()(1.0 + output).mean()
+
+        
+        noise = torch.randn((batch_size, 100), device=self.device)
+        self.image_generator.lstm.init_hidden(noise)
+        
+        self.fake_img = self.image_generator(noise, real_condition)
+
+        # G does not need update with D
+        fake_features = self.netD(self.fake_img.detach()) 
+
+        errD_fake = self.netD.COND_DNET(fake_features, real_condition)
+        errD_fake = torch.nn.ReLU()(1.0 + errD_fake).mean()          
+
+        errD = errD_real + (errD_fake + errD_mismatch)/2.0
+        print('errD loss', errD)
+        # optimizerD.zero_grad()
+        # optimizerG.zero_grad()
+        # errD.backward()
+        # optimizerD.step()
+        
         fake_reports = torch.sigmoid(self.fake_report)
         fake_reports = torch.where(fake_reports > 0.5, 1, 0)
 
         # reconstruct reports and images
         self.cycle_report = self.report_generator(self.fake_img)
-        self.cycle_img = self.image_generator(z, fake_reports)
-
+        fake_condition = self.fake_report.repeat(1, 16)
+        fake_condition = nn.functional.pad(fake_condition, (0, 48, 0, 0))
+        self.cycle_img = self.image_generator(noise, fake_condition)
+        # print("real image", self.real_img.shape)
+        # print("fake image", self.fake_img.shape)
         if batch_idx % 1000 == 0:
             if (batch_idx % self.log_images_steps) == 0 and optimizer_idx == 0:
                 self.log_images_on_cycle(batch_idx)
@@ -288,61 +323,64 @@ class CycleGAN(pl.LightningModule):
                     return gen_loss
 
             elif optimizer_idx == 2 or optimizer_idx == 3:
-                disc_test_loss = self.discriminator_step(valid, fake)
-                if disc_test_loss > self.disc_threshold:
-                    disc_loss = disc_test_loss
-                    return disc_loss
+                pass
+                # disc_test_loss = self.discriminator_step(valid, fake)
+                # if disc_test_loss > self.disc_threshold:
+                #     disc_loss = disc_test_loss
+                #     return disc_loss
 
-    def validation_step(self, batch, batch_idx):
-        self.real_img = batch['target'].float()
-        self.real_report = batch['report'].float()
-        batch_nmb = self.real_img.shape[0]
+    # def validation_step(self, batch, batch_idx):
+        # self.real_img = batch['target'].float()
+        # self.real_report = batch['report'].float()
+        # batch_nmb = self.real_img.shape[0]
 
-        self.fake_report = self.report_generator(self.real_img)
-        self.fake_report = torch.sigmoid(self.fake_report)
-        self.fake_report_0_1 = torch.where(self.fake_report > 0.5, 1.0, 0.0)
+        # self.fake_report = self.report_generator(self.real_img)
+        # self.fake_report = torch.sigmoid(self.fake_report)
+        # self.fake_report_0_1 = torch.where(self.fake_report > 0.5, 1.0, 0.0)
 
+        # # self.val_accuracy.update(self.fake_report_0_1, self.real_report)
         # self.val_accuracy.update(self.fake_report_0_1, self.real_report)
-        self.val_accuracy.update(self.fake_report_0_1, self.real_report)
-        self.val_precision.update(self.fake_report_0_1, self.real_report)
-        self.val_recall.update(self.fake_report_0_1, self.real_report)
-        self.val_f1.update(self.fake_report_0_1, self.real_report)
-        precision_overall = self.calculate_metrics_overall(self.fake_report_0_1, self.real_report, batch_nmb)
+        # self.val_precision.update(self.fake_report_0_1, self.real_report)
+        # self.val_recall.update(self.fake_report_0_1, self.real_report)
+        # self.val_f1.update(self.fake_report_0_1, self.real_report)
+        # precision_overall = self.calculate_metrics_overall(self.fake_report_0_1, self.real_report, batch_nmb)
 
-        val_loss_float = self.report_consistency_loss(self.fake_report, self.real_report)
-        val_loss_0_1 = self.report_consistency_loss(self.fake_report_0_1, self.real_report)
+        # val_loss_float = self.report_consistency_loss(self.fake_report, self.real_report)
+        # val_loss_0_1 = self.report_consistency_loss(self.fake_report_0_1, self.real_report)
 
-        # Shuffle data here as paired data is needed for above part
-        indices = torch.randperm(batch_nmb)
-        self.real_report = self.real_report[indices]
-        # Calculating losses for CycleGAN
-        z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)
+        # # Shuffle data here as paired data is needed for above part
+        # indices = torch.randperm(batch_nmb)
+        # self.real_report = self.real_report[indices]
+        # # Calculating losses for CycleGAN
 
-        # generate valid and fake labels
-        valid = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
-        fake = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape)))
+        # # generate valid and fake labels
+        # valid = Tensor(np.ones((self.real_img.size(0), *self.image_discriminator.output_shape)))
+        # fake = Tensor(np.zeros((self.real_img.size(0), *self.image_discriminator.output_shape)))
 
-        # generate and images
-        self.fake_img = self.image_generator(z, self.real_report)
+        # # generate and images
+        # batch_size = batch_nmb
+        # noise = torch.randn((batch_nmb, 100), device=self.device)
+        # self.image_generator.lstm.init_hidden(noise)
+        # self.fake_img = self.image_generator(noise, self.real_report)
 
-        # reconstruct reports and images
-        self.cycle_report = self.report_generator(self.fake_img)
-        self.cycle_img = self.image_generator(z, self.fake_report_0_1)
+        # # reconstruct reports and images
+        # self.cycle_report = self.report_generator(self.fake_img)
+        # self.cycle_img = self.image_generator(noise, self.fake_report_0_1)
 
-        val_gen_loss = self.generator_step(valid, "validation")
-        val_disc_loss = self.discriminator_step(valid, fake, "validation")
+        # val_gen_loss = self.generator_step(valid, "validation")
+        # val_disc_loss = self.discriminator_step(valid, fake, "validation")
 
-        val_metrics = {
-            "val_accuracy": self.val_accuracy,
-            "val_precision": self.val_precision,
-            "val_precision_overall": precision_overall,
-            "val_recall": self.val_recall,
-            "val_f1": self.val_f1,
-            "val_loss_sigmoid": val_loss_float,
-            "val_loss_where": val_loss_0_1,
-        }
+        # val_metrics = {
+        #     "val_accuracy": self.val_accuracy,
+        #     "val_precision": self.val_precision,
+        #     "val_precision_overall": precision_overall,
+        #     "val_recall": self.val_recall,
+        #     "val_f1": self.val_f1,
+        #     "val_loss_sigmoid": val_loss_float,
+        #     "val_loss_where": val_loss_0_1,
+        # }
 
-        self.log_dict(val_metrics, on_step=True, on_epoch=True, prog_bar=True)
+        # self.log_dict(val_metrics, on_step=True, on_epoch=True, prog_bar=True)
 
     def test_step(self, batch, batch_idx):
         pass
@@ -509,12 +547,13 @@ class CycleGAN(pl.LightningModule):
         return ClassificationLoss(env_settings.MASTER_LIST[self.data_imputation])
     
     def _get_image_generator(self):
+        return NetG(self.NF, 100, CustomLSTM(256, 256))
         # return cGAN(generator_layer_size=self.opt["image_generator"]["generator_layer_size"],
           #          z_size=self.z_size,
            #         img_size=self.input_size,
             #        class_num=self.num_classes)
-        return cGANconv(z_size=self.z_size, img_size=self.input_size, class_num=self.num_classes,
-                           img_channels=self.opt["image_discriminator"]["channels"])
+        # return cGANconv(z_size=self.z_size, img_size=self.input_size, class_num=self.num_classes,
+        #                    img_channels=self.opt["image_discriminator"]["channels"])
         # return DDPM(nn_model=ContextUnet(in_channels=3, n_feat=self.n_feat, n_classes=self.num_classes),
           #                betas=(float(self.opt['image_generator']['ddpm_beta1']), float(self.opt['image_generator']['ddpm_beta2'])),
            #               n_T=self.n_T, drop_prob=self.opt['image_generator']['ddpm_drop_prob'])

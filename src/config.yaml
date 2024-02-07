@@ -14,8 +14,8 @@ dataset:
     'Pneumonia',
     'Pneumothorax'
   ]
-  batch_size : 32
-  input_size : 64 #256 #224 #256 #224
+  batch_size : 8
+  input_size : 256 #256 #224 #256 #224
   data_imputation : "zeros"
   val_size : 0.1
   test_size : 0.1
@@ -43,6 +43,7 @@ image_generator:
   ddpm_drop_prob : 0.1
   n_feat : 256
   n_T : 400
+  NF: 64
 
 
 image_discriminator:
