@@ -6,6 +6,7 @@ import health_multimodal.image
 from health_multimodal.image.model.model import BaseImageModel
 from health_multimodal.image.utils import ImageModelType
 from health_multimodal.image.model.pretrained import get_biovil_t_image_encoder, get_biovil_image_encoder
+from torchmetrics import Accuracy, Precision, Recall, F1Score
 
 
 class ArkModel(pl.LightningModule):
@@ -20,6 +21,7 @@ class ArkModel(pl.LightningModule):
                 del self.state_dict[k]
 
         self.model.load_state_dict(self.state_dict, strict=False)
+        self.define_metrics()
 
         self.lr = learning_rate
         self.criterion = criterion
@@ -31,13 +33,25 @@ class ArkModel(pl.LightningModule):
         x = self.model(x)
         return x
 
+    def define_metrics(self):
+        self.val_accuracy = Accuracy(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.val_precision = Precision(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.val_recall = Recall(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.val_f1 = F1Score(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.val_overall_precision = []
+
+        self.train_accuracy = Accuracy(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.train_precision = Precision(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.train_recall = Recall(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.train_f1 = F1Score(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.train_overall_precision = []
+
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(
             self.parameters(),
             lr=self.lr,
             betas=(self.beta1, self.beta2)
         )
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
 
         # Define the learning rate scheduler
         scheduler = {
@@ -50,21 +64,61 @@ class ArkModel(pl.LightningModule):
 
     def training_step(self, train_batch, batch_idx):
         x, labels = train_batch['target'], train_batch['report']
+        batch_nmb = x.shape[0]
         output = self.forward(x)
         loss = self.criterion(output, labels)
 
-        # Log training loss to Tensorboard
-        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True)
+        out = torch.sigmoid(output)
+        out = torch.where(out > 0.5, 1, 0)
+        self.train_accuracy.update(out, labels)
+        self.train_precision.update(out, labels)
+        self.train_recall.update(out, labels)
+        self.train_f1.update(out, labels)
+
+        # calculate the overall precision
+        overall_precision = self.calculate_overall_precision(out, labels, batch_nmb)
+        self.train_overall_precision.append(overall_precision)
+
+        test_logs = {
+            'train_loss': loss,
+            'train_accuracy': self.train_accuracy,
+            'train_recall': self.train_recall,
+            'train_f1': self.train_f1,
+            'train_precision': self.train_precision,
+            'train_overall_precision': overall_precision
+        }
+        self.log_dict(test_logs, on_step=True, on_epoch=True, prog_bar=True)
 
         return loss
 
     def validation_step(self, val_batch, batch_idx):
         x, labels = val_batch['target'], val_batch['report']
+        batch_nmb = x.shape[0]
         output = self.forward(x)
         loss = self.criterion(output, labels)
 
-        # Log training loss to Tensorboard
-        self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True)
+        out = torch.sigmoid(output)
+        out = torch.where(out > 0.5, 1, 0)
+
+        # update the metrics
+        self.val_accuracy.update(out, labels)
+        self.val_precision.update(out, labels)
+        self.val_recall.update(out, labels)
+        self.val_f1.update(out, labels)
+
+        # calculate the overall precision
+        overall_precision = self.calculate_overall_precision(out, labels, batch_nmb)
+        self.val_overall_precision.append(overall_precision)
+
+        val_logs = {
+            'val_loss': loss,
+            'val_accuracy': self.val_accuracy,
+            'val_recall': self.val_recall,
+            'val_f1': self.val_f1,
+            'val_precision': self.val_precision,
+            'val_overall_precision': overall_precision,
+        }
+        self.log_dict(val_logs, on_step=True, on_epoch=True, prog_bar=True)
 
         return loss
 
@@ -128,14 +182,29 @@ class BioVILModel(pl.LightningModule):
                                                      dropout_rate=dropout_rate)
         self.lr = learning_rate
         self.criterion = criterion
+        self.num_classes = num_classes
         self.beta1 = params["report_generator"]["beta1"]
         self.beta2 = params["report_generator"]["beta2"]
+        self.define_metrics()
 
     def forward(self, x):
         # Pass the input through the underlying model
         x = self.vision_transformer(x)
         x = self.ClassificationHead(x)
         return x
+
+    def define_metrics(self):
+        self.val_accuracy = Accuracy(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.val_precision = Precision(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.val_recall = Recall(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.val_f1 = F1Score(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.val_overall_precision = []
+
+        self.train_accuracy = Accuracy(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.train_precision = Precision(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.train_recall = Recall(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.train_f1 = F1Score(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda')
+        self.train_overall_precision = []
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(
@@ -156,23 +225,67 @@ class BioVILModel(pl.LightningModule):
 
     def training_step(self, train_batch, batch_idx):
         x, labels = train_batch['target'], train_batch['report']
+        batch_nmb = x.shape[0]
         output = self.forward(x)
         loss = self.criterion(output, labels)
+        out = torch.sigmoid(output)
+        out = torch.where(out > 0.5, 1, 0)
+        self.train_accuracy.update(out, labels)
+        self.train_precision.update(out, labels)
+        self.train_recall.update(out, labels)
+        self.train_f1.update(out, labels)
 
-        # Log training loss to Tensorboard
-        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True)
-        
+        # calculate the overall precision
+        overall_precision = self.calculate_overall_precision(out, labels, batch_nmb)
+        self.train_overall_precision.append(overall_precision)
+
+        test_logs = {
+            'train_loss': loss,
+            'train_accuracy': self.train_accuracy,
+            'train_recall': self.train_recall,
+            'train_f1': self.train_f1,
+            'train_precision': self.train_precision,
+            'train_overall_precision': overall_precision
+        }
+        self.log_dict(test_logs, on_step=True, on_epoch=True, prog_bar=True)
+
         return loss
 
     def validation_step(self, val_batch, batch_idx):
         x, labels = val_batch['target'], val_batch['report']
+        batch_nmb = x.shape[0]
+
         output = self.forward(x)
         loss = self.criterion(output, labels)
 
-        # Log training loss to Tensorboard
-        self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True)
-        
-        return loss
+        out = torch.sigmoid(output)
+        out = torch.where(out > 0.5, 1, 0)
+
+        # update the metrics
+        self.val_accuracy.update(out, labels)
+        self.val_precision.update(out, labels)
+        self.val_recall.update(out, labels)
+        self.val_f1.update(out, labels)
+
+        # calculate the overall precision
+        overall_precision = self.calculate_overall_precision(out, labels, batch_nmb)
+        self.val_overall_precision.append(overall_precision)
+
+        val_logs = {
+            'val_loss': loss,
+            'val_accuracy': self.val_accuracy,
+            'val_recall': self.val_recall,
+            'val_f1': self.val_f1,
+            'val_precision': self.val_precision,
+            'val_overall_precision': overall_precision,
+        }
+        self.log_dict(val_logs, on_step=True, on_epoch=True, prog_bar=True)
+
+    def calculate_overall_precision(self, preds, targets, batch_nmb):
+        exact_matches = torch.all(preds == targets, dim=1)
+        true_positives = torch.sum(exact_matches).item()
+        precision = true_positives / batch_nmb
+        return precision
 
     def test_step(self, test_batch, batch_idx):
         x, labels = test_batch['target'], test_batch['report']

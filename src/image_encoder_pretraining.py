@@ -23,9 +23,9 @@ def main():
     criterion = nn.BCEWithLogitsLoss()
 
     # load model based on specification in the config.yaml
-    if params["report_generator"]["image_encoder_model"] == "Ark":
+    if params["report_generator"]["image_encoder_model"] == "ARK":
         model = ArkModel(params["trainer"]["num_classes"], params["report_generator"]["learning_rate"], criterion,
-                         env_settings.PRETRAINED_PATH, params)
+                         env_settings.PRETRAINED_PATH_ARK, params)
         filename_base = "Ark_model"
     elif params["report_generator"]["image_encoder_model"] == "BioVil":
         model = BioVILModel(params["report_generator"]["embedding_size"],
