@@ -1,0 +1,95 @@
+dataset:
+  batch_size: 1
+  chexpert_labels:
+  - Atelectasis
+  - Cardiomegaly
+  - Consolidation
+  - Edema
+  - Enlarged Cardiomediastinum
+  - Fracture
+  - Lung Lesion
+  - Lung Opacity
+  - No Finding
+  - Pleural Effusion
+  - Pleural Other
+  - Pneumonia
+  - Pneumothorax
+  data_imputation: zeros
+  input_size: 224
+  num_images: 50000
+  num_workers: 4
+  paired: false
+  sample_size: -1
+  test_size: 0.1
+  use_all_images: false
+  val_size: 0.1
+image_discriminator:
+  adversarial_loss: MSE
+  beta: 0.5
+  channels: 3
+  decay_epochs: 5
+  img_height: 224
+  img_width: 224
+  learning_rate: 0.0001
+  optimizer: Adam
+  weight_decay: 1.0e-05
+image_generator:
+  beta: 0.5
+  consistency_loss: biovil_t
+  ddpm_beta1: 1e-4
+  ddpm_beta2: 0.02
+  ddpm_drop_prob: 0.1
+  decay_epochs: 5
+  generator_layer_size:
+  - 256
+  - 512
+  - 1024
+  learning_rate: 0.0001
+  model: cgan
+  n_T: 400
+  n_feat: 128
+  optimizer: Adam
+  weight_decay: 0.001
+  z_size: 100
+report_discriminator:
+  adversarial_loss: MSE
+  base: discriminator_network
+  beta: 0.5
+  decay_epochs: 5
+  learning_rate: 0.0001
+  optimizer: Adam
+  weight_decay: 0.0001
+report_generator:
+  beta: 0.5
+  classification_head_hidden1: 512
+  classification_head_hidden2: 256
+  consistency_loss: BCE
+  decay_epochs: 5
+  dropout_prob: 0.5
+  embedding_size: 128
+  learning_rate: 0.0001
+  model: biovil_t
+  optimizer: Adam
+  weight_decay: 0.001
+trainer:
+  adaptive_threshold_disc: false
+  adaptive_threshold_gen: false
+  buffer_size: 500
+  check_val_every_n_epochs: 1
+  disc_threshold: 0.2
+  gen_threshold: 0.25
+  lambda_cycle_loss: 10
+  log_images_steps: 100
+  log_metrics_step: 10
+  log_val_metrics_on_step: true
+  lr_scheduler: step_lr
+  n_epoch: 10
+  num_classes: 13
+  resume_training: true
+  resume_version: 2
+  save_images: false
+  scheduler_interval: step
+  scheduler_iter: 300
+  seed: 42
+  update_freq: 1000
+  use_float_reports: false

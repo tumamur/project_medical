@@ -23,7 +23,7 @@ dataset:
   num_workers : 4
   paired: False
   use_all_images: False
-  num_images: 10000
+  num_images: 50000
 
 
 image_generator:

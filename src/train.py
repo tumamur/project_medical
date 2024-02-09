@@ -45,12 +45,24 @@ def main(params):
     )
 
     # Create trainer
-    trainer = pl.Trainer(accelerator="gpu",
-                        max_epochs=params['trainer']['n_epoch'],
-                        check_val_every_n_epoch=params['trainer']['check_val_every_n_epochs'],
-                        log_every_n_steps=params["trainer"]["buffer_size"],
-                        callbacks=[checkpoint_callback],
-                        logger=logger)
+
+    if params['trainer']['resume_training']:
+        checkpoint = experiment + '/best_models/version_' + str(params['trainer']['resume_version']) + '/last.ckpt'
+        trainer = pl.Trainer(accelerator="gpu",
+                            max_epochs=params['trainer']['n_epoch'],
+                            check_val_every_n_epoch=params['trainer']['check_val_every_n_epochs'],
+                            log_every_n_steps=params["trainer"]["buffer_size"],
+                            callbacks=[checkpoint_callback],
+                            logger=logger,
+                            resume_from_checkpoint = checkpoint)
+        
+    else:
+        trainer = pl.Trainer(accelerator="gpu",
+                            max_epochs=params['trainer']['n_epoch'],
+                            check_val_every_n_epoch=params['trainer']['check_val_every_n_epochs'],
+                            log_every_n_steps=params["trainer"]["buffer_size"],
+                            callbacks=[checkpoint_callback],
+                            logger=logger)
 
     # start tensorboard
     try:
@@ -71,7 +83,9 @@ if __name__ == '__main__':
     parser.add_argument('--use_float_reports', action='store_true', default=False)
     parser.add_argument('--adaptive_threshold_disc', action='store_true', default=False)
     parser.add_argument('--adaptive_threshold_gen', action='store_true', default=False)
+    parser.add_argument('--resume_training', action='store_true', default=False)
     
+    parser.add_argument('--resume_version', type=int, default=2)
     parser.add_argument('--img_gen_lr', type=float, default=0.0001)
     parser.add_argument('--img_gen_beta', type=float, default=0.5)
     parser.add_argument('--report_gen_lr', type=float, default=0.0001)
@@ -101,4 +115,6 @@ if __name__ == '__main__':
     params['image_discriminator']['beta'] = arguments.img_disc_beta
     params['report_generator']['beta'] = arguments.report_gen_beta
     params['report_discriminator']['beta'] = arguments.report_disc_beta
+    params['trainer']['resume_training'] = arguments.resume_training
+    params['trainer']['resume_version'] = arguments.resume_version
     main(params)

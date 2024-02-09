@@ -11,11 +11,11 @@ from torchvision.transforms.functional import to_tensor
 import matplotlib.pyplot as plt
 from PIL import Image
 
-from models.BioViL import BioViL
+from models.BioViL import *
 from models.StackGAN import StackGANGen1, StackGANGen2, StackGANDisc1, StackGANDisc2
 from models.ARK import ARKModel
 from utils.buffer import ReportBuffer, ImageBuffer
-from models.Discriminator import ImageDiscriminator, ReportDiscriminator
+from models.Discriminator import *
 from models.cGAN import cGAN, cGANconv
 from models.DDPM import ContextUnet, DDPM
 from utils.environment_settings import env_settings
@@ -488,19 +488,22 @@ class CycleGAN(pl.LightningModule):
     def _get_report_generator(self):
         model_dict = {
             # 'ark' : ARKModel(num_classes=self.num_classes,
-            #                    ark_pretrained_path=env_settings.PRETRAINED_PATH['ARK']),
-            'biovil_t': BioViL(embedding_size=self.opt["report_generator"]["embedding_size"], 
-                              num_classes=self.num_classes, 
-                              hidden_1=self.opt["report_generator"]["classification_head_hidden1"],
-                              hidden_2=self.opt["report_generator"]["classification_head_hidden2"], 
-                              dropout_rate=self.opt["report_generator"]["dropout_prob"])
+            # #                    ark_pretrained_path=env_settings.PRETRAINED_PATH['ARK']),
+            # 'biovil_t': BioViL(embedding_size=self.opt["report_generator"]["embedding_size"], 
+            #                   num_classes=self.num_classes, 
+            #                   hidden_1=self.opt["report_generator"]["classification_head_hidden1"],
+            #                   hidden_2=self.opt["report_generator"]["classification_head_hidden2"], 
+            #                   dropout_rate=self.opt["report_generator"]["dropout_prob"])
+            'biovil_t': BioViL_V2()
         }
 
         return model_dict[self.opt['report_generator']['model']]
 
     def _get_report_discriminator(self):
         return ReportDiscriminator(input_dim=self.num_classes)
-    
+        #return CreativeDiscriminator(input_size=self.num_classes)
+        #return VectorDiscriminator(input_size=self.num_classes, hidden_sizes=[128, 64, 32])
+
     def _get_image_generator(self):
         model_dict = {
             'cgan' : cGANconv(z_size=self.z_size, img_size=self.input_size, class_num=self.num_classes,
