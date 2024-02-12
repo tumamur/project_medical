@@ -270,13 +270,15 @@ class CycleGAN(pl.LightningModule):
             if gen_loss > self.opt['trainer']['gen_threshold']:
                 return {"loss": gen_loss}
 
-        if (optimizer_idx == 2 or optimizer_idx == 3):
+        elif optimizer_idx == 2:
             img_disc_loss = self.img_discriminator_step(valid_img_sample, fake_img_sample)
+            if img_disc_loss > self.opt['trainer']['img_disc_threshold']:
+                return {"loss": img_disc_loss}
+
+        elif optimizer_idx == 3:
             report_disc_loss = self.report_discriminator_step(valid_report_sample, fake_report_sample)
-            disc_loss = img_disc_loss + report_disc_loss         
-            if disc_loss > self.opt['trainer']['disc_threshold']:
-                return {"loss": disc_loss}
-  
+            if report_disc_loss > self.opt['trainer']['report_disc_threshold']:
+                return {"loss": report_disc_loss}
 
     def calculate_overall_precision(self, preds, targets, batch_nmb):
         exact_matches = torch.all(preds == targets, dim=1)
