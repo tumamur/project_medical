@@ -67,6 +67,8 @@ report_generator:
   dropout_prob: 0.5
   consistency_loss : 'BCE'
   embedding_size : 512
+  decay: True
+  decay_rate: 1e-5
 
 
 report_discriminator:
@@ -88,7 +90,7 @@ trainer :
   buffer_size : 500
   use_float_reports : False
   scheduler_interval : 'step'
-  scheduler_iter : 300
+  scheduler_iter : 10
   check_val_every_n_epochs: 1
   n_epoch: 5
   update_freq : 80
@@ -100,6 +102,8 @@ trainer :
   log_images_steps: 100
   log_metrics_step : 10
   lr_scheduler : 'step_lr'
+  step_lr_gamma: 0.5
+  exp_lr_gamma: 0.9
   log_val_metrics_on_step : True
 
 

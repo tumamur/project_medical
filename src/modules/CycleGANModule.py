@@ -143,31 +143,51 @@ class CycleGAN(pl.LightningModule):
     def configure_lr_schedulers(self, optimizer):
         lr_scheduler_dict = {
             "cosine_lr": torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.n_epochs, eta_min=1e-7),
-            "step_lr": torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=self.opt['trainer']['scheduler_iter'], gamma=0.95),
-            'lambda': None
+            "step_lr": torch.optim.lr_scheduler.StepLR(optimizer=optimizer,
+                                                       step_size=self.opt['trainer']['scheduler_iter'],
+                                                       gamma=self.opt['trainer']['step_lr_gamma']),
+            "exp_lr": torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer,
+                                                             gamma=self.opt['trainer']['exp_lr_gamma']),
+            'lambda': None,
+            'ReduceLROnPlateau': None
         }
         return lr_scheduler_dict[self.opt['trainer']['lr_scheduler']]
 
     def configure_optimizers(self):
-        
+
+        if self.opt['report_generator']['decay']:
+            optimizer_report_gen = self.report_gen_optimizer(self.report_generator.parameters(),
+                                                             lr=self.opt['report_generator']['learning_rate'],
+                                                             betas=(self.opt['report_generator']['beta'], 0.999),
+                                                             weight_decay=self.opt['report_generator']['weight_decay'])
+
+        else:
+            optimizer_report_gen = self.report_gen_optimizer(self.report_generator.parameters(),
+                                                             lr=self.opt['report_generator']['learning_rate'],
+                                                             betas=(self.opt['report_generator']['beta'], 0.999))
+
         optimizer_img_gen = self.image_gen_optimizer(self.image_generator.parameters(),
-                                                     lr = self.opt['image_generator']['learning_rate'], 
+                                                     lr=self.opt['image_generator']['learning_rate'],
                                                      betas=(self.opt['image_generator']['beta'], 0.999))
 
-        optimizer_report_gen = self.report_gen_optimizer(self.report_generator.parameters(), 
-                                                        lr = self.opt['report_generator']['learning_rate'], 
-                                                        betas=(self.opt['report_generator']['beta'], 0.999))
-                                                        
-        optimizer_img_disc = self.image_disc_optimizer(self.image_discriminator.parameters(), 
-                                                        lr = self.opt['image_discriminator']['learning_rate'], 
-                                                        betas=(self.opt['image_discriminator']['beta'], 0.999))
-                                                       
-        optimizer_report_disc = self.report_disc_optimizer(self.report_discriminator.parameters(), 
-                                                        lr = self.opt['report_discriminator']['learning_rate'], 
-                                                        betas=(self.opt['report_discriminator']['beta'], 0.999))
+        optimizer_img_disc = self.image_disc_optimizer(self.image_discriminator.parameters(),
+                                                       lr=self.opt['image_discriminator']['learning_rate'],
+                                                       betas=(self.opt['image_discriminator']['beta'], 0.999))
 
-        
-        return [optimizer_img_gen, optimizer_report_gen, optimizer_img_disc, optimizer_report_disc]
+        optimizer_report_disc = self.report_disc_optimizer(self.report_discriminator.parameters(),
+                                                           lr=self.opt['report_discriminator']['learning_rate'],
+                                                           betas=(self.opt['report_discriminator']['beta'], 0.999))
+
+        # Initialize schedulers
+        scheduler_img_gen = self.configure_lr_schedulers(optimizer_img_gen)
+        scheduler_report_gen = self.configure_lr_schedulers(optimizer_report_gen)
+        scheduler_img_disc = self.configure_lr_schedulers(optimizer_img_disc)
+        scheduler_report_disc = self.configure_lr_schedulers(optimizer_report_disc)
+
+        optimizers = [optimizer_img_gen, optimizer_report_gen, optimizer_img_disc, optimizer_report_disc]
+        lr_schedulers = [scheduler_img_gen, scheduler_report_gen, scheduler_img_disc, scheduler_report_disc]
+
+        return optimizers, lr_schedulers
 
 
     def log_gen_loss(self,loss):
