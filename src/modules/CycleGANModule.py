@@ -269,11 +269,13 @@ class CycleGAN(pl.LightningModule):
         self.phase = 'train'
         self.real_img = batch['target'].float()
         hard_report = batch['report'].float()
+        self.real_hard_report = hard_report
         if self.soft_label_type is not None:
             soft_report = convert_to_soft_labels(self.soft_label_type, hard_report, self.current_epoch)
             self.real_report = soft_report
         else:
             self.real_report = hard_report
+        
         
         batch_nmb = self.real_img.shape[0]
 
@@ -376,9 +378,16 @@ class CycleGAN(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
 
         self.phase = 'val'
-
         self.real_img = batch['target'].float()
-        self.real_report = batch['report'].float()
+        hard_report = batch['report'].float()
+        self.real_hard_report = hard_report
+        if self.soft_label_type is not None:
+            soft_report = convert_to_soft_labels(self.soft_label_type, hard_report, self.current_epoch)
+            self.real_report = soft_report
+        else:
+            self.real_report = hard_report
+        
+        
         batch_nmb = self.real_img.shape[0]
 
         self.fake_report = self.report_generator(self.real_img)
@@ -388,23 +397,23 @@ class CycleGAN(pl.LightningModule):
         self.fake_report_0_1 = torch.where(self.fake_report_0_1 >= 0.5, torch.tensor(1.0, device=self.fake_report.device), self.fake_report_0_1)
         
         # update the metrics
-        self.val_metrics['accuracy_micro'].update(self.fake_report_0_1, self.real_report)
-        self.val_metrics['precision_micro'].update(self.fake_report_0_1, self.real_report)
-        self.val_metrics['recall_micro'].update(self.fake_report_0_1, self.real_report)
-        self.val_metrics['f1_micro'].update(self.fake_report_0_1, self.real_report)
+        self.val_metrics['accuracy_micro'].update(self.fake_report_0_1, self.real_hard_report)
+        self.val_metrics['precision_micro'].update(self.fake_report_0_1, self.real_hard_report)
+        self.val_metrics['recall_micro'].update(self.fake_report_0_1, self.real_hard_report)
+        self.val_metrics['f1_micro'].update(self.fake_report_0_1, self.real_hard_report)
 
-        self.val_metrics['accuracy_macro'].update(self.fake_report_0_1, self.real_report)
-        self.val_metrics['precision_macro'].update(self.fake_report_0_1, self.real_report)
-        self.val_metrics['recall_macro'].update(self.fake_report_0_1, self.real_report)
-        self.val_metrics['f1_macro'].update(self.fake_report_0_1, self.real_report)
+        self.val_metrics['accuracy_macro'].update(self.fake_report_0_1, self.real_hard_report)
+        self.val_metrics['precision_macro'].update(self.fake_report_0_1, self.real_hard_report)
+        self.val_metrics['recall_macro'].update(self.fake_report_0_1, self.real_hard_report)
+        self.val_metrics['f1_macro'].update(self.fake_report_0_1, self.real_hard_report)
         
         # calculate the overall precision
-        overall_precision = self.calculate_overall_precision(self.fake_report_0_1, self.real_report, batch_nmb)
+        overall_precision = self.calculate_overall_precision(self.fake_report_0_1, self.real_hard_report, batch_nmb)
         self.val_metrics['overall_precision'].append(overall_precision)
         
         # calculate the report cocnsistency loss
-        val_loss_float = self.report_consistency_loss(self.fake_report, self.real_report)
-        val_loss_0_1 = self.report_consistency_loss(self.fake_report_0_1, self.real_report)
+        val_loss_float = self.report_consistency_loss(self.fake_report, self.real_hard_report)
+        val_loss_0_1 = self.report_consistency_loss(self.fake_report_0_1, self.real_hard_report)
 
         ##################################################
         # shuffle the val dataset since we need unpaired samples for below
@@ -509,20 +518,19 @@ class CycleGAN(pl.LightningModule):
 
     def log_reports_on_cycle(self, batch_idx):
         real_report = self.real_report[0]
+        real_hard_report = self.real_hard_report[0]
         cycle_report = self.cycle_report[0]
         # Process the generated report
         
         real_report = real_report.cpu().detach()
+        real_hard_report = real_hard_report.cpu().detach()
         real_report_raw = real_report.clone()
-        
-        real_report = torch.sigmoid(real_report)
-        real_report = (real_report > 0.5).int()
         report_text_labels = [self.opt['dataset']['chexpert_labels'][idx] for idx, val in enumerate(real_report) if
                               val == 1]
         report_text_real = ', '.join(report_text_labels)
         # Convert tensor elements to strings for joining
         report_text_real_raw = ', '.join([str(item.item()) for item in real_report_raw])
-
+        report_text_real_raw_hard  = ', '.join([str(item.item()) for item in real_hard_report])
 
         
         generated_report = cycle_report.cpu().detach()
@@ -540,8 +548,9 @@ class CycleGAN(pl.LightningModule):
         
         self.logger.experiment.add_text(f"On step {self.phase} cycle report", report_text_cycle, step)
         self.logger.experiment.add_text(f"On step {self.phase} real report", report_text_real , step)
-        self.logger.experiment.add_text(f"On step {self.phase} cycle report raw", report_text_cycle_raw, step)
-        self.logger.experiment.add_text(f"On step {self.phase} real report raw", report_text_real_raw, step)
+        self.logger.experiment.add_text(f"On step {self.phase} cycle report float", report_text_cycle_raw, step)
+        self.logger.experiment.add_text(f"On step {self.phase} real report soft", report_text_real_raw, step)
+        self.logger.experiment.add_text(f"On step {self.phase} real report hard", report_text_real_raw_hard, step)
 
     def save_images(self, batch_idx):
         # Process and save the real image
