@@ -14,7 +14,7 @@ from PIL import Image
 from models.BioViL import *
 from models.StackGAN import StackGANGen1, StackGANGen2, StackGANDisc1, StackGANDisc2
 from models.ARK import ARKModel
-from utils.buffer import ReportBuffer, ImageBuffer
+from utils.buffer import ReportBuffer, ImageBuffer, convert_to_soft_labels
 from models.Discriminator import *
 from models.cGAN import cGAN, cGANconv
 from models.DDPM import ContextUnet, DDPM
@@ -71,6 +71,7 @@ class CycleGAN(pl.LightningModule):
         self.n_epochs = self.opt['trainer']['n_epoch']
         self.n_feat = self.opt["image_generator"]["n_feat"]
         self.n_T = self.opt["image_generator"]["n_T"]
+        self.soft_label_type = self.opt['trainer']['soft_label_type']   
 
     def define_networks(self):
         self.report_generator = self._get_report_generator()
@@ -249,7 +250,13 @@ class CycleGAN(pl.LightningModule):
     def training_step(self, batch, batch_idx, optimizer_idx):
         self.phase = 'train'
         self.real_img = batch['target'].float()
-        self.real_report = batch['report'].float()
+        hard_report = batch['report'].float()
+        if self.soft_label_type is not None:
+            soft_report = convert_to_soft_labels(self.soft_label_type, hard_report, self.current_epoch)
+            self.real_report = soft_report
+        else:
+            self.real_report = hard_report
+        
         batch_nmb = self.real_img.shape[0]
 
         z = Variable(torch.randn(batch_nmb, self.z_size)).float().to(self.device)

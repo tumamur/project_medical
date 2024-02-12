@@ -105,6 +105,7 @@ trainer :
   step_lr_gamma: 0.5
   exp_lr_gamma: 0.9
   log_val_metrics_on_step : True
+  soft_label_type : 'gaussian'
 
 
 
