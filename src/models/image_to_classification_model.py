@@ -14,19 +14,21 @@ class ArkModel(pl.LightningModule):
         super(ArkModel, self).__init__()
         self.model = timm.create_model('swin_base_patch4_window7_224', num_classes=num_classes, pretrained=False)
 
-        self.state_dict = torch.load(ark_pretrained_path, map_location="cpu")
+        self.pretrained_state_dict = torch.load(ark_pretrained_path, map_location="cpu")
         for k in ['head.weight', 'head.bias', 'head_dist.weight', 'head_dist.bias']:
-            if k in self.state_dict:
+            if k in self.pretrained_state_dict:
                 print(f"Removing key {k} from pretrained checkpoint")
-                del self.state_dict[k]
+                del self.pretrained_state_dict[k]
 
-        self.model.load_state_dict(self.state_dict, strict=False)
+        self.model.load_state_dict(self.pretrained_state_dict, strict=False)
+        self.num_classes = num_classes
         self.define_metrics()
 
         self.lr = learning_rate
         self.criterion = criterion
         self.beta1 = params["report_generator"]["beta1"]
         self.beta2 = params["report_generator"]["beta2"]
+
 
     def forward(self, x):
         # Pass the input through the underlying model
@@ -132,6 +134,13 @@ class ArkModel(pl.LightningModule):
 
         return loss
 
+    def calculate_overall_precision(self, preds, targets, batch_nmb):
+        exact_matches = torch.all(preds == targets, dim=1)
+        true_positives = torch.sum(exact_matches).item()
+        precision = true_positives / batch_nmb
+        return precision
+
+
 
 class VisionTransformer(nn.Module):
     def __init__(self):
@@ -139,9 +148,12 @@ class VisionTransformer(nn.Module):
         # self.image_inference = health_multimodal.image.get_image_inference(ImageModelType.BIOVIL_T)
         self.model = get_biovil_t_image_encoder()
         # print(self.model)
+        for param in self.model.parameters():
+            param.requires_grad = False
 
     def forward(self, x):
-        x = self.model.forward(x).projected_global_embedding
+        # x = self.model.forward(x).projected_global_embedding
+        x = self.model.forward(x).img_embedding
         # Check if normalization is needed
         x = torch.nn.functional.normalize(x, dim=1)
         return x

@@ -12,7 +12,6 @@ from models.image_to_classification_model import BioVILModel
 def main():
     params = read_config(env_settings.CONFIG)
     processor = DataHandler(opt=params["dataset"])
-
     chexpert_data_module = ChexpertDataModule(opt=params['dataset'], processor=processor)
     chexpert_data_module.setup()
 
