@@ -25,6 +25,16 @@ def read_disease_combination_counts(path):
         disease_combination_counts = json.load(f)
     return disease_combination_counts
 
+# def entropy_regularization(predictions, epsilon=1e-12):
+#     # Assuming predictions are probabilities
+#     return -(predictions * torch.log(predictions + epsilon) + (1 - predictions) * torch.log(1 - predictions + epsilon)).mean()
+    # # Example usage within your loss calculation
+    # # predictions = model(input)
+    # # entropy_loss = entropy_regularization(predictions)
+    # # total_loss = classification_loss + lambda * entropy_loss
+
+
+
 def convert_to_soft_labels(type,label, current_epoch):
     """
     Convert labels to soft labels

@@ -14,13 +14,13 @@ dataset:
     'Pneumonia',
     'Pneumothorax'
   ]
-  batch_size : 1
+  batch_size : 16
   sample_size : -1
   input_size : 224
   data_imputation : "zeros"
   val_size : 0.1
   test_size : 0.1
-  num_workers : 4
+  num_workers : 16
   paired: False
   use_all_images: False
   num_images: 50000
@@ -62,8 +62,8 @@ report_generator:
   weight_decay: 0.001
   decay_epochs : 5
   beta: 0.5
-  classification_head_hidden1: 512
-  classification_head_hidden2: 256
+  classification_head_hidden1: 256
+  #classification_head_hidden2: 256
   dropout_prob: 0.5
   consistency_loss : 'BCE'
   embedding_size : 512
@@ -84,7 +84,7 @@ report_discriminator:
 
 trainer :
   num_classes : 13
-  lambda_cycle_loss: 15
+  lambda_cycle_loss: 10
   seed : 42
   save_images : False
   buffer_size : 500
@@ -93,7 +93,7 @@ trainer :
   scheduler_iter : 10
   check_val_every_n_epochs: 1
   n_epoch: 5
-  update_freq : 80
+  update_freq : 50
   adaptive_threshold_gen : False
   adaptive_threshold_disc : False
   gen_threshold : 0.25
@@ -106,7 +106,8 @@ trainer :
   exp_lr_gamma: 0.9
   log_val_metrics_on_step : True
   soft_label_type : 'gaussian'
-
+  resume_training : False
+  resume_version : 0
 
 
 

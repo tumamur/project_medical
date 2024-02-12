@@ -14,7 +14,8 @@ from PIL import Image
 from models.BioViL import *
 from models.StackGAN import StackGANGen1, StackGANGen2, StackGANDisc1, StackGANDisc2
 from models.ARK import ARKModel
-from utils.buffer import ReportBuffer, ImageBuffer, convert_to_soft_labels
+from utils.buffer import ReportBuffer, ImageBuffer
+from utils.utils import convert_to_soft_labels
 from models.Discriminator import *
 from models.cGAN import cGAN, cGANconv
 from models.DDPM import ContextUnet, DDPM
@@ -98,6 +99,18 @@ class CycleGAN(pl.LightningModule):
 
     def define_metrics(self):
         self.val_metrics = {
+            'accuracy_micro' : Accuracy(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
+            'precision_micro' : Precision(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
+            'recall_micro' : Recall(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
+            'f1_micro' : F1Score(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
+            'accuracy_macro' : Accuracy(task="multilabel", average="macro", num_labels=self.num_classes).to('cuda:0'),
+            'precision_macro' : Precision(task="multilabel", average="macro", num_labels=self.num_classes).to('cuda:0'),
+            'recall_macro' : Recall(task="multilabel", average="macro", num_labels=self.num_classes).to('cuda:0'),
+            'f1_macro' : F1Score(task="multilabel", average="macro", num_labels=self.num_classes).to('cuda:0'),
+            'overall_precision' : [],
+        }
+
+        self.train_metrics = {
             'accuracy_micro' : Accuracy(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
             'precision_micro' : Precision(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
             'recall_micro' : Recall(task="multilabel", average="micro", num_labels=self.num_classes).to('cuda:0'),
@@ -193,11 +206,13 @@ class CycleGAN(pl.LightningModule):
 
     def log_gen_loss(self,loss):
         # TODO : Log only avg values
-        total_loss, loss_IR, loss_RI, loss_IRI, loss_RIR = loss
+        total_loss, loss_IR, loss_RI, loss_IRI_perceptual, loss_IRI_L1, loss_IRI, loss_RIR = loss
         metrics = {
             'loss_G_total' : total_loss,
             'loss_IR' : loss_IR,
             'loss_RI' : loss_RI,
+            'loss_IRI_perceptual' : loss_IRI_perceptual,
+            'loss_IRI_L1': loss_IRI_L1,
             'loss_IRI' : loss_IRI,
             'loss_RIR' : loss_RIR
         }
@@ -206,8 +221,11 @@ class CycleGAN(pl.LightningModule):
         metrics = {f'{self.phase}_{key}': value for key, value in metrics.items()}
         self.log_dict(metrics, on_step=True, on_epoch=True, prog_bar=True)
 
+    
+
     def log_val_metrics(self, metrics, on_step):
         # log the metrics
+        metrics = {f'{self.phase}_{key}': value for key, value in metrics.items()}
         self.log_dict(metrics, on_step=on_step, on_epoch=True, prog_bar=True)
 
                                                            
@@ -223,7 +241,7 @@ class CycleGAN(pl.LightningModule):
         
         loss_RIR = self.report_consistency_loss(self.cycle_report, self.real_report) * self.lambda_R
         loss = loss_IR + loss_RI + loss_IRI + loss_RIR
-        self.log_gen_loss((loss, loss_IR, loss_RI, loss_IRI, loss_RIR))
+        self.log_gen_loss((loss, loss_IR, loss_RI, loss_IRI_perceptual,loss_IRI_L1, loss_IRI, loss_RIR))
         
         return loss
         
@@ -276,12 +294,27 @@ class CycleGAN(pl.LightningModule):
         self.fake_img = self.image_generator(z, self.real_report)
   
         fake_reports = torch.sigmoid(self.fake_report)
+        fake_reports_0_1 = torch.where(fake_reports > 0.5, 1, 0)
+        
         if not self.opt['trainer']['use_float_reports']:
             fake_reports = torch.where(fake_reports > 0.5, 1, 0)
 
         self.fake_img = self.image_generator(z, self.real_report)
         self.cycle_report = self.report_generator(self.fake_img)
         self.cycle_img = self.image_generator(z, fake_reports)
+
+        self.train_metrics['accuracy_micro'].update(fake_reports_0_1, hard_report)
+        self.train_metrics['precision_micro'].update(fake_reports_0_1, hard_report)
+        self.train_metrics['recall_micro'].update(fake_reports_0_1, hard_report)
+        self.train_metrics['f1_micro'].update(fake_reports_0_1, hard_report)
+
+        self.train_metrics['accuracy_macro'].update(fake_reports_0_1, hard_report)
+        self.train_metrics['precision_macro'].update(fake_reports_0_1, hard_report)
+        self.train_metrics['recall_macro'].update(fake_reports_0_1, hard_report)
+        self.train_metrics['f1_macro'].update(fake_reports_0_1, hard_report)
+
+        overall_precision = self.calculate_overall_precision(fake_reports_0_1, hard_report, batch_nmb)
+        self.train_metrics['overall_precision'].append(overall_precision)
 
 
         if ((batch_idx+1)*self.batch_size) % self.update_freq == 0:
@@ -306,6 +339,33 @@ class CycleGAN(pl.LightningModule):
             report_disc_loss = self.report_discriminator_step(valid_report_sample, fake_report_sample)
             if report_disc_loss > self.opt['trainer']['report_disc_threshold']:
                 return {"loss": report_disc_loss}
+
+    def training_epoch_end(self):
+        # log the metrics
+        self.phase = 'train'
+        train_log_metrics = {
+                'accuracy_micro' : self.train_metrics['accuracy_micro'].compute(),
+                'precision_micro' : self.train_metrics['precision_micro'].compute(),
+                'recall_micro' : self.train_metrics['recall_micro'].compute(),
+                'f1_micro' : self.train_metrics['f1_micro'].compute(),
+                'accuracy_macro' : self.train_metrics['accuracy_macro'].compute(),
+                'precision_macro' : self.train_metrics['precision_macro'].compute(),
+                'recall_macro' : self.train_metrics['recall_macro'].compute(),
+                'f1_macro' : self.train_metrics['f1_macro'].compute(),
+                'overall_precision' : torch.mean(torch.tensor(self.train_metrics['overall_precision']))
+        }
+        self.log_val_metrics(train_metrics, on_step=False)
+        # reset the metrics
+        self.train_metrics['accuracy_micro'].reset()
+        self.train_metrics['precision_micro'].reset()
+        self.train_metrics['recall_micro'].reset()
+        self.train_metrics['f1_micro'].reset()
+        self.train_metrics['accuracy_macro'].reset()
+        self.train_metrics['precision_macro'].reset()
+        self.train_metrics['recall_macro'].reset()
+        self.train_metrics['f1_macro'].reset()
+        self.train_metrics['overall_precision'] = []
+
 
     def calculate_overall_precision(self, preds, targets, batch_nmb):
         exact_matches = torch.all(preds == targets, dim=1)
@@ -397,6 +457,7 @@ class CycleGAN(pl.LightningModule):
        
         
     def on_validation_epoch_end(self):
+        self.phase = 'val'
         # log the metrics
         val_log_metrics = {
                 'accuracy_micro' : self.val_metrics['accuracy_micro'].compute(),
@@ -518,12 +579,11 @@ class CycleGAN(pl.LightningModule):
         model_dict = {
             # 'ark' : ARKModel(num_classes=self.num_classes,
             # #                    ark_pretrained_path=env_settings.PRETRAINED_PATH['ARK']),
-            # 'biovil_t': BioViL(embedding_size=self.opt["report_generator"]["embedding_size"], 
-            #                   num_classes=self.num_classes, 
-            #                   hidden_1=self.opt["report_generator"]["classification_head_hidden1"],
-            #                   hidden_2=self.opt["report_generator"]["classification_head_hidden2"], 
-            #                   dropout_rate=self.opt["report_generator"]["dropout_prob"])
-            'biovil_t': BioViL_V2()
+            'biovil_t': BioViL(embedding_size=self.opt["report_generator"]["embedding_size"], 
+                              num_classes=self.num_classes, 
+                              hidden_1=self.opt["report_generator"]["classification_head_hidden1"],
+                              dropout_rate=self.opt["report_generator"]["dropout_prob"])
+            #'biovil_t': BioViL_V2()
         }
 
         return model_dict[self.opt['report_generator']['model']]
@@ -536,13 +596,7 @@ class CycleGAN(pl.LightningModule):
     def _get_image_generator(self):
         model_dict = {
             'cgan' : cGANconv(z_size=self.z_size, img_size=self.input_size, class_num=self.num_classes,
-                    img_channels=self.opt["image_discriminator"]["channels"]) ,
-            # 'ddpm' : DDPM(nn_model=ContextUnet(in_channels=3, n_feat=self.n_feat, n_classes=self.num_classes), 
-            #               image_size=(self.input_size, self.input_size),
-            #               betas=(float(self.opt['image_generator']['ddpm_beta1']), 
-            #                      float(self.opt['image_generator']['ddpm_beta2'])),
-            #               n_T=self.n_T,
-            #               drop_prob=self.opt['image_generator']['ddpm_drop_prob']),
+                    img_channels=self.opt["image_discriminator"]["channels"])
         }
 
         return model_dict[self.opt["image_generator"]["model"]]
