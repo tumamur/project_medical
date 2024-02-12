@@ -5,7 +5,7 @@ import timm
 import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
-from models.BioViL import BioViL
+from models.BioViL import BioViL, BioViL_V2
 from models.ARK import ARKModel
 from models.buffer import ReportBuffer, ImageBuffer
 from models.Discriminator import ImageDiscriminator
@@ -586,11 +586,12 @@ class CycleGAN(pl.LightningModule):
                             ark_pretrained_path=env_settings.PRETRAINED_PATH_ARK)
         
         elif model_name == "BioVil":
-            return BioViL(embedding_size=self.opt["report_generator"]["embedding_size"], 
-                          num_classes=self.num_classes, 
-                          hidden_1=self.opt["report_generator"]["classification_head_hidden1"],
-                          hidden_2=self.opt["report_generator"]["classification_head_hidden2"], 
-                          dropout_rate=self.opt["report_generator"]["dropout_prob"])
+            #return BioViL(embedding_size=self.opt["report_generator"]["embedding_size"],
+             #             num_classes=self.num_classes,
+              #            hidden_1=self.opt["report_generator"]["classification_head_hidden1"],
+               #           hidden_2=self.opt["report_generator"]["classification_head_hidden2"],
+                #          dropout_rate=self.opt["report_generator"]["dropout_prob"])
+            return BioViL_V2()
         else:
             raise NotImplementedError(f"Model {model_name} not implemented for report generation.")
 
