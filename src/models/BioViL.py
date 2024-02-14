@@ -22,6 +22,37 @@ class VisionTransformer(nn.Module):
         x = torch.nn.functional.normalize(x, dim=1)
         return x
 
+    def freeze_encoder(self, n_layers=None):
+        """
+        Freezes the parameters of the first n_layers of the encoder.
+        If n_layers is None, all layers are frozen.
+        """
+        layers = list(self.model.children())  # Assuming the model is sequentially ordered
+        n_freeze = len(layers) if n_layers is None else n_layers
+
+        for layer in layers[:n_freeze]:
+            for param in layer.parameters():
+                param.requires_grad = False
+
+    def unfreeze_layers(self, start_layer, end_layer=None):
+        """
+        Unfreezes layers in a specified range.
+        
+        Parameters:
+        - start_layer: Index of the first layer to unfreeze.
+        - end_layer: Index of the last layer to unfreeze. If None, only the start_layer will be unfrozen.
+        """
+        layers = list(self.model.children())  # Adjust this if model children are not direct layers
+        
+        # If end_layer is not specified, set it to start_layer to unfreeze only one layer
+        if end_layer is None:
+            end_layer = start_layer
+        
+        for layer in layers[start_layer:end_layer + 1]:
+            for param in layer.parameters():
+                param.requires_grad = True
+
+
 
 
 class ClassificationHead(nn.Module):
@@ -30,14 +61,16 @@ class ClassificationHead(nn.Module):
         hidden_dim_1 = hidden_size_1
         dropout_prob = dropout_rate
         self.fc1 = nn.Linear(input_size, hidden_dim_1)
+        self.batch_norm1 = nn.BatchNorm1d(hidden_dim_1)
         self.fc2 = nn.Linear(hidden_dim_1, num_classes)
-        self.relu = nn.ReLU()
+        self.relu = nn.ReLU(inplace=True)
         self.dropout = nn.Dropout(p=dropout_prob)
 
     def forward(self, x):
         x = self.fc1(x)
+        x = self.batch_norm1(x)
         x = self.relu(x)
-        x = self.dropout(x)
+        #x = self.dropout(x)
         x = self.fc2(x)
         return x
 

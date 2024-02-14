@@ -71,26 +71,31 @@ def main(params):
         print(f"Could not start tensor board, got error {e}")
 
     # Start training
-    torch.autograd.set_detect_anomaly(True)
+    # torch.autograd.set_detect_anomaly(True)
     trainer.fit(CycleGAN_module, chexpert_data_module)
 
 
 if __name__ == '__main__':
-    # parser = argparse.ArgumentParser(description='Training settings')
-    parser.add_argument('--n_epochs', type=int, default=5)
+    parser = argparse.ArgumentParser(description='Training settings')
+    parser.add_argument('--n_epoch', type=int, default=5)
     parser.add_argument('--batch_size', type=int, default=16)
+    parser.add_argument('--num_images', type=int, default=50000)
     parser.add_argument('--use_all_images', action='store_true', default=False)
     parser.add_argument('--soft_label_type', type=str, default=None)
     parser.add_argument('--report_gen_lr', type=float, default=0.0001)
     parser.add_argument('--without_decay', action='store_false', default=True)
-    
+    parser.add_argument('--resume_training', action='store_true', default=False)
+    parser.add_argument('--resume_version', type=int, default=0)
     arguments = parser.parse_args()
     
     params = read_config(env_settings.CONFIG)
     params['dataset']['batch_size'] = arguments.batch_size
+    params['dataset']['num_images'] = arguments.num_images
     params['dataset']['use_all_images'] = arguments.use_all_images
-    params['trainer']['n_epoch'] = arguments.n_epochs
+    params['trainer']['n_epoch'] = arguments.n_epoch
     params['trainer']['soft_label_type'] = arguments.soft_label_type
+    params['trainer']['resume_training'] = arguments.resume_training
+    params['trainer']['resume_version'] = arguments.resume_version
     params['report_generator']['learning_rate'] = arguments.report_gen_lr
     params['report_generator']['decay'] = arguments.without_decay
     

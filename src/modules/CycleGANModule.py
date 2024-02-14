@@ -342,7 +342,7 @@ class CycleGAN(pl.LightningModule):
             if report_disc_loss > self.opt['trainer']['report_disc_threshold']:
                 return {"loss": report_disc_loss}
 
-    def training_epoch_end(self):
+    def training_epoch_end(self, training_step_outputs):
         # log the metrics
         self.phase = 'train'
         train_log_metrics = {
@@ -356,7 +356,7 @@ class CycleGAN(pl.LightningModule):
                 'f1_macro' : self.train_metrics['f1_macro'].compute(),
                 'overall_precision' : torch.mean(torch.tensor(self.train_metrics['overall_precision']))
         }
-        self.log_val_metrics(train_metrics, on_step=False)
+        self.log_val_metrics(train_log_metrics, on_step=False)
         # reset the metrics
         self.train_metrics['accuracy_micro'].reset()
         self.train_metrics['precision_micro'].reset()
